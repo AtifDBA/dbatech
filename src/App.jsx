@@ -3,10 +3,10 @@ import { useState, useEffect, useCallback } from "react";
 // ══════════════════════════════════════════════════════════════════════
 // 🔐 SECURITY CONFIG — CHANGE THIS PASSWORD BEFORE DEPLOYING!
 // ══════════════════════════════════════════════════════════════════════
-const ADMIN_PASSWORD = "cafBT@DBATECH123";
-const MAX_LOGIN_ATTEMPTS = 5;        // Lock after 5 wrong attempts
-const LOCKOUT_MINUTES = 15;          // Locked for 15 minutes
-const SESSION_HOURS = 8;             // Auto-logout after 8 hours
+const ADMIN_PASSWORD = "";
+const MAX_LOGIN_ATTEMPTS = 5;
+const LOCKOUT_MINUTES = 15;
+const SESSION_HOURS = 8;
 
 // ── DEFAULT CONTENT DATA ──────────────────────────────────────────────
 const DEFAULT_CATEGORIES = [
@@ -135,6 +135,173 @@ function renderContent(text) {
 const CATEGORY_ICONS = { databases: "🗄️", automation: "⚙️", cloud: "☁️" };
 
 // ══════════════════════════════════════════════════════════════════════
+// 🔒 LOCK ICON
+// ══════════════════════════════════════════════════════════════════════
+function LockIcon() {
+  return (
+    <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 0 }}>
+      <div style={{ width: 14, height: 10, border: "3px solid #f5c518", borderBottom: "none", borderRadius: "7px 7px 0 0", marginBottom: -1 }} />
+      <div style={{ width: 22, height: 17, background: "#f5c518", borderRadius: 4, display: "flex", alignItems: "center", justifyContent: "center" }}>
+        <div style={{ width: 5, height: 7, borderRadius: 3, background: "#0d1b2e", marginTop: 2 }} />
+      </div>
+    </div>
+  );
+}
+
+// ══════════════════════════════════════════════════════════════════════
+// 📊 STATS FOOTER — shows on every page
+// ══════════════════════════════════════════════════════════════════════
+function StatsFooter({ topics }) {
+  const [visible, setVisible] = useState(false);
+  useEffect(() => {
+    const t = setTimeout(() => setVisible(true), 100);
+    return () => clearTimeout(t);
+  }, []);
+
+  const totalPages = topics.reduce((a, t) => a + t.pages.length, 0);
+
+  const stats = [
+    { value: topics.length, label: "Total Topics",      type: "number" },
+    { value: totalPages,    label: "Knowledge Pages",   type: "number" },
+    { value: DEFAULT_CATEGORIES.length, label: "Technology Areas", type: "number" },
+    { value: null,          label: "Secured Admin",     type: "lock"   },
+  ];
+
+  return (
+    <footer style={{
+      background: "linear-gradient(135deg, #0d1b2e 0%, #112240 100%)",
+      borderTop: "1px solid #1e3a5f",
+      padding: "30px 40px",
+      display: "flex",
+      alignItems: "center",
+      justifyContent: "center",
+      flexWrap: "wrap",
+      width: "100%",
+      boxSizing: "border-box",
+    }}>
+      {stats.map((stat, i) => (
+        <div key={i} style={{ display: "flex", alignItems: "center" }}>
+          <div style={{
+            display: "flex", flexDirection: "column", alignItems: "center", gap: 8,
+            padding: "0 48px",
+            opacity: visible ? 1 : 0,
+            transform: visible ? "translateY(0)" : "translateY(14px)",
+            transition: `opacity 0.5s ease ${i * 0.1}s, transform 0.5s ease ${i * 0.1}s`,
+          }}>
+            {stat.type === "lock" ? <LockIcon /> : (
+              <span style={{ fontFamily: "'Playfair Display', Georgia, serif", fontSize: 30, fontWeight: 700, color: "#e8edf5", lineHeight: 1, letterSpacing: "-0.5px" }}>
+                {stat.value}
+              </span>
+            )}
+            <span style={{ fontSize: 12, fontWeight: 500, color: "#7a90aa", letterSpacing: "0.05em", textAlign: "center" }}>
+              {stat.label}
+            </span>
+          </div>
+          {i < stats.length - 1 && (
+            <div style={{ width: 1, height: 44, background: "#1e3a5f", flexShrink: 0 }} />
+          )}
+        </div>
+      ))}
+
+      {/* Copyright — border auto-fits to text width */}
+      <div style={{ width: "100%", display: "flex", justifyContent: "center", marginTop: 20 }}>
+        <span style={{
+          display: "inline-block",
+          fontSize: 11, color: "#3d5470",
+          letterSpacing: "0.06em",
+          borderTop: "1px solid #1a2f48",
+          paddingTop: 14,
+        }}>
+          © {new Date().getFullYear()} ITLearn Hub · All rights reserved
+        </span>
+      </div>
+    </footer>
+  );
+}
+
+// ══════════════════════════════════════════════════════════════════════
+// 🔍 GLOBAL SEARCH BAR COMPONENT
+// ══════════════════════════════════════════════════════════════════════
+function GlobalSearch({ topics, onGoTopic, onGoPage }) {
+  const [query, setQuery] = useState("");
+  const [results, setResults] = useState([]);
+  const [focused, setFocused] = useState(false);
+
+  useEffect(() => {
+    if (!query.trim()) { setResults([]); return; }
+    const q = query.toLowerCase();
+    const found = [];
+    topics.forEach((t) => {
+      if (t.title.toLowerCase().includes(q) || t.description.toLowerCase().includes(q) || t.tagline.toLowerCase().includes(q)) {
+        found.push({ type: "topic", topic: t });
+      }
+      t.pages.forEach((p) => {
+        if (p.title.toLowerCase().includes(q) || p.content.toLowerCase().includes(q)) {
+          found.push({ type: "page", topic: t, page: p });
+        }
+      });
+    });
+    setResults(found.slice(0, 8));
+  }, [query, topics]);
+
+  const handleSelect = (r) => {
+    setQuery("");
+    setResults([]);
+    if (r.type === "topic") onGoTopic(r.topic);
+    else onGoPage(r.topic, r.page);
+  };
+
+  return (
+    <div style={{ position: "relative", width: "100%", maxWidth: 360 }}>
+      <div style={{ display: "flex", alignItems: "center", background: "#F3F4F6", border: `1.5px solid ${focused ? "#2563EB" : "#E2E2EC"}`, borderRadius: 10, padding: "0.45rem 0.9rem", gap: "0.5rem", transition: "border-color 0.2s" }}>
+        <span style={{ fontSize: "0.9rem", color: "#9CA3AF" }}>🔍</span>
+        <input
+          value={query}
+          onChange={(e) => setQuery(e.target.value)}
+          onFocus={() => setFocused(true)}
+          onBlur={() => setTimeout(() => setFocused(false), 200)}
+          placeholder="Search topics & pages…"
+          style={{ border: "none", background: "transparent", outline: "none", fontSize: "0.84rem", color: "#1A1A2E", width: "100%", fontFamily: "inherit" }}
+        />
+        {query && (
+          <button onClick={() => { setQuery(""); setResults([]); }} style={{ background: "none", border: "none", cursor: "pointer", color: "#9CA3AF", fontSize: "1rem", lineHeight: 1, padding: 0 }}>×</button>
+        )}
+      </div>
+
+      {results.length > 0 && focused && (
+        <div style={{ position: "absolute", top: "calc(100% + 6px)", left: 0, right: 0, background: "#fff", border: "1px solid #E2E2EC", borderRadius: 12, boxShadow: "0 8px 32px rgba(0,0,0,0.12)", zIndex: 999, overflow: "hidden" }}>
+          {results.map((r, i) => (
+            <div key={i} onClick={() => handleSelect(r)}
+              style={{ padding: "0.75rem 1rem", cursor: "pointer", display: "flex", alignItems: "center", gap: "0.7rem", borderBottom: i < results.length - 1 ? "1px solid #F3F4F6" : "none" }}
+              onMouseEnter={(e) => e.currentTarget.style.background = "#F8FAFF"}
+              onMouseLeave={(e) => e.currentTarget.style.background = "#fff"}>
+              <span style={{ fontSize: "1.2rem", flexShrink: 0 }}>{r.topic.icon}</span>
+              <div style={{ flex: 1, minWidth: 0 }}>
+                <div style={{ fontSize: "0.83rem", fontWeight: 600, color: "#1A1A2E", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
+                  {r.type === "page" ? r.page.title : r.topic.title}
+                </div>
+                <div style={{ fontSize: "0.75rem", color: "#9CA3AF" }}>
+                  {r.type === "page" ? `in ${r.topic.title}` : r.topic.tagline}
+                </div>
+              </div>
+              <span style={{ fontSize: "0.7rem", background: r.type === "page" ? "#EFF6FF" : r.topic.lightColor, color: r.type === "page" ? "#2563EB" : r.topic.color, padding: "0.15rem 0.5rem", borderRadius: 100, fontWeight: 600, flexShrink: 0 }}>
+                {r.type === "page" ? "page" : "topic"}
+              </span>
+            </div>
+          ))}
+        </div>
+      )}
+
+      {query.trim() && results.length === 0 && focused && (
+        <div style={{ position: "absolute", top: "calc(100% + 6px)", left: 0, right: 0, background: "#fff", border: "1px solid #E2E2EC", borderRadius: 12, padding: "1.2rem", textAlign: "center", color: "#9CA3AF", fontSize: "0.83rem", zIndex: 999, boxShadow: "0 8px 32px rgba(0,0,0,0.12)" }}>
+          No results for "<strong>{query}</strong>"
+        </div>
+      )}
+    </div>
+  );
+}
+
+// ══════════════════════════════════════════════════════════════════════
 // 🔐 ADMIN LOGIN COMPONENT
 // ══════════════════════════════════════════════════════════════════════
 function AdminLogin({ onSuccess, onCancel }) {
@@ -184,7 +351,6 @@ function AdminLogin({ onSuccess, onCancel }) {
           <h2 style={{ fontFamily: "'Playfair Display', serif", fontSize: "1.5rem", fontWeight: 900, color: "#1A1A2E" }}>Admin Access</h2>
           <p style={{ fontSize: "0.83rem", color: "#6B7280", marginTop: "0.3rem" }}>Enter your password to manage content</p>
         </div>
-
         {locked ? (
           <div style={{ background: "#FEF2F2", border: "1px solid #FCA5A5", borderRadius: 10, padding: "1rem", textAlign: "center" }}>
             <div style={{ fontSize: "1.5rem", marginBottom: "0.4rem" }}>🔒</div>
@@ -196,15 +362,9 @@ function AdminLogin({ onSuccess, onCancel }) {
         ) : (
           <>
             <div style={{ position: "relative", marginBottom: "1rem" }}>
-              <input
-                type={showPwd ? "text" : "password"}
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                onKeyDown={(e) => e.key === "Enter" && handleLogin()}
-                placeholder="Enter admin password"
-                style={{ width: "100%", padding: "0.85rem 3rem 0.85rem 1rem", border: `1.5px solid ${error ? "#FCA5A5" : "#E2E2EC"}`, borderRadius: 10, fontSize: "0.95rem", background: "#FAFAF7", outline: "none" }}
-                autoFocus
-              />
+              <input type={showPwd ? "text" : "password"} value={password} onChange={(e) => setPassword(e.target.value)}
+                onKeyDown={(e) => e.key === "Enter" && handleLogin()} placeholder="Enter admin password"
+                style={{ width: "100%", padding: "0.85rem 3rem 0.85rem 1rem", border: `1.5px solid ${error ? "#FCA5A5" : "#E2E2EC"}`, borderRadius: 10, fontSize: "0.95rem", background: "#FAFAF7", outline: "none" }} autoFocus />
               <button onClick={() => setShowPwd(!showPwd)} style={{ position: "absolute", right: "0.8rem", top: "50%", transform: "translateY(-50%)", background: "none", border: "none", cursor: "pointer", fontSize: "1rem", color: "#6B7280" }}>
                 {showPwd ? "🙈" : "👁️"}
               </button>
@@ -240,18 +400,16 @@ export default function App() {
   const [showLogin, setShowLogin]     = useState(false);
   const [isAdmin, setIsAdmin]         = useState(false);
   const [adminView, setAdminView]     = useState("topics");
-  const [editingTopic, setEditingTopic]         = useState(null);
-  const [editingPage, setEditingPage]           = useState(null);
+  const [editingTopic, setEditingTopic]             = useState(null);
+  const [editingPage, setEditingPage]               = useState(null);
   const [editingPageTopicId, setEditingPageTopicId] = useState(null);
 
-  // Check existing valid session on mount
   useEffect(() => {
     loadData().then(setTopics);
     const sec = getSecurityState();
     if (isSessionValid(sec)) setIsAdmin(true);
   }, []);
 
-  // Auto-logout when session expires
   useEffect(() => {
     if (!isAdmin) return;
     const sec = getSecurityState();
@@ -266,8 +424,7 @@ export default function App() {
   const handleLogout = () => {
     const sec = getSecurityState();
     setSecurityState({ ...sec, loggedIn: false, loginTime: null });
-    setIsAdmin(false);
-    setView("home");
+    setIsAdmin(false); setView("home");
     showToast("👋 Logged out successfully");
   };
 
@@ -277,30 +434,25 @@ export default function App() {
   };
 
   const handleLoginSuccess = () => {
-    setIsAdmin(true);
-    setShowLogin(false);
-    setView("admin");
-    setAdminView("topics");
+    setIsAdmin(true); setShowLogin(false);
+    setView("admin"); setAdminView("topics");
     showToast("✅ Welcome back! Admin session started.");
   };
 
-  // Navigation
-  const goHome    = () => { setView("home"); setActiveTopic(null); setActivePage(null); };
-  const goAbout   = () => { setView("about"); setActiveTopic(null); setActivePage(null); };
-  const goBrowse  = (cat = "all") => { setView("browse"); setFilterCat(cat); setActiveTopic(null); };
-  const goTopic   = (t) => { setActiveTopic(t); setView("topic"); setActivePage(null); };
-  const goPage    = (topic, page) => { setActiveTopic(topic); setActivePage(page); setView("page"); };
+  const goHome   = () => { setView("home");   setActiveTopic(null); setActivePage(null); };
+  const goAbout  = () => { setView("about");  setActiveTopic(null); setActivePage(null); };
+  const goBrowse = (cat = "all") => { setView("browse"); setFilterCat(cat); setActiveTopic(null); };
+  const goTopic  = (t) => { setActiveTopic(t); setView("topic"); setActivePage(null); };
+  const goPage   = (topic, page) => { setActiveTopic(topic); setActivePage(page); setView("page"); };
 
-  // Filtered topics
   const filtered = topics.filter((t) => {
-    const matchCat = filterCat === "all" || t.category === filterCat;
+    const matchCat    = filterCat === "all" || t.category === filterCat;
     const matchSearch = !search || t.title.toLowerCase().includes(search.toLowerCase()) || t.description.toLowerCase().includes(search.toLowerCase());
     return matchCat && matchSearch;
   });
 
   const byCategory = DEFAULT_CATEGORIES.map((c) => ({ ...c, items: topics.filter((t) => t.category === c.id) }));
 
-  // Admin actions
   const saveTopic = (data) => {
     const next = data.id && topics.find((t) => t.id === data.id)
       ? topics.map((t) => t.id === data.id ? { ...t, ...data } : t)
@@ -324,9 +476,9 @@ export default function App() {
     showToast("🗑️ Page deleted");
   };
 
-  // ── RENDER ──────────────────────────────────────────────────────────
   return (
-    <div style={{ fontFamily: "'DM Sans', sans-serif", minHeight: "100vh", background: "#FAFAF7", color: "#1A1A2E" }}>
+    // ✅ KEY FIX: flex column + min-height 100vh pushes footer to bottom
+    <div style={{ fontFamily: "'DM Sans', sans-serif", minHeight: "100vh", background: "#FAFAF7", color: "#1A1A2E", display: "flex", flexDirection: "column" }}>
       <style>{`
         @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;900&family=DM+Sans:wght@300;400;500;600;700&family=DM+Mono:wght@400;500&display=swap');
         * { box-sizing: border-box; margin: 0; padding: 0; }
@@ -345,10 +497,8 @@ export default function App() {
         ::-webkit-scrollbar-thumb { background: #c1c1d4; border-radius: 10px; }
       `}</style>
 
-      {/* 🔐 LOGIN MODAL */}
       {showLogin && <AdminLogin onSuccess={handleLoginSuccess} onCancel={() => setShowLogin(false)} />}
 
-      {/* TOAST */}
       {toast && (
         <div style={{ position: "fixed", bottom: "1.5rem", right: "1.5rem", zIndex: 9999, background: "#1A1A2E", color: "#fff", borderRadius: 12, padding: "0.85rem 1.5rem", fontSize: "0.88rem", fontWeight: 500, boxShadow: "0 8px 30px rgba(0,0,0,0.25)", animation: "fadeIn 0.3s ease" }}>
           {toast}
@@ -356,24 +506,24 @@ export default function App() {
       )}
 
       {/* ── NAV ── */}
-      <nav style={{ position: "sticky", top: 0, zIndex: 100, background: "rgba(250,250,247,0.94)", backdropFilter: "blur(14px)", borderBottom: "1px solid #E2E2EC", display: "flex", alignItems: "center", justifyContent: "space-between", padding: "0 4%", height: 62 }}>
-        <div onClick={goHome} style={{ fontFamily: "'Playfair Display', serif", fontSize: "1.3rem", fontWeight: 900, cursor: "pointer" }}>
+      <nav style={{ position: "sticky", top: 0, zIndex: 100, background: "rgba(250,250,247,0.94)", backdropFilter: "blur(14px)", borderBottom: "1px solid #E2E2EC", display: "flex", alignItems: "center", justifyContent: "space-between", padding: "0 4%", height: 62, gap: "1rem" }}>
+        <div onClick={goHome} style={{ fontFamily: "'Playfair Display', serif", fontSize: "1.3rem", fontWeight: 900, cursor: "pointer", flexShrink: 0 }}>
           IT<span style={{ color: "#2563EB" }}>Learn</span> Hub
         </div>
-        <div style={{ display: "flex", gap: "0.4rem", flexWrap: "wrap", alignItems: "center" }}>
+
+        {/* ✅ GLOBAL SEARCH in nav */}
+        <GlobalSearch topics={topics} onGoTopic={goTopic} onGoPage={goPage} />
+
+        <div style={{ display: "flex", gap: "0.4rem", flexWrap: "wrap", alignItems: "center", flexShrink: 0 }}>
           {[["Home", goHome], ["About Me", goAbout], ["Browse", () => goBrowse()], ...DEFAULT_CATEGORIES.map((c) => [c.label, () => goBrowse(c.id)])].map(([label, fn]) => (
             <button key={label} onClick={fn} style={{ padding: "0.4rem 0.85rem", background: "transparent", border: "none", color: "#6B7280", fontFamily: "inherit", fontSize: "0.82rem", fontWeight: 500, cursor: "pointer", borderRadius: 8 }}
               onMouseEnter={(e) => e.target.style.color = "#2563EB"} onMouseLeave={(e) => e.target.style.color = "#6B7280"}>
               {label}
             </button>
           ))}
-
-          {/* Admin button — always visible but requires password */}
           <button onClick={handleAdminClick} className="btn" style={{ padding: "0.4rem 1rem", background: isAdmin ? "#1A1A2E" : "#F3F4F6", color: isAdmin ? "#fff" : "#374151", fontSize: "0.82rem" }}>
             {isAdmin ? "✏️ Manage" : "🔐 Admin"}
           </button>
-
-          {/* Logout — only shown when logged in */}
           {isAdmin && (
             <button onClick={handleLogout} className="btn" style={{ padding: "0.4rem 0.85rem", background: "#FEF2F2", color: "#DC2626", fontSize: "0.78rem" }}>
               Logout
@@ -382,416 +532,339 @@ export default function App() {
         </div>
       </nav>
 
-      {/* ══════════ HOME VIEW ══════════ */}
-      {view === "home" && (
-        <div className="fade-in">
-          <section style={{ background: "#fff", padding: "70px 6% 60px", borderBottom: "1px solid #E2E2EC" }}>
-            <div style={{ maxWidth: 640 }}>
-              <div style={{ display: "inline-flex", alignItems: "center", gap: 6, background: "#EFF6FF", color: "#2563EB", border: "1px solid #BFDBFE", borderRadius: 100, padding: "0.3rem 0.9rem", fontSize: "0.75rem", fontWeight: 600, letterSpacing: "0.05em", textTransform: "uppercase", marginBottom: "1.2rem" }}>
-                🚀 IT Knowledge Hub — Databases · Automation · Cloud
-              </div>
-              <h1 style={{ fontFamily: "'Playfair Display', serif", fontSize: "clamp(2rem, 4vw, 3.2rem)", fontWeight: 900, lineHeight: 1.13, marginBottom: "1rem" }}>
-                Master <span style={{ color: "#2563EB" }}>Databases, Automation</span> & Cloud Technologies
-              </h1>
-              <p style={{ fontSize: "1rem", color: "#6B7280", lineHeight: 1.78, marginBottom: "2rem", maxWidth: 520 }}>
-                A professional IT knowledge base covering Oracle, PostgreSQL, MySQL, MongoDB, SQL Server, Ansible, Terraform, AWS, Azure, and Kubernetes.
-              </p>
-              <div style={{ display: "flex", gap: "0.8rem", flexWrap: "wrap" }}>
-                <button onClick={() => goBrowse()} className="btn" style={{ padding: "0.8rem 1.6rem", background: "#2563EB", color: "#fff", fontSize: "0.92rem" }}>Browse All Topics →</button>
-              </div>
-            </div>
-          </section>
+      {/* ✅ MAIN CONTENT — flex:1 pushes footer to bottom */}
+      <main style={{ flex: 1 }}>
 
-          <div style={{ background: "#1A1A2E", display: "grid", gridTemplateColumns: "repeat(4,1fr)", padding: "2rem 6%" }}>
-            {[[topics.length, "Total Topics"], [topics.reduce((a,t) => a + t.pages.length, 0), "Knowledge Pages"], [DEFAULT_CATEGORIES.length, "Technology Areas"], ["🔒", "Secured Admin"]].map(([n,l]) => (
-              <div key={l} style={{ textAlign: "center", padding: "0.5rem" }}>
-                <div style={{ fontFamily: "'Playfair Display', serif", fontSize: "2rem", fontWeight: 900, color: "#fff" }}>{n}</div>
-                <div style={{ fontSize: "0.78rem", color: "#9CA3AF", marginTop: 2 }}>{l}</div>
-              </div>
-            ))}
-          </div>
-
-          {byCategory.map((cat) => (
-            <section key={cat.id} style={{ padding: "50px 6% 40px", borderBottom: "1px solid #E2E2EC" }}>
-              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "1.5rem" }}>
-                <div>
-                  <div style={{ fontSize: "0.72rem", fontWeight: 600, color: cat.color, letterSpacing: "0.1em", textTransform: "uppercase", marginBottom: 4 }}>{cat.icon} {cat.label}</div>
-                  <div style={{ fontFamily: "'Playfair Display', serif", fontSize: "1.6rem", fontWeight: 900 }}>
-                    {cat.id === "databases" ? "Database Platforms" : cat.id === "automation" ? "Automation Tools" : "Cloud Infrastructure"}
-                  </div>
+        {/* ══════════ HOME VIEW ══════════ */}
+        {view === "home" && (
+          <div className="fade-in">
+            <section style={{ background: "#fff", padding: "70px 6% 60px", borderBottom: "1px solid #E2E2EC" }}>
+              <div style={{ maxWidth: 640 }}>
+                <div style={{ display: "inline-flex", alignItems: "center", gap: 6, background: "#EFF6FF", color: "#2563EB", border: "1px solid #BFDBFE", borderRadius: 100, padding: "0.3rem 0.9rem", fontSize: "0.75rem", fontWeight: 600, letterSpacing: "0.05em", textTransform: "uppercase", marginBottom: "1.2rem" }}>
+                  🚀 IT Knowledge Hub — Databases · Automation · Cloud
                 </div>
-                <button onClick={() => goBrowse(cat.id)} className="btn" style={{ padding: "0.5rem 1.1rem", background: cat.lightColor, color: cat.color, border: `1px solid ${cat.color}30`, fontSize: "0.82rem" }}>
-                  See All {cat.items.length} →
-                </button>
-              </div>
-              <div className="slide-row">
-                {cat.items.map((t) => (
-                  <div key={t.id} onClick={() => goTopic(t)} className="hover-lift" style={{ minWidth: 220, background: "#fff", border: "1px solid #E2E2EC", borderRadius: 14, padding: "1.5rem", flexShrink: 0, position: "relative", overflow: "hidden" }}>
-                    <div style={{ position: "absolute", top: 0, left: 0, right: 0, height: 3, background: t.color }} />
-                    <div style={{ fontSize: "2rem", marginBottom: "0.7rem" }}>{t.icon}</div>
-                    <div style={{ fontWeight: 700, fontSize: "0.95rem", marginBottom: "0.35rem" }}>{t.title}</div>
-                    <div style={{ fontSize: "0.78rem", color: "#6B7280", marginBottom: "0.8rem", lineHeight: 1.5 }}>{t.description.substring(0, 75)}…</div>
-                    <span style={{ background: t.lightColor, color: t.color, padding: "0.2rem 0.65rem", borderRadius: 100, fontSize: "0.72rem", fontWeight: 600 }}>{t.pages.length} pages</span>
-                  </div>
-                ))}
+                <h1 style={{ fontFamily: "'Playfair Display', serif", fontSize: "clamp(2rem, 4vw, 3.2rem)", fontWeight: 900, lineHeight: 1.13, marginBottom: "1rem" }}>
+                  Master <span style={{ color: "#2563EB" }}>Databases, Automation</span> & Cloud Technologies
+                </h1>
+                <p style={{ fontSize: "1rem", color: "#6B7280", lineHeight: 1.78, marginBottom: "2rem", maxWidth: 520 }}>
+                  A professional IT knowledge base covering Oracle, PostgreSQL, MySQL, MongoDB, SQL Server, Ansible, Terraform, AWS, Azure, and Kubernetes.
+                </p>
+                <div style={{ display: "flex", gap: "0.8rem", flexWrap: "wrap" }}>
+                  <button onClick={() => goBrowse()} className="btn" style={{ padding: "0.8rem 1.6rem", background: "#2563EB", color: "#fff", fontSize: "0.92rem" }}>Browse All Topics →</button>
+                </div>
               </div>
             </section>
-          ))}
-        </div>
-      )}
 
-      {/* ══════════ BROWSE VIEW ══════════ */}
-      {view === "browse" && (
-        <div className="fade-in">
-          <div style={{ background: "#fff", padding: "40px 6% 30px", borderBottom: "1px solid #E2E2EC" }}>
-            <Breadcrumb items={[{ label: "Home", fn: goHome }, { label: "Browse" }]} />
-            <h1 style={{ fontFamily: "'Playfair Display', serif", fontSize: "2rem", fontWeight: 900, marginTop: "0.8rem", marginBottom: "1rem" }}>Browse Topics</h1>
-            <div style={{ display: "flex", gap: "0.6rem", flexWrap: "wrap", marginBottom: "1rem" }}>
-              {[{ id: "all", label: "All", icon: "📚", color: "#2563EB" }, ...DEFAULT_CATEGORIES].map((c) => (
-                <button key={c.id} onClick={() => setFilterCat(c.id)} className="btn" style={{ padding: "0.4rem 1rem", background: filterCat === c.id ? (c.color || "#2563EB") : "#F3F4F6", color: filterCat === c.id ? "#fff" : "#374151", fontSize: "0.82rem" }}>
-                  {c.icon} {c.label}
-                </button>
+            {byCategory.map((cat) => (
+              <section key={cat.id} style={{ padding: "50px 6% 40px", borderBottom: "1px solid #E2E2EC" }}>
+                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "1.5rem" }}>
+                  <div>
+                    <div style={{ fontSize: "0.72rem", fontWeight: 600, color: cat.color, letterSpacing: "0.1em", textTransform: "uppercase", marginBottom: 4 }}>{cat.icon} {cat.label}</div>
+                    <div style={{ fontFamily: "'Playfair Display', serif", fontSize: "1.6rem", fontWeight: 900 }}>
+                      {cat.id === "databases" ? "Database Platforms" : cat.id === "automation" ? "Automation Tools" : "Cloud Infrastructure"}
+                    </div>
+                  </div>
+                  <button onClick={() => goBrowse(cat.id)} className="btn" style={{ padding: "0.5rem 1.1rem", background: cat.lightColor, color: cat.color, border: `1px solid ${cat.color}30`, fontSize: "0.82rem" }}>
+                    See All {cat.items.length} →
+                  </button>
+                </div>
+                <div className="slide-row">
+                  {cat.items.map((t) => (
+                    <div key={t.id} onClick={() => goTopic(t)} className="hover-lift" style={{ minWidth: 220, background: "#fff", border: "1px solid #E2E2EC", borderRadius: 14, padding: "1.5rem", flexShrink: 0, position: "relative", overflow: "hidden" }}>
+                      <div style={{ position: "absolute", top: 0, left: 0, right: 0, height: 3, background: t.color }} />
+                      <div style={{ fontSize: "2rem", marginBottom: "0.7rem" }}>{t.icon}</div>
+                      <div style={{ fontWeight: 700, fontSize: "0.95rem", marginBottom: "0.35rem" }}>{t.title}</div>
+                      <div style={{ fontSize: "0.78rem", color: "#6B7280", marginBottom: "0.8rem", lineHeight: 1.5 }}>{t.description.substring(0, 75)}…</div>
+                      <span style={{ background: t.lightColor, color: t.color, padding: "0.2rem 0.65rem", borderRadius: 100, fontSize: "0.72rem", fontWeight: 600 }}>{t.pages.length} pages</span>
+                    </div>
+                  ))}
+                </div>
+              </section>
+            ))}
+          </div>
+        )}
+
+        {/* ══════════ BROWSE VIEW ══════════ */}
+        {view === "browse" && (
+          <div className="fade-in">
+            <div style={{ background: "#fff", padding: "40px 6% 30px", borderBottom: "1px solid #E2E2EC" }}>
+              <Breadcrumb items={[{ label: "Home", fn: goHome }, { label: "Browse" }]} />
+              <h1 style={{ fontFamily: "'Playfair Display', serif", fontSize: "2rem", fontWeight: 900, marginTop: "0.8rem", marginBottom: "1rem" }}>Browse Topics</h1>
+              <div style={{ display: "flex", gap: "0.6rem", flexWrap: "wrap", marginBottom: "1rem" }}>
+                {[{ id: "all", label: "All", icon: "📚", color: "#2563EB" }, ...DEFAULT_CATEGORIES].map((c) => (
+                  <button key={c.id} onClick={() => setFilterCat(c.id)} className="btn" style={{ padding: "0.4rem 1rem", background: filterCat === c.id ? (c.color || "#2563EB") : "#F3F4F6", color: filterCat === c.id ? "#fff" : "#374151", fontSize: "0.82rem" }}>
+                    {c.icon} {c.label}
+                  </button>
+                ))}
+              </div>
+              <input value={search} onChange={(e) => setSearch(e.target.value)} placeholder="🔍  Search topics…" style={{ width: "100%", maxWidth: 420, padding: "0.65rem 1rem", border: "1.5px solid #E2E2EC", borderRadius: 10, fontSize: "0.88rem", background: "#FAFAF7" }} />
+            </div>
+            <div style={{ padding: "2rem 6%", display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(260px,1fr))", gap: "1.2rem" }}>
+              {filtered.map((t) => (
+                <div key={t.id} onClick={() => goTopic(t)} className="hover-lift" style={{ background: "#fff", border: "1px solid #E2E2EC", borderRadius: 14, padding: "1.5rem", position: "relative", overflow: "hidden" }}>
+                  <div style={{ position: "absolute", top: 0, left: 0, right: 0, height: 3, background: t.color }} />
+                  <div style={{ fontSize: "2.2rem", marginBottom: "0.8rem" }}>{t.icon}</div>
+                  <div style={{ fontWeight: 700, fontSize: "0.98rem", marginBottom: "0.3rem" }}>{t.title}</div>
+                  <div style={{ fontSize: "0.78rem", color: t.color, fontWeight: 600, marginBottom: "0.6rem" }}>{t.tagline}</div>
+                  <div style={{ fontSize: "0.82rem", color: "#6B7280", lineHeight: 1.6, marginBottom: "1rem" }}>{t.description.substring(0, 100)}…</div>
+                  <span style={{ background: t.lightColor, color: t.color, padding: "0.2rem 0.65rem", borderRadius: 100, fontSize: "0.72rem", fontWeight: 600 }}>{t.pages.length} page{t.pages.length !== 1 ? "s" : ""}</span>
+                </div>
+              ))}
+              {filtered.length === 0 && (
+                <div style={{ gridColumn: "1/-1", textAlign: "center", padding: "4rem", color: "#9CA3AF" }}>
+                  <div style={{ fontSize: "3rem", marginBottom: "1rem" }}>🔍</div>
+                  <div style={{ fontWeight: 600 }}>No topics found</div>
+                </div>
+              )}
+            </div>
+          </div>
+        )}
+
+        {/* ══════════ TOPIC VIEW ══════════ */}
+        {view === "topic" && activeTopic && (
+          <div className="fade-in">
+            <div style={{ background: "#fff", padding: "40px 6% 35px", borderBottom: "1px solid #E2E2EC" }}>
+              <Breadcrumb items={[{ label: "Home", fn: goHome }, { label: "Browse", fn: () => goBrowse() }, { label: activeTopic.title }]} />
+              <div style={{ display: "flex", gap: "1rem", alignItems: "flex-start", marginTop: "1.2rem", flexWrap: "wrap" }}>
+                <div style={{ fontSize: "3rem" }}>{activeTopic.icon}</div>
+                <div style={{ flex: 1 }}>
+                  <div style={{ fontSize: "0.72rem", fontWeight: 600, color: activeTopic.color, letterSpacing: "0.08em", textTransform: "uppercase", marginBottom: 4 }}>
+                    {CATEGORY_ICONS[activeTopic.category]} {activeTopic.category.toUpperCase()}
+                  </div>
+                  <h1 style={{ fontFamily: "'Playfair Display', serif", fontSize: "2rem", fontWeight: 900, marginBottom: "0.5rem" }}>{activeTopic.title}</h1>
+                  <p style={{ color: "#6B7280", lineHeight: 1.7, maxWidth: 640 }}>{activeTopic.description}</p>
+                </div>
+                {isAdmin && (
+                  <button onClick={() => { setEditingPage({ title: "", content: "" }); setEditingPageTopicId(activeTopic.id); setView("admin"); setAdminView("edit-page"); }} className="btn"
+                    style={{ padding: "0.6rem 1.2rem", background: activeTopic.lightColor, color: activeTopic.color, border: `1px solid ${activeTopic.color}30`, fontSize: "0.83rem" }}>
+                    ＋ Add Page
+                  </button>
+                )}
+              </div>
+            </div>
+            <div style={{ padding: "2.5rem 6%" }}>
+              {activeTopic.pages.length === 0 ? (
+                <div style={{ textAlign: "center", padding: "4rem", color: "#9CA3AF", border: "2px dashed #E2E2EC", borderRadius: 16 }}>
+                  <div style={{ fontSize: "2.5rem", marginBottom: "0.8rem" }}>📄</div>
+                  <div style={{ fontWeight: 600 }}>No pages yet — content coming soon!</div>
+                </div>
+              ) : (
+                <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(280px,1fr))", gap: "1rem" }}>
+                  {activeTopic.pages.map((page) => (
+                    <div key={page.id} style={{ background: "#fff", border: "1px solid #E2E2EC", borderRadius: 14, padding: "1.5rem" }}>
+                      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
+                        <div onClick={() => goPage(activeTopic, page)} style={{ flex: 1, cursor: "pointer" }}>
+                          <div style={{ fontWeight: 700, fontSize: "0.95rem", marginBottom: "0.3rem" }}>{page.title}</div>
+                          <div style={{ fontSize: "0.78rem", color: "#9CA3AF" }}>Updated: {page.lastUpdated}</div>
+                          <div style={{ fontSize: "0.82rem", color: "#6B7280", marginTop: "0.5rem", lineHeight: 1.5 }}>
+                            {page.content.replace(/```[\s\S]*?```/g,"[code]").replace(/\*\*/g,"").substring(0,100)}…
+                          </div>
+                        </div>
+                        {isAdmin && (
+                          <div style={{ display: "flex", gap: "0.3rem", marginLeft: "0.5rem" }}>
+                            <button onClick={() => { setEditingPage(page); setEditingPageTopicId(activeTopic.id); setView("admin"); setAdminView("edit-page"); }}
+                              style={{ background: "#EFF6FF", color: "#2563EB", border: "none", borderRadius: 7, padding: "0.3rem 0.6rem", cursor: "pointer", fontSize: "0.78rem" }}>Edit</button>
+                            <button onClick={() => deletePage(activeTopic.id, page.id)}
+                              style={{ background: "#FEF2F2", color: "#EF4444", border: "none", borderRadius: 7, padding: "0.3rem 0.6rem", cursor: "pointer", fontSize: "0.78rem" }}>Del</button>
+                          </div>
+                        )}
+                      </div>
+                      <div onClick={() => goPage(activeTopic, page)} style={{ marginTop: "1rem", fontSize: "0.78rem", color: "#2563EB", fontWeight: 600, cursor: "pointer" }}>Read more →</div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          </div>
+        )}
+
+        {/* ══════════ PAGE VIEW ══════════ */}
+        {view === "page" && activeTopic && activePage && (
+          <div className="fade-in">
+            <div style={{ background: "#fff", padding: "35px 6% 28px", borderBottom: "1px solid #E2E2EC" }}>
+              <Breadcrumb items={[{ label: "Home", fn: goHome }, { label: "Browse", fn: () => goBrowse() }, { label: activeTopic.title, fn: () => goTopic(activeTopic) }, { label: activePage.title }]} />
+              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginTop: "1rem", flexWrap: "wrap", gap: "0.8rem" }}>
+                <div>
+                  <h1 style={{ fontFamily: "'Playfair Display', serif", fontSize: "1.8rem", fontWeight: 900 }}>{activePage.title}</h1>
+                  <div style={{ fontSize: "0.78rem", color: "#9CA3AF", marginTop: "0.3rem" }}>From <strong>{activeTopic.title}</strong> · Updated {activePage.lastUpdated}</div>
+                </div>
+                {isAdmin && (
+                  <button onClick={() => { setEditingPage(activePage); setEditingPageTopicId(activeTopic.id); setView("admin"); setAdminView("edit-page"); }} className="btn"
+                    style={{ padding: "0.5rem 1.1rem", background: "#EFF6FF", color: "#2563EB", fontSize: "0.82rem" }}>✏️ Edit Page</button>
+                )}
+              </div>
+            </div>
+            <div style={{ maxWidth: 820, margin: "0 auto", padding: "2.5rem 6%" }}>
+              <div style={{ background: "#fff", border: "1px solid #E2E2EC", borderRadius: 16, padding: "2.5rem", lineHeight: 1.8, fontSize: "0.93rem", color: "#2D2D44" }}
+                dangerouslySetInnerHTML={{ __html: renderContent(activePage.content) }} />
+              <CommentsSection
+                pageId={activeTopic.id + "-" + activePage.id}
+                pageTitle={activePage.title}
+                pageUrl={"https://dbatech-hub.onrender.com/" + activeTopic.id + "/" + activePage.id}
+              />
+            </div>
+          </div>
+        )}
+
+        {/* ══════════ ABOUT VIEW ══════════ */}
+        {view === "about" && (
+          <div className="fade-in">
+            <div style={{ background: "linear-gradient(135deg, #1A1A2E 0%, #16213E 50%, #0F3460 100%)", padding: "70px 6% 60px", position: "relative", overflow: "hidden" }}>
+              <div style={{ position: "absolute", top: -80, right: -80, width: 360, height: 360, background: "radial-gradient(circle, rgba(37,99,235,0.15) 0%, transparent 70%)", borderRadius: "50%" }} />
+              <div style={{ display: "flex", alignItems: "center", gap: "2.5rem", flexWrap: "wrap", position: "relative" }}>
+                <div style={{ width: 120, height: 120, borderRadius: "50%", background: "linear-gradient(135deg, #2563EB, #0891B2)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "3.5rem", flexShrink: 0, boxShadow: "0 8px 32px rgba(37,99,235,0.4)", border: "3px solid rgba(255,255,255,0.15)" }}>👨‍💻</div>
+                <div>
+                  <div style={{ fontSize: "0.75rem", fontWeight: 600, color: "#60A5FA", letterSpacing: "0.12em", textTransform: "uppercase", marginBottom: "0.5rem" }}>🌟 Senior Database Administrator</div>
+                  <h1 style={{ fontFamily: "'Playfair Display', serif", fontSize: "clamp(2rem, 4vw, 3rem)", fontWeight: 900, color: "#fff", lineHeight: 1.1, marginBottom: "0.6rem" }}>Atif — DBA & IT Professional</h1>
+                  <p style={{ color: "#94A3B8", fontSize: "1rem", lineHeight: 1.7, maxWidth: 520 }}>11+ years of hands-on experience managing enterprise databases, building automation pipelines, and architecting cloud infrastructure.</p>
+                  <div style={{ display: "flex", gap: "0.8rem", marginTop: "1.2rem", flexWrap: "wrap" }}>
+                    <a href="https://www.linkedin.com/in/mokhtar-atif-dba" target="_blank" rel="noreferrer"
+                      style={{ display: "inline-flex", alignItems: "center", gap: "0.4rem", padding: "0.55rem 1.1rem", background: "#0077B5", color: "#fff", borderRadius: 9, fontSize: "0.85rem", fontWeight: 600, textDecoration: "none" }}>
+                      🔗 LinkedIn Profile
+                    </a>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div style={{ background: "#2563EB", display: "grid", gridTemplateColumns: "repeat(4,1fr)", padding: "1.5rem 6%" }}>
+              {[["11+", "Years Experience"], ["5+", "Database Platforms"], ["1000+", "Issues Resolved"], ["∞", "Pages of Knowledge"]].map(([n,l]) => (
+                <div key={l} style={{ textAlign: "center" }}>
+                  <div style={{ fontFamily: "'Playfair Display', serif", fontSize: "1.8rem", fontWeight: 900, color: "#fff" }}>{n}</div>
+                  <div style={{ fontSize: "0.75rem", color: "#BFDBFE", marginTop: 2 }}>{l}</div>
+                </div>
               ))}
             </div>
-            <input value={search} onChange={(e) => setSearch(e.target.value)} placeholder="🔍  Search topics…" style={{ width: "100%", maxWidth: 420, padding: "0.65rem 1rem", border: "1.5px solid #E2E2EC", borderRadius: 10, fontSize: "0.88rem", background: "#FAFAF7" }} />
-          </div>
-          <div style={{ padding: "2rem 6%", display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(260px,1fr))", gap: "1.2rem" }}>
-            {filtered.map((t) => (
-              <div key={t.id} onClick={() => goTopic(t)} className="hover-lift" style={{ background: "#fff", border: "1px solid #E2E2EC", borderRadius: 14, padding: "1.5rem", position: "relative", overflow: "hidden" }}>
-                <div style={{ position: "absolute", top: 0, left: 0, right: 0, height: 3, background: t.color }} />
-                <div style={{ fontSize: "2.2rem", marginBottom: "0.8rem" }}>{t.icon}</div>
-                <div style={{ fontWeight: 700, fontSize: "0.98rem", marginBottom: "0.3rem" }}>{t.title}</div>
-                <div style={{ fontSize: "0.78rem", color: t.color, fontWeight: 600, marginBottom: "0.6rem" }}>{t.tagline}</div>
-                <div style={{ fontSize: "0.82rem", color: "#6B7280", lineHeight: 1.6, marginBottom: "1rem" }}>{t.description.substring(0, 100)}…</div>
-                <span style={{ background: t.lightColor, color: t.color, padding: "0.2rem 0.65rem", borderRadius: 100, fontSize: "0.72rem", fontWeight: 600 }}>{t.pages.length} page{t.pages.length !== 1 ? "s" : ""}</span>
-              </div>
-            ))}
-            {filtered.length === 0 && (
-              <div style={{ gridColumn: "1/-1", textAlign: "center", padding: "4rem", color: "#9CA3AF" }}>
-                <div style={{ fontSize: "3rem", marginBottom: "1rem" }}>🔍</div>
-                <div style={{ fontWeight: 600 }}>No topics found</div>
-              </div>
-            )}
-          </div>
-        </div>
-      )}
 
-      {/* ══════════ TOPIC VIEW ══════════ */}
-      {view === "topic" && activeTopic && (
-        <div className="fade-in">
-          <div style={{ background: "#fff", padding: "40px 6% 35px", borderBottom: "1px solid #E2E2EC" }}>
-            <Breadcrumb items={[{ label: "Home", fn: goHome }, { label: "Browse", fn: () => goBrowse() }, { label: activeTopic.title }]} />
-            <div style={{ display: "flex", gap: "1rem", alignItems: "flex-start", marginTop: "1.2rem", flexWrap: "wrap" }}>
-              <div style={{ fontSize: "3rem" }}>{activeTopic.icon}</div>
-              <div style={{ flex: 1 }}>
-                <div style={{ fontSize: "0.72rem", fontWeight: 600, color: activeTopic.color, letterSpacing: "0.08em", textTransform: "uppercase", marginBottom: 4 }}>
-                  {CATEGORY_ICONS[activeTopic.category]} {activeTopic.category.toUpperCase()}
+            <div style={{ padding: "60px 6%", background: "#fff", borderBottom: "1px solid #E2E2EC" }}>
+              <div style={{ maxWidth: 820, margin: "0 auto" }}>
+                <div style={{ fontSize: "0.72rem", fontWeight: 600, color: "#2563EB", letterSpacing: "0.1em", textTransform: "uppercase", marginBottom: "0.6rem" }}>📖 My Story</div>
+                <h2 style={{ fontFamily: "'Playfair Display', serif", fontSize: "2rem", fontWeight: 900, marginBottom: "1.5rem" }}>The Knowledge Sharing Journey</h2>
+                <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "2rem" }}>
+                  <p style={{ fontSize: "0.95rem", color: "#4B5563", lineHeight: 1.85 }}>My journey in databases began over <strong>20 years ago</strong>, starting with Oracle in enterprise environments. I've worked across industries managing mission-critical databases, building automation frameworks, and migrating workloads to the cloud.</p>
+                  <p style={{ fontSize: "0.95rem", color: "#4B5563", lineHeight: 1.85 }}>Today this hub covers <strong>Oracle, PostgreSQL, MySQL, MongoDB, SQL Server</strong> — plus <strong>Ansible, Terraform</strong> and <strong>AWS, Azure, and Kubernetes</strong>. My goal: share knowledge freely and help the next generation of DBAs.</p>
                 </div>
-                <h1 style={{ fontFamily: "'Playfair Display', serif", fontSize: "2rem", fontWeight: 900, marginBottom: "0.5rem" }}>{activeTopic.title}</h1>
-                <p style={{ color: "#6B7280", lineHeight: 1.7, maxWidth: 640 }}>{activeTopic.description}</p>
               </div>
-              {/* Add Page button — ADMIN ONLY */}
-              {isAdmin && (
-                <button onClick={() => { setEditingPage({ title: "", content: "" }); setEditingPageTopicId(activeTopic.id); setView("admin"); setAdminView("edit-page"); }} className="btn"
-                  style={{ padding: "0.6rem 1.2rem", background: activeTopic.lightColor, color: activeTopic.color, border: `1px solid ${activeTopic.color}30`, fontSize: "0.83rem" }}>
-                  ＋ Add Page
-                </button>
-              )}
             </div>
-          </div>
-          <div style={{ padding: "2.5rem 6%" }}>
-            {activeTopic.pages.length === 0 ? (
-              <div style={{ textAlign: "center", padding: "4rem", color: "#9CA3AF", border: "2px dashed #E2E2EC", borderRadius: 16 }}>
-                <div style={{ fontSize: "2.5rem", marginBottom: "0.8rem" }}>📄</div>
-                <div style={{ fontWeight: 600 }}>No pages yet — content coming soon!</div>
-              </div>
-            ) : (
-              <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(280px,1fr))", gap: "1rem" }}>
-                {activeTopic.pages.map((page) => (
-                  <div key={page.id} style={{ background: "#fff", border: "1px solid #E2E2EC", borderRadius: 14, padding: "1.5rem" }}>
-                    <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
-                      <div onClick={() => goPage(activeTopic, page)} style={{ flex: 1, cursor: "pointer" }}>
-                        <div style={{ fontWeight: 700, fontSize: "0.95rem", marginBottom: "0.3rem" }}>{page.title}</div>
-                        <div style={{ fontSize: "0.78rem", color: "#9CA3AF" }}>Updated: {page.lastUpdated}</div>
-                        <div style={{ fontSize: "0.82rem", color: "#6B7280", marginTop: "0.5rem", lineHeight: 1.5 }}>
-                          {page.content.replace(/```[\s\S]*?```/g,"[code]").replace(/\*\*/g,"").substring(0,100)}…
-                        </div>
-                      </div>
-                      {/* Edit/Delete — ADMIN ONLY */}
-                      {isAdmin && (
-                        <div style={{ display: "flex", gap: "0.3rem", marginLeft: "0.5rem" }}>
-                          <button onClick={() => { setEditingPage(page); setEditingPageTopicId(activeTopic.id); setView("admin"); setAdminView("edit-page"); }}
-                            style={{ background: "#EFF6FF", color: "#2563EB", border: "none", borderRadius: 7, padding: "0.3rem 0.6rem", cursor: "pointer", fontSize: "0.78rem" }}>Edit</button>
-                          <button onClick={() => deletePage(activeTopic.id, page.id)}
-                            style={{ background: "#FEF2F2", color: "#EF4444", border: "none", borderRadius: 7, padding: "0.3rem 0.6rem", cursor: "pointer", fontSize: "0.78rem" }}>Del</button>
-                        </div>
-                      )}
+
+            <div style={{ padding: "60px 6%", background: "#FAFAF7" }}>
+              <div style={{ maxWidth: 820, margin: "0 auto" }}>
+                <div style={{ fontSize: "0.72rem", fontWeight: 600, color: "#2563EB", letterSpacing: "0.1em", textTransform: "uppercase", marginBottom: "0.6rem" }}>🛠️ Expertise</div>
+                <h2 style={{ fontFamily: "'Playfair Display', serif", fontSize: "2rem", fontWeight: 900, marginBottom: "1.8rem" }}>Areas of Specialization</h2>
+                <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(220px,1fr))", gap: "1.2rem" }}>
+                  {[
+                    { icon: "🔴", title: "Oracle DBA",   desc: "RAC, Data Guard, RMAN, PL/SQL, Performance Tuning", color: "#C74634", light: "#FEF2F0" },
+                    { icon: "🐘", title: "PostgreSQL",    desc: "Replication, Partitioning, JSON, pgBouncer",         color: "#336791", light: "#EFF6FF" },
+                    { icon: "🐬", title: "MySQL",         desc: "InnoDB, Replication, Galera Cluster",                color: "#F29111", light: "#FFFBEB" },
+                    { icon: "🪟", title: "SQL Server",    desc: "AlwaysOn, SSRS, SSIS, T-SQL, Azure SQL",            color: "#CC2927", light: "#FEF2F2" },
+                    { icon: "🍃", title: "MongoDB",       desc: "Sharding, Replica Sets, Aggregation, Atlas",         color: "#4CAF50", light: "#F0FDF4" },
+                    { icon: "⚙️", title: "Automation",    desc: "Ansible, Terraform, CI/CD, Python",                 color: "#7C3AED", light: "#F5F3FF" },
+                    { icon: "☁️", title: "Cloud",         desc: "AWS RDS, Azure SQL, GCP, Kubernetes",               color: "#0891B2", light: "#ECFEFF" },
+                    { icon: "🐧", title: "Linux Admin",   desc: "RHEL, Ubuntu, Storage, Security Hardening",         color: "#374151", light: "#F9FAFB" },
+                  ].map((s) => (
+                    <div key={s.title} style={{ background: "#fff", border: "1px solid #E2E2EC", borderRadius: 14, padding: "1.3rem", position: "relative", overflow: "hidden" }}>
+                      <div style={{ position: "absolute", top: 0, left: 0, right: 0, height: 3, background: s.color }} />
+                      <div style={{ fontSize: "1.8rem", marginBottom: "0.6rem" }}>{s.icon}</div>
+                      <div style={{ fontWeight: 700, fontSize: "0.92rem", marginBottom: "0.4rem" }}>{s.title}</div>
+                      <div style={{ fontSize: "0.78rem", color: "#6B7280", lineHeight: 1.6 }}>{s.desc}</div>
                     </div>
-                    <div onClick={() => goPage(activeTopic, page)} style={{ marginTop: "1rem", fontSize: "0.78rem", color: "#2563EB", fontWeight: 600, cursor: "pointer" }}>Read more →</div>
-                  </div>
-                ))}
-              </div>
-            )}
-          </div>
-        </div>
-      )}
-
-      {/* ══════════ PAGE VIEW ══════════ */}
-      {view === "page" && activeTopic && activePage && (
-        <div className="fade-in">
-          <div style={{ background: "#fff", padding: "35px 6% 28px", borderBottom: "1px solid #E2E2EC" }}>
-            <Breadcrumb items={[{ label: "Home", fn: goHome }, { label: "Browse", fn: () => goBrowse() }, { label: activeTopic.title, fn: () => goTopic(activeTopic) }, { label: activePage.title }]} />
-            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginTop: "1rem", flexWrap: "wrap", gap: "0.8rem" }}>
-              <div>
-                <h1 style={{ fontFamily: "'Playfair Display', serif", fontSize: "1.8rem", fontWeight: 900 }}>{activePage.title}</h1>
-                <div style={{ fontSize: "0.78rem", color: "#9CA3AF", marginTop: "0.3rem" }}>From <strong>{activeTopic.title}</strong> · Updated {activePage.lastUpdated}</div>
-              </div>
-              {isAdmin && (
-                <button onClick={() => { setEditingPage(activePage); setEditingPageTopicId(activeTopic.id); setView("admin"); setAdminView("edit-page"); }} className="btn"
-                  style={{ padding: "0.5rem 1.1rem", background: "#EFF6FF", color: "#2563EB", fontSize: "0.82rem" }}>✏️ Edit Page</button>
-              )}
-            </div>
-          </div>
-          <div style={{ maxWidth: 820, margin: "0 auto", padding: "2.5rem 6%" }}>
-            <div style={{ background: "#fff", border: "1px solid #E2E2EC", borderRadius: 16, padding: "2.5rem", lineHeight: 1.8, fontSize: "0.93rem", color: "#2D2D44" }}
-              dangerouslySetInnerHTML={{ __html: renderContent(activePage.content) }} />
-
-            {/* 💬 COMMENTS SECTION */}
-            <CommentsSection
-              pageId={activeTopic.id + "-" + activePage.id}
-              pageTitle={activePage.title}
-              pageUrl={"https://dbatech-hub.onrender.com/" + activeTopic.id + "/" + activePage.id}
-            />
-          </div>
-        </div>
-      )}
-
-
-      {/* ══════════ ABOUT ME VIEW ══════════ */}
-      {view === "about" && (
-        <div className="fade-in">
-
-          {/* ── HERO BANNER ── */}
-          <div style={{ background: "linear-gradient(135deg, #1A1A2E 0%, #16213E 50%, #0F3460 100%)", padding: "70px 6% 60px", position: "relative", overflow: "hidden" }}>
-            <div style={{ position: "absolute", top: -80, right: -80, width: 360, height: 360, background: "radial-gradient(circle, rgba(37,99,235,0.15) 0%, transparent 70%)", borderRadius: "50%" }} />
-            <div style={{ position: "absolute", bottom: -60, left: "30%", width: 240, height: 240, background: "radial-gradient(circle, rgba(8,145,178,0.1) 0%, transparent 70%)", borderRadius: "50%" }} />
-            <div style={{ display: "flex", alignItems: "center", gap: "2.5rem", flexWrap: "wrap", position: "relative" }}>
-              {/* Avatar */}
-              <div style={{ width: 120, height: 120, borderRadius: "50%", background: "linear-gradient(135deg, #2563EB, #0891B2)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "3.5rem", flexShrink: 0, boxShadow: "0 8px 32px rgba(37,99,235,0.4)", border: "3px solid rgba(255,255,255,0.15)" }}>
-                👨‍💻
-              </div>
-              <div>
-                <div style={{ fontSize: "0.75rem", fontWeight: 600, color: "#60A5FA", letterSpacing: "0.12em", textTransform: "uppercase", marginBottom: "0.5rem" }}>
-                  🌟 Senior Database Administrator
-                </div>
-                <h1 style={{ fontFamily: "'Playfair Display', serif", fontSize: "clamp(2rem, 4vw, 3rem)", fontWeight: 900, color: "#fff", lineHeight: 1.1, marginBottom: "0.6rem" }}>
-                  Atif — DBA & IT Professional
-                </h1>
-                <p style={{ color: "#94A3B8", fontSize: "1rem", lineHeight: 1.7, maxWidth: 520 }}>
-                  11+ years of hands-on experience managing enterprise databases, building automation pipelines, and architecting cloud infrastructure across global organizations.
-                </p>
-                <div style={{ display: "flex", gap: "0.8rem", marginTop: "1.2rem", flexWrap: "wrap" }}>
-                  <a href="https://www.linkedin.com/in/mokhtar-atif-dba" target="_blank" rel="noreferrer"
-                    style={{ display: "inline-flex", alignItems: "center", gap: "0.4rem", padding: "0.55rem 1.1rem", background: "#0077B5", color: "#fff", borderRadius: 9, fontSize: "0.85rem", fontWeight: 600, textDecoration: "none", transition: "opacity 0.2s" }}>
-                    🔗 LinkedIn Profile
-                  </a>
-                 
+                  ))}
                 </div>
               </div>
             </div>
-          </div>
 
-          {/* ── STATS ROW ── */}
-          <div style={{ background: "#2563EB", display: "grid", gridTemplateColumns: "repeat(4,1fr)", padding: "1.5rem 6%" }}>
-            {[["11+", "Years Experience"], ["5+", "Database Platforms"], ["1000+", "Issues Resolved"], ["∞", "Pages of Knowledge"]].map(([n,l]) => (
-              <div key={l} style={{ textAlign: "center" }}>
-                <div style={{ fontFamily: "'Playfair Display', serif", fontSize: "1.8rem", fontWeight: 900, color: "#fff" }}>{n}</div>
-                <div style={{ fontSize: "0.75rem", color: "#BFDBFE", marginTop: 2 }}>{l}</div>
-              </div>
-            ))}
-          </div>
-
-          {/* ── MY STORY ── */}
-          <div style={{ padding: "60px 6%", background: "#fff", borderBottom: "1px solid #E2E2EC" }}>
-            <div style={{ maxWidth: 820, margin: "0 auto" }}>
-              <div style={{ fontSize: "0.72rem", fontWeight: 600, color: "#2563EB", letterSpacing: "0.1em", textTransform: "uppercase", marginBottom: "0.6rem" }}>📖 My Story</div>
-              <h2 style={{ fontFamily: "'Playfair Display', serif", fontSize: "2rem", fontWeight: 900, marginBottom: "1.5rem", color: "#1A1A2E" }}>
-                The Knowledge Sharing Journey
-              </h2>
-              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "2rem" }}>
-                <div>
-                  <p style={{ fontSize: "0.95rem", color: "#4B5563", lineHeight: 1.85, marginBottom: "1rem" }}>
-                    My journey in the world of databases began over <strong>20 years ago</strong>, starting with Oracle in enterprise environments. Over the years, I've worked across industries — managing mission-critical databases, building automation frameworks, and migrating workloads to the cloud.
-                  </p>
-                  <p style={{ fontSize: "0.95rem", color: "#4B5563", lineHeight: 1.85 }}>
-                    Throughout my career, I noticed that many talented professionals struggled to find <strong>practical, real-world knowledge</strong> that goes beyond textbooks. That gap inspired me to build this hub — a place where I document everything I've learned, so others can grow faster.
-                  </p>
-                </div>
-                <div>
-                  <p style={{ fontSize: "0.95rem", color: "#4B5563", lineHeight: 1.85, marginBottom: "1rem" }}>
-                    Today this hub covers <strong>Oracle, PostgreSQL, MySQL, MongoDB, SQL Server</strong> — as well as modern topics like <strong>Automation with Ansible & Terraform</strong> and <strong>Cloud Infrastructure on AWS, Azure, and Kubernetes</strong>.
-                  </p>
-                  <p style={{ fontSize: "0.95rem", color: "#4B5563", lineHeight: 1.85 }}>
-                    My goal is simple: <strong>share knowledge freely</strong>, help beginners break into the DBA field, and document solutions to problems that took me days to solve — so you can solve them in minutes.
-                  </p>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          {/* ── EXPERTISE AREAS ── */}
-          <div style={{ padding: "60px 6%", background: "#FAFAF7" }}>
-            <div style={{ maxWidth: 820, margin: "0 auto" }}>
-              <div style={{ fontSize: "0.72rem", fontWeight: 600, color: "#2563EB", letterSpacing: "0.1em", textTransform: "uppercase", marginBottom: "0.6rem" }}>🛠️ Expertise</div>
-              <h2 style={{ fontFamily: "'Playfair Display', serif", fontSize: "2rem", fontWeight: 900, marginBottom: "1.8rem", color: "#1A1A2E" }}>Areas of Specialization</h2>
-              <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(220px,1fr))", gap: "1.2rem" }}>
-                {[
-                  { icon: "🔴", title: "Oracle DBA", desc: "RAC, Data Guard, RMAN, PL/SQL, Performance Tuning, OEM", color: "#C74634", light: "#FEF2F0" },
-                  { icon: "🐘", title: "PostgreSQL", desc: "Replication, Partitioning, JSON, Extensions, pgBouncer", color: "#336791", light: "#EFF6FF" },
-                  { icon: "🐬", title: "MySQL", desc: "InnoDB, Replication, Galera Cluster, Performance Schema", color: "#F29111", light: "#FFFBEB" },
-                  { icon: "🪟", title: "SQL Server", desc: "AlwaysOn, SSRS, SSIS, T-SQL, Azure SQL Integration", color: "#CC2927", light: "#FEF2F2" },
-                  { icon: "🍃", title: "MongoDB", desc: "Sharding, Replica Sets, Aggregation, Atlas Cloud", color: "#4CAF50", light: "#F0FDF4" },
-                  { icon: "⚙️", title: "Automation", desc: "Ansible, Terraform, CI/CD, Shell Scripting, Python", color: "#7C3AED", light: "#F5F3FF" },
-                  { icon: "☁️", title: "Cloud", desc: "AWS RDS/Aurora, Azure SQL, GCP Cloud SQL, Kubernetes", color: "#0891B2", light: "#ECFEFF" },
-                  { icon: "🐧", title: "Linux Admin", desc: "RHEL, Ubuntu, Storage, Networking, Security Hardening", color: "#374151", light: "#F9FAFB" },
-                ].map((s) => (
-                  <div key={s.title} style={{ background: "#fff", border: "1px solid #E2E2EC", borderRadius: 14, padding: "1.3rem", position: "relative", overflow: "hidden" }}>
-                    <div style={{ position: "absolute", top: 0, left: 0, right: 0, height: 3, background: s.color }} />
-                    <div style={{ fontSize: "1.8rem", marginBottom: "0.6rem" }}>{s.icon}</div>
-                    <div style={{ fontWeight: 700, fontSize: "0.92rem", marginBottom: "0.4rem", color: "#1A1A2E" }}>{s.title}</div>
-                    <div style={{ fontSize: "0.78rem", color: "#6B7280", lineHeight: 1.6 }}>{s.desc}</div>
-                  </div>
-                ))}
-              </div>
-            </div>
-          </div>
-
-        
-
-          {/* ── WHY THIS HUB ── */}
-          <div style={{ padding: "60px 6%", background: "#1A1A2E" }}>
-            <div style={{ maxWidth: 820, margin: "0 auto", textAlign: "center" }}>
-              <div style={{ fontSize: "0.72rem", fontWeight: 600, color: "#60A5FA", letterSpacing: "0.1em", textTransform: "uppercase", marginBottom: "0.6rem" }}>💡 My Mission</div>
-              <h2 style={{ fontFamily: "'Playfair Display', serif", fontSize: "2rem", fontWeight: 900, color: "#fff", marginBottom: "1rem" }}>
-                Why I Built This Hub
-              </h2>
-              <p style={{ color: "#94A3B8", fontSize: "1rem", lineHeight: 1.8, maxWidth: 620, margin: "0 auto 2.5rem" }}>
-                Throughout my career, I spent countless hours searching for answers that should have been documented somewhere. This hub is my answer to that problem — and my gift to the next generation of DBAs and IT professionals.
+            <div style={{ padding: "50px 6%", background: "#EFF6FF", borderTop: "1px solid #BFDBFE", textAlign: "center" }}>
+              <div style={{ fontSize: "2rem", marginBottom: "0.8rem" }}>🤝</div>
+              <h3 style={{ fontFamily: "'Playfair Display', serif", fontSize: "1.6rem", fontWeight: 900, color: "#1A1A2E", marginBottom: "0.6rem" }}>Let's Connect!</h3>
+              <p style={{ color: "#6B7280", fontSize: "0.95rem", marginBottom: "1.5rem", maxWidth: 480, margin: "0 auto 1.5rem" }}>
+                Have a question or just want to discuss databases? I'd love to hear from you.
               </p>
-              <div style={{ display: "grid", gridTemplateColumns: "repeat(3,1fr)", gap: "1.2rem" }}>
-                {[
-                  { icon: "🎯", title: "Real-World Focus", desc: "Every page covers practical scenarios from actual production environments — not just theory." },
-                  { icon: "🆓", title: "Always Free", desc: "Knowledge should be accessible to everyone. This hub will always be completely free to use." },
-                  { icon: "🔄", title: "Always Growing", desc: "I add new content regularly as I learn, encounter new challenges, and discover better solutions." },
-                ].map((w) => (
-                  <div key={w.title} style={{ background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.1)", borderRadius: 14, padding: "1.5rem" }}>
-                    <div style={{ fontSize: "1.8rem", marginBottom: "0.7rem" }}>{w.icon}</div>
-                    <div style={{ fontWeight: 700, color: "#fff", fontSize: "0.95rem", marginBottom: "0.4rem" }}>{w.title}</div>
-                    <div style={{ fontSize: "0.82rem", color: "#94A3B8", lineHeight: 1.7 }}>{w.desc}</div>
-                  </div>
-                ))}
+              <div style={{ display: "flex", gap: "1rem", justifyContent: "center", flexWrap: "wrap" }}>
+                <a href="https://www.linkedin.com/in/mokhtar-atif-dba" target="_blank" rel="noreferrer"
+                  style={{ padding: "0.75rem 1.8rem", background: "#0077B5", color: "#fff", borderRadius: 10, fontFamily: "inherit", fontSize: "0.92rem", fontWeight: 700, textDecoration: "none" }}>
+                  🔗 Connect on LinkedIn
+                </a>
+                <button onClick={() => setView("browse")} style={{ padding: "0.75rem 1.8rem", background: "#fff", color: "#2563EB", border: "1.5px solid #2563EB", borderRadius: 10, fontFamily: "inherit", fontSize: "0.92rem", fontWeight: 700, cursor: "pointer" }}>
+                  📚 Explore Knowledge Hub
+                </button>
               </div>
             </div>
           </div>
+        )}
 
-          {/* ── CONTACT CTA ── */}
-          <div style={{ padding: "50px 6%", background: "#EFF6FF", borderTop: "1px solid #BFDBFE", textAlign: "center" }}>
-            <div style={{ fontSize: "2rem", marginBottom: "0.8rem" }}>🤝</div>
-            <h3 style={{ fontFamily: "'Playfair Display', serif", fontSize: "1.6rem", fontWeight: 900, color: "#1A1A2E", marginBottom: "0.6rem" }}>
-              Let's Connect!
-            </h3>
-            <p style={{ color: "#6B7280", fontSize: "0.95rem", marginBottom: "1.5rem", maxWidth: 480, margin: "0 auto 1.5rem" }}>
-              Have a question, suggestion, or just want to discuss databases? I'd love to hear from you. Drop a comment on any page or reach out on LinkedIn.
-            </p>
-            <div style={{ display: "flex", gap: "1rem", justifyContent: "center", flexWrap: "wrap" }}>
-              <a href="https://www.linkedin.com/in/mokhtar-atif-dba" target="_blank" rel="noreferrer"
-                style={{ padding: "0.75rem 1.8rem", background: "#0077B5", color: "#fff", borderRadius: 10, fontFamily: "inherit", fontSize: "0.92rem", fontWeight: 700, textDecoration: "none" }}>
-                🔗 Connect on LinkedIn
-              </a>
-              <button onClick={() => { window.scrollTo(0,0); }} style={{ padding: "0.75rem 1.8rem", background: "#fff", color: "#2563EB", border: "1.5px solid #2563EB", borderRadius: 10, fontFamily: "inherit", fontSize: "0.92rem", fontWeight: 700, cursor: "pointer" }}
-                onClick={() => { setView("browse"); }}>
-                📚 Explore Knowledge Hub
-              </button>
-            </div>
-          </div>
-
-        </div>
-      )}
-
-      {/* ══════════ ADMIN VIEW (PASSWORD PROTECTED) ══════════ */}
-      {view === "admin" && isAdmin && (
-        <div className="fade-in">
-          <div style={{ background: "#1A1A2E", padding: "35px 6% 28px" }}>
-            <Breadcrumb dark items={[{ label: "Home", fn: goHome }, { label: "Admin Panel" }]} />
-            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginTop: "0.8rem", flexWrap: "wrap", gap: "1rem" }}>
-              <div>
-                <h1 style={{ fontFamily: "'Playfair Display', serif", fontSize: "1.8rem", fontWeight: 900, color: "#fff" }}>🔐 Admin Panel</h1>
-                <p style={{ color: "#9CA3AF", fontSize: "0.83rem", marginTop: "0.2rem" }}>
-                  🛡️ Secure session · Auto-expires in {SESSION_HOURS}h · Only you can see this
-                </p>
+        {/* ══════════ ADMIN VIEW ══════════ */}
+        {view === "admin" && isAdmin && (
+          <div className="fade-in">
+            <div style={{ background: "#1A1A2E", padding: "35px 6% 28px" }}>
+              <Breadcrumb dark items={[{ label: "Home", fn: goHome }, { label: "Admin Panel" }]} />
+              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginTop: "0.8rem", flexWrap: "wrap", gap: "1rem" }}>
+                <div>
+                  <h1 style={{ fontFamily: "'Playfair Display', serif", fontSize: "1.8rem", fontWeight: 900, color: "#fff" }}>🔐 Admin Panel</h1>
+                  <p style={{ color: "#9CA3AF", fontSize: "0.83rem", marginTop: "0.2rem" }}>🛡️ Secure session · Auto-expires in {SESSION_HOURS}h</p>
+                </div>
+                <button onClick={handleLogout} className="btn" style={{ padding: "0.5rem 1.1rem", background: "#DC2626", color: "#fff", fontSize: "0.82rem" }}>🚪 Logout</button>
               </div>
-              <button onClick={handleLogout} className="btn" style={{ padding: "0.5rem 1.1rem", background: "#DC2626", color: "#fff", fontSize: "0.82rem" }}>
-                🚪 Logout
-              </button>
             </div>
-          </div>
-
-          {adminView === "topics" && (
-            <div style={{ padding: "2rem 6%" }}>
-              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "1.5rem" }}>
-                <h2 style={{ fontWeight: 700, fontSize: "1.1rem" }}>All Topics ({topics.length})</h2>
-                <button onClick={() => { setEditingTopic({ title: "", icon: "📘", category: "databases", tagline: "", color: "#2563EB", lightColor: "#EFF6FF", description: "" }); setAdminView("edit-topic"); }} className="btn"
-                  style={{ padding: "0.55rem 1.2rem", background: "#2563EB", color: "#fff", fontSize: "0.85rem" }}>＋ New Topic</button>
-              </div>
-              {DEFAULT_CATEGORIES.map((cat) => {
-                const catTopics = topics.filter((t) => t.category === cat.id);
-                return (
-                  <div key={cat.id} style={{ marginBottom: "2rem" }}>
-                    <div style={{ fontSize: "0.75rem", fontWeight: 700, color: cat.color, letterSpacing: "0.09em", textTransform: "uppercase", marginBottom: "0.8rem" }}>{cat.icon} {cat.label}</div>
-                    <div style={{ display: "flex", flexDirection: "column", gap: "0.6rem" }}>
-                      {catTopics.map((t) => (
-                        <div key={t.id} style={{ background: "#fff", border: "1px solid #E2E2EC", borderRadius: 12, padding: "1rem 1.3rem", display: "flex", alignItems: "center", justifyContent: "space-between", gap: "1rem" }}>
-                          <div style={{ display: "flex", alignItems: "center", gap: "0.8rem", flex: 1 }}>
-                            <span style={{ fontSize: "1.4rem" }}>{t.icon}</span>
-                            <div>
-                              <div style={{ fontWeight: 700, fontSize: "0.92rem" }}>{t.title}</div>
-                              <div style={{ fontSize: "0.77rem", color: "#9CA3AF" }}>{t.pages.length} page{t.pages.length !== 1 ? "s" : ""}</div>
+            {adminView === "topics" && (
+              <div style={{ padding: "2rem 6%" }}>
+                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "1.5rem" }}>
+                  <h2 style={{ fontWeight: 700, fontSize: "1.1rem" }}>All Topics ({topics.length})</h2>
+                  <button onClick={() => { setEditingTopic({ title: "", icon: "📘", category: "databases", tagline: "", color: "#2563EB", lightColor: "#EFF6FF", description: "" }); setAdminView("edit-topic"); }} className="btn"
+                    style={{ padding: "0.55rem 1.2rem", background: "#2563EB", color: "#fff", fontSize: "0.85rem" }}>＋ New Topic</button>
+                </div>
+                {DEFAULT_CATEGORIES.map((cat) => {
+                  const catTopics = topics.filter((t) => t.category === cat.id);
+                  return (
+                    <div key={cat.id} style={{ marginBottom: "2rem" }}>
+                      <div style={{ fontSize: "0.75rem", fontWeight: 700, color: cat.color, letterSpacing: "0.09em", textTransform: "uppercase", marginBottom: "0.8rem" }}>{cat.icon} {cat.label}</div>
+                      <div style={{ display: "flex", flexDirection: "column", gap: "0.6rem" }}>
+                        {catTopics.map((t) => (
+                          <div key={t.id} style={{ background: "#fff", border: "1px solid #E2E2EC", borderRadius: 12, padding: "1rem 1.3rem", display: "flex", alignItems: "center", justifyContent: "space-between", gap: "1rem" }}>
+                            <div style={{ display: "flex", alignItems: "center", gap: "0.8rem", flex: 1 }}>
+                              <span style={{ fontSize: "1.4rem" }}>{t.icon}</span>
+                              <div>
+                                <div style={{ fontWeight: 700, fontSize: "0.92rem" }}>{t.title}</div>
+                                <div style={{ fontSize: "0.77rem", color: "#9CA3AF" }}>{t.pages.length} page{t.pages.length !== 1 ? "s" : ""}</div>
+                              </div>
+                            </div>
+                            <div style={{ display: "flex", gap: "0.5rem" }}>
+                              <button onClick={() => goTopic(t)} style={{ padding: "0.35rem 0.8rem", background: "#F3F4F6", color: "#374151", border: "none", borderRadius: 7, cursor: "pointer", fontSize: "0.78rem", fontWeight: 600 }}>View</button>
+                              <button onClick={() => { setEditingPage({ title: "", content: "" }); setEditingPageTopicId(t.id); setAdminView("edit-page"); }} style={{ padding: "0.35rem 0.8rem", background: "#EFF6FF", color: "#2563EB", border: "none", borderRadius: 7, cursor: "pointer", fontSize: "0.78rem", fontWeight: 600 }}>+ Page</button>
+                              <button onClick={() => { setEditingTopic(t); setAdminView("edit-topic"); }} style={{ padding: "0.35rem 0.8rem", background: "#F0FDF4", color: "#16A34A", border: "none", borderRadius: 7, cursor: "pointer", fontSize: "0.78rem", fontWeight: 600 }}>Edit</button>
+                              <button onClick={() => deleteTopic(t.id)} style={{ padding: "0.35rem 0.8rem", background: "#FEF2F2", color: "#EF4444", border: "none", borderRadius: 7, cursor: "pointer", fontSize: "0.78rem", fontWeight: 600 }}>Del</button>
                             </div>
                           </div>
-                          <div style={{ display: "flex", gap: "0.5rem" }}>
-                            <button onClick={() => goTopic(t)} style={{ padding: "0.35rem 0.8rem", background: "#F3F4F6", color: "#374151", border: "none", borderRadius: 7, cursor: "pointer", fontSize: "0.78rem", fontWeight: 600 }}>View</button>
-                            <button onClick={() => { setEditingPage({ title: "", content: "" }); setEditingPageTopicId(t.id); setAdminView("edit-page"); }} style={{ padding: "0.35rem 0.8rem", background: "#EFF6FF", color: "#2563EB", border: "none", borderRadius: 7, cursor: "pointer", fontSize: "0.78rem", fontWeight: 600 }}>+ Page</button>
-                            <button onClick={() => { setEditingTopic(t); setAdminView("edit-topic"); }} style={{ padding: "0.35rem 0.8rem", background: "#F0FDF4", color: "#16A34A", border: "none", borderRadius: 7, cursor: "pointer", fontSize: "0.78rem", fontWeight: 600 }}>Edit</button>
-                            <button onClick={() => deleteTopic(t.id)} style={{ padding: "0.35rem 0.8rem", background: "#FEF2F2", color: "#EF4444", border: "none", borderRadius: 7, cursor: "pointer", fontSize: "0.78rem", fontWeight: 600 }}>Del</button>
-                          </div>
-                        </div>
-                      ))}
-                      {catTopics.length === 0 && <div style={{ fontSize: "0.83rem", color: "#9CA3AF" }}>No topics yet.</div>}
+                        ))}
+                        {catTopics.length === 0 && <div style={{ fontSize: "0.83rem", color: "#9CA3AF" }}>No topics yet.</div>}
+                      </div>
                     </div>
-                  </div>
-                );
-              })}
-            </div>
-          )}
+                  );
+                })}
+              </div>
+            )}
+            {adminView === "edit-topic" && editingTopic !== null && (
+              <TopicEditor topic={editingTopic} onSave={saveTopic} onCancel={() => { setAdminView("topics"); setEditingTopic(null); }} categories={DEFAULT_CATEGORIES} />
+            )}
+            {adminView === "edit-page" && editingPage !== null && (
+              <PageEditor page={editingPage} topicId={editingPageTopicId} topics={topics} onSave={savePage} onCancel={() => { setAdminView("topics"); setEditingPage(null); setEditingPageTopicId(null); }} />
+            )}
+          </div>
+        )}
 
-          {adminView === "edit-topic" && editingTopic !== null && (
-            <TopicEditor topic={editingTopic} onSave={saveTopic} onCancel={() => { setAdminView("topics"); setEditingTopic(null); }} categories={DEFAULT_CATEGORIES} />
-          )}
-          {adminView === "edit-page" && editingPage !== null && (
-            <PageEditor page={editingPage} topicId={editingPageTopicId} topics={topics} onSave={savePage} onCancel={() => { setAdminView("topics"); setEditingPage(null); setEditingPageTopicId(null); }} />
-          )}
-        </div>
-      )}
+        {view === "admin" && !isAdmin && (
+          <div style={{ textAlign: "center", padding: "6rem 2rem" }}>
+            <div style={{ fontSize: "4rem", marginBottom: "1rem" }}>🔐</div>
+            <h2 style={{ fontFamily: "'Playfair Display', serif", fontSize: "1.8rem", fontWeight: 900, marginBottom: "0.8rem" }}>Access Restricted</h2>
+            <p style={{ color: "#6B7280", marginBottom: "1.5rem" }}>You need admin credentials to access this area.</p>
+            <button onClick={() => setShowLogin(true)} className="btn" style={{ padding: "0.8rem 2rem", background: "#1A1A2E", color: "#fff", fontSize: "0.95rem" }}>🔓 Login as Admin</button>
+          </div>
+        )}
 
-      {/* Block admin view if not logged in */}
-      {view === "admin" && !isAdmin && (
-        <div style={{ textAlign: "center", padding: "6rem 2rem" }}>
-          <div style={{ fontSize: "4rem", marginBottom: "1rem" }}>🔐</div>
-          <h2 style={{ fontFamily: "'Playfair Display', serif", fontSize: "1.8rem", fontWeight: 900, marginBottom: "0.8rem" }}>Access Restricted</h2>
-          <p style={{ color: "#6B7280", marginBottom: "1.5rem" }}>You need admin credentials to access this area.</p>
-          <button onClick={() => setShowLogin(true)} className="btn" style={{ padding: "0.8rem 2rem", background: "#1A1A2E", color: "#fff", fontSize: "0.95rem" }}>🔓 Login as Admin</button>
-        </div>
-      )}
+      </main>
+
+      {/* ✅ STATS FOOTER — always at the bottom of every page */}
+      <StatsFooter topics={topics} />
+
     </div>
   );
 }
@@ -888,10 +961,8 @@ function Field({ label, value, onChange, multiline, placeholder }) {
 }
 
 // ══════════════════════════════════════════════════════════════════════
-// 💬 COMMENTS COMPONENT (Disqus — Free, Email Notifications Built-in)
+// 💬 COMMENTS COMPONENT
 // ══════════════════════════════════════════════════════════════════════
-// SETUP: Register free at disqus.com → create site → get shortname
-// Replace "YOUR_DISQUS_SHORTNAME" below with your actual shortname
 const DISQUS_SHORTNAME = "YOUR_DISQUS_SHORTNAME";
 
 export function CommentsSection({ pageId, pageTitle, pageUrl }) {
@@ -900,11 +971,10 @@ export function CommentsSection({ pageId, pageTitle, pageUrl }) {
 
   useEffect(() => {
     if (!show || loaded) return;
-    // Load Disqus script dynamically
     window.disqus_config = function () {
-      this.page.url      = pageUrl || window.location.href;
+      this.page.url        = pageUrl || window.location.href;
       this.page.identifier = pageId;
-      this.page.title    = pageTitle;
+      this.page.title      = pageTitle;
     };
     const script = document.createElement("script");
     script.src = `https://${DISQUS_SHORTNAME}.disqus.com/embed.js`;
@@ -916,38 +986,25 @@ export function CommentsSection({ pageId, pageTitle, pageUrl }) {
 
   return (
     <div style={{ marginTop: "3rem", borderTop: "1px solid #E2E2EC", paddingTop: "2rem" }}>
-      {/* Header */}
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "1.5rem" }}>
         <div>
-          <h3 style={{ fontFamily: "'Playfair Display', serif", fontSize: "1.3rem", fontWeight: 900, color: "#1A1A2E" }}>
-            💬 Comments & Discussion
-          </h3>
-          <p style={{ fontSize: "0.82rem", color: "#9CA3AF", marginTop: "0.2rem" }}>
-            Questions or feedback? Leave a comment below!
-          </p>
+          <h3 style={{ fontFamily: "'Playfair Display', serif", fontSize: "1.3rem", fontWeight: 900, color: "#1A1A2E" }}>💬 Comments & Discussion</h3>
+          <p style={{ fontSize: "0.82rem", color: "#9CA3AF", marginTop: "0.2rem" }}>Questions or feedback? Leave a comment below!</p>
         </div>
         {!show && (
-          <button
-            onClick={() => setShow(true)}
-            style={{ padding: "0.6rem 1.2rem", background: "#2563EB", color: "#fff", border: "none", borderRadius: 9, fontFamily: "inherit", fontSize: "0.85rem", fontWeight: 600, cursor: "pointer" }}>
+          <button onClick={() => setShow(true)} style={{ padding: "0.6rem 1.2rem", background: "#2563EB", color: "#fff", border: "none", borderRadius: 9, fontFamily: "inherit", fontSize: "0.85rem", fontWeight: 600, cursor: "pointer" }}>
             Show Comments
           </button>
         )}
       </div>
-
-      {/* Disqus embed */}
       {show && (
         <div style={{ background: "#fff", border: "1px solid #E2E2EC", borderRadius: 16, padding: "1.5rem" }}>
           {DISQUS_SHORTNAME === "YOUR_DISQUS_SHORTNAME" ? (
-            // Placeholder shown until Disqus is configured
             <div style={{ textAlign: "center", padding: "3rem", color: "#9CA3AF" }}>
               <div style={{ fontSize: "2.5rem", marginBottom: "1rem" }}>💬</div>
-              <div style={{ fontWeight: 700, fontSize: "1rem", marginBottom: "0.5rem", color: "#374151" }}>
-                Comments Not Configured Yet
-              </div>
+              <div style={{ fontWeight: 700, fontSize: "1rem", marginBottom: "0.5rem", color: "#374151" }}>Comments Not Configured Yet</div>
               <div style={{ fontSize: "0.85rem", lineHeight: 1.7 }}>
-                Register free at <strong style={{ color: "#2563EB" }}>disqus.com</strong> →<br/>
-                Create a site → Get your shortname →<br/>
+                Register free at <strong style={{ color: "#2563EB" }}>disqus.com</strong> → Create a site → Get your shortname →<br/>
                 Replace <code style={{ background: "#F3F4F6", padding: "0.1rem 0.4rem", borderRadius: 4 }}>YOUR_DISQUS_SHORTNAME</code> in App.jsx
               </div>
             </div>
