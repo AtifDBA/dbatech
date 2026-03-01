@@ -3,7 +3,7 @@ import { useState, useEffect, useCallback } from "react";
 // ══════════════════════════════════════════════════════════════════════
 // 🔐 SECURITY CONFIG — CHANGE THIS PASSWORD BEFORE DEPLOYING!
 // ══════════════════════════════════════════════════════════════════════
-const ADMIN_PASSWORD = "DBAtech@2025#Secure";
+const ADMIN_PASSWORD = "cafBT@DBATECH123";
 const MAX_LOGIN_ATTEMPTS = 5;        // Lock after 5 wrong attempts
 const LOCKOUT_MINUTES = 15;          // Locked for 15 minutes
 const SESSION_HOURS = 8;             // Auto-logout after 8 hours
