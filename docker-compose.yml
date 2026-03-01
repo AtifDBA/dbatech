@@ -1,0 +1,23 @@
+version: "3.9"
+
+services:
+
+  dbatech-web:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: dbatech-web
+    restart: unless-stopped
+    ports:
+      - "8080:80"
+    volumes:
+      - nginx-logs:/var/log/nginx
+    networks:
+      - dbatech-network
+
+volumes:
+  nginx-logs:
+
+networks:
+  dbatech-network:
+    driver: bridge
