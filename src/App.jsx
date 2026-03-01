@@ -603,7 +603,7 @@ export default function App() {
 
           {/* ── STATS ROW ── */}
           <div style={{ background: "#2563EB", display: "grid", gridTemplateColumns: "repeat(4,1fr)", padding: "1.5rem 6%" }}>
-            {[["20+", "Years Experience"], ["5+", "Database Platforms"], ["1000+", "Issues Resolved"], ["∞", "Pages of Knowledge"]].map(([n,l]) => (
+            {[["11+", "Years Experience"], ["5+", "Database Platforms"], ["1000+", "Issues Resolved"], ["∞", "Pages of Knowledge"]].map(([n,l]) => (
               <div key={l} style={{ textAlign: "center" }}>
                 <div style={{ fontFamily: "'Playfair Display', serif", fontSize: "1.8rem", fontWeight: 900, color: "#fff" }}>{n}</div>
                 <div style={{ fontSize: "0.75rem", color: "#BFDBFE", marginTop: 2 }}>{l}</div>
@@ -666,35 +666,7 @@ export default function App() {
             </div>
           </div>
 
-          {/* ── JOURNEY TIMELINE ── */}
-          <div style={{ padding: "60px 6%", background: "#fff", borderTop: "1px solid #E2E2EC", borderBottom: "1px solid #E2E2EC" }}>
-            <div style={{ maxWidth: 720, margin: "0 auto" }}>
-              <div style={{ fontSize: "0.72rem", fontWeight: 600, color: "#2563EB", letterSpacing: "0.1em", textTransform: "uppercase", marginBottom: "0.6rem" }}>📅 Timeline</div>
-              <h2 style={{ fontFamily: "'Playfair Display', serif", fontSize: "2rem", fontWeight: 900, marginBottom: "2rem", color: "#1A1A2E" }}>My Journey</h2>
-              <div style={{ position: "relative" }}>
-                <div style={{ position: "absolute", left: 18, top: 0, bottom: 0, width: 2, background: "#E2E2EC" }} />
-                {[
-                  { year: "2000s", icon: "🌱", title: "Started as Junior DBA", desc: "Began career managing Oracle databases in enterprise environments. Learned the fundamentals of database administration the hard way — by solving real production problems." },
-                  { year: "2005s", icon: "📈", title: "Expanded to Multiple Platforms", desc: "Added SQL Server, MySQL to expertise. Started leading database projects and mentoring junior DBAs. Discovered the power of scripting for automation." },
-                  { year: "2010s", icon: "🤖", title: "Embraced Automation", desc: "Adopted Ansible and shell scripting to automate repetitive DBA tasks. Built CI/CD pipelines for database deployments, saving hundreds of hours per year." },
-                  { year: "2015s", icon: "☁️", title: "Cloud Migration Journey", desc: "Led migrations from on-premise databases to AWS RDS, Azure SQL, and GCP. Learned Kubernetes and container orchestration for database workloads." },
-                  { year: "2020s", icon: "📚", title: "Started Knowledge Sharing", desc: "Began documenting 20+ years of hard-won knowledge. Built this hub to give back to the community that helped me grow throughout my career." },
-                  { year: "Today", icon: "🚀", title: "ITLearn Hub", desc: "This platform is my commitment to the DBA and IT community — freely sharing everything I know about databases, automation, and cloud technologies." },
-                ].map((item, i) => (
-                  <div key={i} style={{ display: "flex", gap: "1.5rem", marginBottom: "2rem", position: "relative" }}>
-                    <div style={{ width: 38, height: 38, borderRadius: "50%", background: "#EFF6FF", border: "2px solid #2563EB", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "1rem", flexShrink: 0, zIndex: 1 }}>
-                      {item.icon}
-                    </div>
-                    <div style={{ paddingTop: "0.2rem" }}>
-                      <div style={{ fontSize: "0.72rem", fontWeight: 700, color: "#2563EB", marginBottom: "0.2rem" }}>{item.year}</div>
-                      <div style={{ fontWeight: 700, fontSize: "0.95rem", color: "#1A1A2E", marginBottom: "0.4rem" }}>{item.title}</div>
-                      <div style={{ fontSize: "0.85rem", color: "#6B7280", lineHeight: 1.7 }}>{item.desc}</div>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
-          </div>
+        
 
           {/* ── WHY THIS HUB ── */}
           <div style={{ padding: "60px 6%", background: "#1A1A2E" }}>
