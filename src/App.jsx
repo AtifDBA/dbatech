@@ -3,7 +3,7 @@ import { useState, useEffect, useCallback } from "react";
 // ══════════════════════════════════════════════════════════════════════
 // 🔐 SECURITY CONFIG — CHANGE THIS PASSWORD BEFORE DEPLOYING!
 // ══════════════════════════════════════════════════════════════════════
-const ADMIN_PASSWORD = "";
+const ADMIN_PASSWORD = "cafBT@DBATECH123";
 const MAX_LOGIN_ATTEMPTS = 5;
 const LOCKOUT_MINUTES = 15;
 const SESSION_HOURS = 8;
@@ -23,6 +23,8 @@ const DEFAULT_TOPICS = [
         content: "Oracle Database is an object-relational database management system (ORDBMS) produced by Oracle Corporation.\n\n**Key Concepts:**\n- Instances and Databases\n- Oracle Memory Architecture (SGA, PGA)\n- Background Processes (SMON, PMON, DBWn, LGWR, CKPT)\n- Physical & Logical Storage Structures\n\n**When to use Oracle:**\nOracle excels in high-transaction, high-availability enterprise environments." },
       { id: "oracle-sql", title: "SQL & PL/SQL Fundamentals", lastUpdated: "2025-01-01",
         content: "PL/SQL is Oracle's procedural extension to SQL.\n\n**PL/SQL Block Structure:**\n```sql\nDECLARE\n  v_name VARCHAR2(50);\nBEGIN\n  SELECT first_name INTO v_name FROM employees WHERE id = 1;\n  DBMS_OUTPUT.PUT_LINE('Name: ' || v_name);\nEXCEPTION\n  WHEN NO_DATA_FOUND THEN\n    DBMS_OUTPUT.PUT_LINE('Not found');\nEND;\n```\n\n**Key PL/SQL Features:**\n- Cursors (Implicit & Explicit)\n- Collections (VARRAY, Nested Tables)\n- Packages and Package Bodies\n- Exception Handling\n- Bulk Operations (FORALL, BULK COLLECT)" },
+      { id: "oracle-oem24ai", title: "OEM 24ai — Key Features", lastUpdated: "2026-01-01",
+        content: "## OEM 24ai — Key Features\n\nOEM 24ai introduces AI-driven insights, improved automation, and enhanced security features for enterprise database management.\n\n---\n\n## AI & Automation Features\n\n**AI-Based Insights:**\n- AI-Based Anomaly Detection — detects performance issues before they impact operations\n- Automated Patching & Upgrades — smart automation reduces downtime\n- Automated Performance Tuning — AI-based recommendations for database efficiency\n\n## Management & Monitoring\n\n- Centralized monitoring and administration for your entire IT infrastructure\n- Lifecycle management for databases, middleware, and engineered systems (Exadata, ZDLRA)\n- Multi-Cloud and Hybrid Database support — manages on-premise and OCI cloud targets\n- Java Virtual Machine Diagnostics (JVMD) Engine for diagnosing performance problems in Java applications in production\n\n---\n\n## Infrastructure Components Installed\n\n- Oracle WebLogic Server 12c Release 2 (12.2.1.4.0)\n- Oracle JRF 12c Release 2\n- JDK `1.8.0_431`\n- WebLogic container, Zero Downtime (ZDT) container\n- API Gateway\n\n---\n\n## Security & Compliance\n\n**Enhanced Tools:**\n- Enhanced Security & Compliance Tools\n- Custom Certificate management during upgrades\n- Role-based access control via WebLogic domain (GCDomain) Plug-in" },
     ]},
   { id: "postgresql", category: "databases", title: "PostgreSQL", icon: "🐘", tagline: "Advanced Open Source RDBMS", color: "#336791", lightColor: "#EFF6FF",
     description: "PostgreSQL is the world's most advanced open-source relational database, known for reliability and extensibility.",
@@ -112,7 +114,40 @@ function isLockedOut(s) {
 async function loadData() {
   try {
     const r = await window.storage.get("itplatform-topics");
-    if (r) return JSON.parse(r.value);
+    if (r) {
+      const stored = JSON.parse(r.value);
+
+      // Deep merge: for each default topic, merge its pages with stored pages
+      const merged = DEFAULT_TOPICS.map(def => {
+        const storedTopic = stored.find(s => s.id === def.id);
+        if (!storedTopic) return def;
+
+        // Merge pages: start with default pages as base
+        const mergedPages = [...def.pages];
+        storedTopic.pages.forEach(sp => {
+          const exists = mergedPages.find(p => p.id === sp.id);
+          if (exists) {
+            // Update existing page with stored version (in case admin edited it)
+            const idx = mergedPages.findIndex(p => p.id === sp.id);
+            mergedPages[idx] = sp;
+          } else {
+            // New page added via admin — keep it
+            mergedPages.push(sp);
+          }
+        });
+
+        return { ...storedTopic, pages: mergedPages };
+      });
+
+      // Also add any brand-new topics added via admin (not in defaults)
+      stored.forEach(s => {
+        if (!DEFAULT_TOPICS.find(d => d.id === s.id)) merged.push(s);
+      });
+
+      // Re-save merged data so storage stays in sync with defaults
+      await saveData(merged);
+      return merged;
+    }
   } catch {}
   return DEFAULT_TOPICS;
 }
@@ -120,16 +155,64 @@ async function saveData(topics) {
   try { await window.storage.set("itplatform-topics", JSON.stringify(topics)); } catch {}
 }
 
-// ── MARKDOWN-LITE RENDERER ─────────────────────────────────────────────
-function renderContent(text) {
+// ── MARKDOWN RENDERER ─────────────────────────────────────────────────
+function inlineFormat(text) {
   return text
-    .replace(/```(\w*)\n([\s\S]*?)```/g, (_, lang, code) =>
-      `<pre style="background:#1e1e2e;color:#cdd6f4;padding:1rem 1.2rem;border-radius:10px;font-family:'DM Mono',monospace;font-size:0.78rem;line-height:1.7;overflow-x:auto;margin:1rem 0"><code>${code.replace(/</g,"&lt;").replace(/>/g,"&gt;")}</code></pre>`)
+    .replace(/`([^`]+)`/g, `<code style="background:#F3F4F6;color:#C74634;padding:0.1rem 0.4rem;border-radius:4px;font-family:'DM Mono',monospace;font-size:0.83em">$1</code>`)
     .replace(/\*\*(.+?)\*\*/g, "<strong>$1</strong>")
-    .replace(/^- (.+)$/gm, "<li style='margin-bottom:0.3rem'>$1</li>")
-    .replace(/(<li[\s\S]*?<\/li>)/g, "<ul style='margin:0.5rem 0 0.5rem 1.2rem'>$1</ul>")
-    .replace(/\n\n/g, "</p><p>")
-    .replace(/^(?!<)(.+)$/gm, "$1");
+    .replace(/\*(.+?)\*/g, "<em>$1</em>")
+    .replace(/\[(.+?)\]\((.+?)\)/g, `<a href="$2" target="_blank" style="color:#2563EB;text-decoration:underline">$1</a>`)
+    .replace(/•\s*/g, "");
+}
+
+function renderContent(raw) {
+  if (!raw) return "";
+  const codeBlocks = [];
+  let text = raw.replace(/```(\w*)\n?([\s\S]*?)```/g, (_, lang, code) => {
+    const html = `<pre style="background:#1e1e2e;color:#cdd6f4;padding:1rem 1.2rem;border-radius:10px;font-family:'DM Mono',monospace;font-size:0.82rem;line-height:1.75;overflow-x:auto;margin:1.2rem 0;border:1px solid #313244"><code>${code.trim().replace(/</g,"&lt;").replace(/>/g,"&gt;")}</code></pre>`;
+    codeBlocks.push(html);
+    return `%%CODE_${codeBlocks.length - 1}%%`;
+  });
+  const lines = text.split("\n");
+  const out = [];
+  let i = 0;
+  while (i < lines.length) {
+    const line = lines[i];
+    if (/^%%CODE_\d+%%$/.test(line.trim())) {
+      const idx = parseInt(line.match(/%%CODE_(\d+)%%/)[1]);
+      out.push(codeBlocks[idx]); i++; continue;
+    }
+    if (/^### (.+)/.test(line)) { out.push(`<h4 style="font-size:0.95rem;font-weight:700;color:#1A1A2E;margin:1.4rem 0 0.5rem">${inlineFormat(line.replace(/^### /,""))}</h4>`); i++; continue; }
+    if (/^## (.+)/.test(line))  { out.push(`<h3 style="font-size:1.1rem;font-weight:800;color:#1A1A2E;margin:1.8rem 0 0.6rem;padding-bottom:0.4rem;border-bottom:2px solid #E2E2EC">${inlineFormat(line.replace(/^## /,""))}</h3>`); i++; continue; }
+    if (/^# (.+)/.test(line))   { out.push(`<h2 style="font-size:1.3rem;font-weight:900;color:#1A1A2E;margin:2rem 0 0.7rem;font-family:'Playfair Display',serif">${inlineFormat(line.replace(/^# /,""))}</h2>`); i++; continue; }
+    if (/^[-•*] (.+)/.test(line)) {
+      const items = [];
+      while (i < lines.length && /^[-•*] (.+)/.test(lines[i])) {
+        items.push(`<li style="margin-bottom:0.45rem;line-height:1.7">${inlineFormat(lines[i].replace(/^[-•*] /,""))}</li>`);
+        i++;
+      }
+      out.push(`<ul style="margin:0.6rem 0 1rem 1.4rem;padding:0">${items.join("")}</ul>`);
+      continue;
+    }
+    if (/^\d+\. (.+)/.test(line)) {
+      const items = [];
+      while (i < lines.length && /^\d+\. (.+)/.test(lines[i])) {
+        items.push(`<li style="margin-bottom:0.45rem;line-height:1.7">${inlineFormat(lines[i].replace(/^\d+\. /,""))}</li>`);
+        i++;
+      }
+      out.push(`<ol style="margin:0.6rem 0 1rem 1.4rem;padding:0">${items.join("")}</ol>`);
+      continue;
+    }
+    if (/^---+$/.test(line.trim())) { out.push(`<hr style="border:none;border-top:1px solid #E2E2EC;margin:1.5rem 0"/>`); i++; continue; }
+    if (/^\*\*(.+?)\*\*:?\s*$/.test(line.trim())) {
+      const heading = line.trim().replace(/^\*\*/,"").replace(/\*\*:?\s*$/,"");
+      out.push(`<p style="font-weight:700;font-size:0.95rem;color:#1A1A2E;margin:1.4rem 0 0.3rem">${heading}:</p>`); i++; continue;
+    }
+    if (line.trim() === "") { out.push(`<div style="height:0.5rem"></div>`); i++; continue; }
+    out.push(`<p style="margin:0 0 0.5rem;line-height:1.85;color:#374151">${inlineFormat(line)}</p>`);
+    i++;
+  }
+  return out.join("\n");
 }
 
 const CATEGORY_ICONS = { databases: "🗄️", automation: "⚙️", cloud: "☁️" };
@@ -396,6 +479,7 @@ export default function App() {
   const [activePage, setActivePage]   = useState(null);
   const [filterCat, setFilterCat]     = useState("all");
   const [search, setSearch]           = useState("");
+  const [browseSearch, setBrowseSearch] = useState("");
   const [toast, setToast]             = useState(null);
   const [showLogin, setShowLogin]     = useState(false);
   const [isAdmin, setIsAdmin]         = useState(false);
@@ -441,13 +525,18 @@ export default function App() {
 
   const goHome   = () => { setView("home");   setActiveTopic(null); setActivePage(null); };
   const goAbout  = () => { setView("about");  setActiveTopic(null); setActivePage(null); };
-  const goBrowse = (cat = "all") => { setView("browse"); setFilterCat(cat); setActiveTopic(null); };
+  const goBrowse = (cat = "all") => { setView("browse"); setFilterCat(cat); setActiveTopic(null); setBrowseSearch(""); };
   const goTopic  = (t) => { setActiveTopic(t); setView("topic"); setActivePage(null); };
   const goPage   = (topic, page) => { setActiveTopic(topic); setActivePage(page); setView("page"); };
 
   const filtered = topics.filter((t) => {
-    const matchCat    = filterCat === "all" || t.category === filterCat;
-    const matchSearch = !search || t.title.toLowerCase().includes(search.toLowerCase()) || t.description.toLowerCase().includes(search.toLowerCase());
+    const matchCat = filterCat === 'all' || t.category === filterCat;
+    const q = browseSearch.toLowerCase();
+    const matchSearch = !browseSearch ||
+      t.title.toLowerCase().includes(q) ||
+      t.description.toLowerCase().includes(q) ||
+      t.tagline.toLowerCase().includes(q) ||
+      t.pages.some(p => p.title.toLowerCase().includes(q) || p.content.toLowerCase().includes(q));
     return matchCat && matchSearch;
   });
 
@@ -481,6 +570,7 @@ export default function App() {
     <div style={{ fontFamily: "'DM Sans', sans-serif", minHeight: "100vh", background: "#FAFAF7", color: "#1A1A2E", display: "flex", flexDirection: "column" }}>
       <style>{`
         @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;900&family=DM+Sans:wght@300;400;500;600;700&family=DM+Mono:wght@400;500&display=swap');
+        html, body, #root { height: 100%; margin: 0; padding: 0; }
         * { box-sizing: border-box; margin: 0; padding: 0; }
         .hover-lift { transition: transform 0.2s, box-shadow 0.2s; cursor: pointer; }
         .hover-lift:hover { transform: translateY(-3px); box-shadow: 0 12px 40px rgba(26,26,46,0.13); }
@@ -597,25 +687,70 @@ export default function App() {
                   </button>
                 ))}
               </div>
-              <input value={search} onChange={(e) => setSearch(e.target.value)} placeholder="🔍  Search topics…" style={{ width: "100%", maxWidth: 420, padding: "0.65rem 1rem", border: "1.5px solid #E2E2EC", borderRadius: 10, fontSize: "0.88rem", background: "#FAFAF7" }} />
+              <input value={browseSearch} onChange={(e) => setBrowseSearch(e.target.value)} placeholder="🔍  Search topics, pages…" style={{ width: "100%", maxWidth: 420, padding: "0.65rem 1rem", border: "1.5px solid #E2E2EC", borderRadius: 10, fontSize: "0.88rem", background: "#FAFAF7" }} />
             </div>
-            <div style={{ padding: "2rem 6%", display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(260px,1fr))", gap: "1.2rem" }}>
-              {filtered.map((t) => (
-                <div key={t.id} onClick={() => goTopic(t)} className="hover-lift" style={{ background: "#fff", border: "1px solid #E2E2EC", borderRadius: 14, padding: "1.5rem", position: "relative", overflow: "hidden" }}>
-                  <div style={{ position: "absolute", top: 0, left: 0, right: 0, height: 3, background: t.color }} />
-                  <div style={{ fontSize: "2.2rem", marginBottom: "0.8rem" }}>{t.icon}</div>
-                  <div style={{ fontWeight: 700, fontSize: "0.98rem", marginBottom: "0.3rem" }}>{t.title}</div>
-                  <div style={{ fontSize: "0.78rem", color: t.color, fontWeight: 600, marginBottom: "0.6rem" }}>{t.tagline}</div>
-                  <div style={{ fontSize: "0.82rem", color: "#6B7280", lineHeight: 1.6, marginBottom: "1rem" }}>{t.description.substring(0, 100)}…</div>
-                  <span style={{ background: t.lightColor, color: t.color, padding: "0.2rem 0.65rem", borderRadius: 100, fontSize: "0.72rem", fontWeight: 600 }}>{t.pages.length} page{t.pages.length !== 1 ? "s" : ""}</span>
-                </div>
-              ))}
-              {filtered.length === 0 && (
-                <div style={{ gridColumn: "1/-1", textAlign: "center", padding: "4rem", color: "#9CA3AF" }}>
-                  <div style={{ fontSize: "3rem", marginBottom: "1rem" }}>🔍</div>
-                  <div style={{ fontWeight: 600 }}>No topics found</div>
+            <div style={{ padding: "2rem 6%" }}>
+              {/* When searching, show matching pages too */}
+              {browseSearch && (
+                <div style={{ marginBottom: "1.5rem" }}>
+                  <div style={{ fontSize: "0.78rem", fontWeight: 600, color: "#6B7280", letterSpacing: "0.06em", textTransform: "uppercase", marginBottom: "0.8rem" }}>
+                    📄 Matching Pages
+                  </div>
+                  {topics.flatMap(t =>
+                    t.pages
+                      .filter(p => p.title.toLowerCase().includes(browseSearch.toLowerCase()) || p.content.toLowerCase().includes(browseSearch.toLowerCase()))
+                      .map(p => ({ topic: t, page: p }))
+                  ).length === 0 ? (
+                    <div style={{ fontSize: "0.83rem", color: "#9CA3AF", marginBottom: "0.5rem" }}>No matching pages</div>
+                  ) : (
+                    <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(280px,1fr))", gap: "0.8rem", marginBottom: "1.5rem" }}>
+                      {topics.flatMap(t =>
+                        t.pages
+                          .filter(p => p.title.toLowerCase().includes(browseSearch.toLowerCase()) || p.content.toLowerCase().includes(browseSearch.toLowerCase()))
+                          .map(p => ({ topic: t, page: p }))
+                      ).map(({ topic: t, page: p }, i) => (
+                        <div key={i} onClick={() => goPage(t, p)} className="hover-lift"
+                          style={{ background: "#fff", border: "1px solid #E2E2EC", borderRadius: 12, padding: "1.2rem", position: "relative", overflow: "hidden", cursor: "pointer" }}>
+                          <div style={{ position: "absolute", top: 0, left: 0, right: 0, height: 3, background: t.color }} />
+                          <div style={{ display: "flex", alignItems: "center", gap: "0.5rem", marginBottom: "0.4rem" }}>
+                            <span style={{ fontSize: "1.2rem" }}>{t.icon}</span>
+                            <span style={{ fontSize: "0.72rem", color: t.color, fontWeight: 600 }}>{t.title}</span>
+                          </div>
+                          <div style={{ fontWeight: 700, fontSize: "0.9rem", marginBottom: "0.3rem" }}>{p.title}</div>
+                          <div style={{ fontSize: "0.78rem", color: "#6B7280", lineHeight: 1.5 }}>
+                            {p.content.replace(/```[\s\S]*?```/g, "[code]").replace(/\*\*/g, "").substring(0, 90)}…
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                  <div style={{ fontSize: "0.78rem", fontWeight: 600, color: "#6B7280", letterSpacing: "0.06em", textTransform: "uppercase", marginBottom: "0.8rem", marginTop: "0.5rem" }}>
+                    📚 Matching Topics
+                  </div>
                 </div>
               )}
+
+              <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(260px,1fr))", gap: "1.2rem" }}>
+                {filtered.map((t) => (
+                  <div key={t.id} onClick={() => goTopic(t)} className="hover-lift" style={{ background: "#fff", border: "1px solid #E2E2EC", borderRadius: 14, padding: "1.5rem", position: "relative", overflow: "hidden" }}>
+                    <div style={{ position: "absolute", top: 0, left: 0, right: 0, height: 3, background: t.color }} />
+                    <div style={{ fontSize: "2.2rem", marginBottom: "0.8rem" }}>{t.icon}</div>
+                    <div style={{ fontWeight: 700, fontSize: "0.98rem", marginBottom: "0.3rem" }}>{t.title}</div>
+                    <div style={{ fontSize: "0.78rem", color: t.color, fontWeight: 600, marginBottom: "0.6rem" }}>{t.tagline}</div>
+                    <div style={{ fontSize: "0.82rem", color: "#6B7280", lineHeight: 1.6, marginBottom: "1rem" }}>{t.description.substring(0, 100)}…</div>
+                    <span style={{ background: t.lightColor, color: t.color, padding: "0.2rem 0.65rem", borderRadius: 100, fontSize: "0.72rem", fontWeight: 600 }}>{t.pages.length} page{t.pages.length !== 1 ? "s" : ""}</span>
+                  </div>
+                ))}
+                {filtered.length === 0 && !browseSearch && (
+                  <div style={{ gridColumn: "1/-1", textAlign: "center", padding: "4rem", color: "#9CA3AF" }}>
+                    <div style={{ fontSize: "3rem", marginBottom: "1rem" }}>🔍</div>
+                    <div style={{ fontWeight: 600 }}>No topics found</div>
+                  </div>
+                )}
+                {filtered.length === 0 && browseSearch && (
+                  <div style={{ gridColumn: "1/-1", fontSize: "0.83rem", color: "#9CA3AF" }}>No matching topics</div>
+                )}
+              </div>
             </div>
           </div>
         )}
