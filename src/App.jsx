@@ -3,7 +3,7 @@ import { useState, useEffect, useCallback } from "react";
 // ══════════════════════════════════════════════════════════════════════
 // 🔐 SECURITY CONFIG — CHANGE THIS PASSWORD BEFORE DEPLOYING!
 // ══════════════════════════════════════════════════════════════════════
-const ADMIN_PASSWORD = "cafBT@DBATECH123";
+const ADMIN_PASSWORD = "";
 const MAX_LOGIN_ATTEMPTS = 5;
 const LOCKOUT_MINUTES = 15;
 const SESSION_HOURS = 8;
@@ -502,6 +502,19 @@ export default function App() {
     return () => clearTimeout(timer);
   }, [isAdmin]);
 
+  // 🔐 Secret keyboard shortcut: Ctrl + Shift + A to open admin login
+  useEffect(() => {
+    const handleKey = (e) => {
+      if (e.ctrlKey && e.shiftKey && e.key === "A") {
+        e.preventDefault();
+        if (isAdmin) { setView("admin"); setAdminView("topics"); }
+        else setShowLogin(true);
+      }
+    };
+    window.addEventListener("keydown", handleKey);
+    return () => window.removeEventListener("keydown", handleKey);
+  }, [isAdmin]);
+
   const persist = useCallback((newTopics) => { setTopics(newTopics); saveData(newTopics); }, []);
   const showToast = (msg) => { setToast(msg); setTimeout(() => setToast(null), 3000); };
 
@@ -611,13 +624,16 @@ export default function App() {
               {label}
             </button>
           ))}
-          <button onClick={handleAdminClick} className="btn" style={{ padding: "0.4rem 1rem", background: isAdmin ? "#1A1A2E" : "#F3F4F6", color: isAdmin ? "#fff" : "#374151", fontSize: "0.82rem" }}>
-            {isAdmin ? "✏️ Manage" : "🔐 Admin"}
-          </button>
+          {/* Admin buttons only visible when already logged in — no public admin button */}
           {isAdmin && (
-            <button onClick={handleLogout} className="btn" style={{ padding: "0.4rem 0.85rem", background: "#FEF2F2", color: "#DC2626", fontSize: "0.78rem" }}>
-              Logout
-            </button>
+            <>
+              <button onClick={() => { setView("admin"); setAdminView("topics"); }} className="btn" style={{ padding: "0.4rem 1rem", background: "#1A1A2E", color: "#fff", fontSize: "0.82rem" }}>
+                ✏️ Manage
+              </button>
+              <button onClick={handleLogout} className="btn" style={{ padding: "0.4rem 0.85rem", background: "#FEF2F2", color: "#DC2626", fontSize: "0.78rem" }}>
+                Logout
+              </button>
+            </>
           )}
         </div>
       </nav>
@@ -628,19 +644,24 @@ export default function App() {
         {/* ══════════ HOME VIEW ══════════ */}
         {view === "home" && (
           <div className="fade-in">
-            <section style={{ background: "#fff", padding: "70px 6% 60px", borderBottom: "1px solid #E2E2EC" }}>
-              <div style={{ maxWidth: 640 }}>
-                <div style={{ display: "inline-flex", alignItems: "center", gap: 6, background: "#EFF6FF", color: "#2563EB", border: "1px solid #BFDBFE", borderRadius: 100, padding: "0.3rem 0.9rem", fontSize: "0.75rem", fontWeight: 600, letterSpacing: "0.05em", textTransform: "uppercase", marginBottom: "1.2rem" }}>
-                  🚀 IT Knowledge Hub — Databases · Automation · Cloud
+            <section style={{ background: "#fff", padding: "56px 6% 52px", borderBottom: "1px solid #E2E2EC" }}>
+              <div style={{ maxWidth: 580 }}>
+                <div style={{ display: "inline-flex", alignItems: "center", gap: 6, background: "#F0F7FF", color: "#2563EB", border: "1px solid #BFDBFE", borderRadius: 6, padding: "0.25rem 0.75rem", fontSize: "0.72rem", fontWeight: 600, letterSpacing: "0.08em", textTransform: "uppercase", marginBottom: "1.4rem" }}>
+                  IT Knowledge Hub
                 </div>
-                <h1 style={{ fontFamily: "'Playfair Display', serif", fontSize: "clamp(2rem, 4vw, 3.2rem)", fontWeight: 900, lineHeight: 1.13, marginBottom: "1rem" }}>
-                  Master <span style={{ color: "#2563EB" }}>Databases, Automation</span> & Cloud Technologies
+                <h1 style={{ fontFamily: "'DM Sans', sans-serif", fontSize: "clamp(1.6rem, 3vw, 2.4rem)", fontWeight: 700, lineHeight: 1.3, marginBottom: "1rem", color: "#1A1A2E", letterSpacing: "-0.3px" }}>
+                  Master{" "}
+                  <span style={{ color: "#2563EB", fontWeight: 700 }}>Databases</span>,{" "}
+                  <span style={{ color: "#7C3AED", fontWeight: 700 }}>Automation</span>{" "}
+                  <span style={{ color: "#374151", fontWeight: 400 }}>&</span>{" "}
+                  <span style={{ color: "#0891B2", fontWeight: 700 }}>Cloud Technologies</span>
                 </h1>
-                <p style={{ fontSize: "1rem", color: "#6B7280", lineHeight: 1.78, marginBottom: "2rem", maxWidth: 520 }}>
-                  A professional IT knowledge base covering Oracle, PostgreSQL, MySQL, MongoDB, SQL Server, Ansible, Terraform, AWS, Azure, and Kubernetes.
+                <p style={{ fontSize: "0.95rem", color: "#6B7280", lineHeight: 1.8, marginBottom: "2rem", maxWidth: 480, fontWeight: 400 }}>
+                  A practical IT knowledge base covering Oracle, PostgreSQL, MySQL, MongoDB, SQL Server, Ansible, Terraform, AWS, Azure, and Kubernetes.
                 </p>
-                <div style={{ display: "flex", gap: "0.8rem", flexWrap: "wrap" }}>
-                  <button onClick={() => goBrowse()} className="btn" style={{ padding: "0.8rem 1.6rem", background: "#2563EB", color: "#fff", fontSize: "0.92rem" }}>Browse All Topics →</button>
+                <div style={{ display: "flex", gap: "0.75rem", flexWrap: "wrap", alignItems: "center" }}>
+                  <button onClick={() => goBrowse()} className="btn" style={{ padding: "0.7rem 1.4rem", background: "#2563EB", color: "#fff", fontSize: "0.88rem", fontWeight: 600 }}>Browse Topics →</button>
+                  <button onClick={goAbout} className="btn" style={{ padding: "0.7rem 1.2rem", background: "transparent", color: "#6B7280", border: "1px solid #E2E2EC", fontSize: "0.88rem", fontWeight: 500 }}>About Me</button>
                 </div>
               </div>
             </section>
@@ -986,14 +1007,8 @@ export default function App() {
           </div>
         )}
 
-        {view === "admin" && !isAdmin && (
-          <div style={{ textAlign: "center", padding: "6rem 2rem" }}>
-            <div style={{ fontSize: "4rem", marginBottom: "1rem" }}>🔐</div>
-            <h2 style={{ fontFamily: "'Playfair Display', serif", fontSize: "1.8rem", fontWeight: 900, marginBottom: "0.8rem" }}>Access Restricted</h2>
-            <p style={{ color: "#6B7280", marginBottom: "1.5rem" }}>You need admin credentials to access this area.</p>
-            <button onClick={() => setShowLogin(true)} className="btn" style={{ padding: "0.8rem 2rem", background: "#1A1A2E", color: "#fff", fontSize: "0.95rem" }}>🔓 Login as Admin</button>
-          </div>
-        )}
+        {/* Redirect to home if someone tries to access /admin without being logged in */}
+        {view === "admin" && !isAdmin && (() => { setView("home"); return null; })()}
 
       </main>
 
