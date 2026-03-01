@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Stats Footer</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700&family=Inter:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    background: #f5f5f0;
+    font-family: 'Inter', sans-serif;
+  }
+
+  /* Simulate page content */
+  .page-content {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #999;
+    font-size: 14px;
+    letter-spacing: 0.05em;
+  }
+
+  /* Stats Footer Bar */
+  .stats-footer {
+    background: #0d1b2e;
+    padding: 32px 60px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 80px;
+  }
+
+  .stat-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 6px;
+    animation: fadeUp 0.6s ease both;
+  }
+
+  .stat-item:nth-child(1) { animation-delay: 0s; }
+  .stat-item:nth-child(2) { animation-delay: 0.1s; }
+  .stat-item:nth-child(3) { animation-delay: 0.2s; }
+  .stat-item:nth-child(4) { animation-delay: 0.3s; }
+
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(12px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  .stat-number {
+    font-family: 'Playfair Display', serif;
+    font-size: 28px;
+    font-weight: 700;
+    color: #e8eaf6;
+    line-height: 1;
+  }
+
+  .stat-label {
+    font-size: 12px;
+    font-weight: 500;
+    color: #7a8ba6;
+    letter-spacing: 0.04em;
+    text-align: center;
+  }
+
+  .stat-icon {
+    font-size: 26px;
+    line-height: 1;
+  }
+
+  /* Lock icon styled like the image */
+  .lock-icon {
+    width: 24px;
+    height: 28px;
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
+
+  .lock-shackle {
+    width: 14px;
+    height: 10px;
+    border: 3px solid #f5c842;
+    border-bottom: none;
+    border-radius: 7px 7px 0 0;
+    margin-bottom: -2px;
+  }
+
+  .lock-body {
+    width: 22px;
+    height: 16px;
+    background: #f5c842;
+    border-radius: 3px;
+  }
+
+  .divider {
+    width: 1px;
+    height: 40px;
+    background: #1e2f45;
+  }
+
+  @media (max-width: 600px) {
+    .stats-footer {
+      gap: 24px;
+      padding: 28px 20px;
+      flex-wrap: wrap;
+    }
+    .divider { display: none; }
+  }
+</style>
+</head>
+<body>
+
+  <div class="page-content">Your page content goes here</div>
+
+  <footer class="stats-footer">
+    <div class="stat-item">
+      <span class="stat-number">11</span>
+      <span class="stat-label">Total Topics</span>
+    </div>
+
+    <div class="divider"></div>
+
+    <div class="stat-item">
+      <span class="stat-number">13</span>
+      <span class="stat-label">Knowledge Pages</span>
+    </div>
+
+    <div class="divider"></div>
+
+    <div class="stat-item">
+      <span class="stat-number">3</span>
+      <span class="stat-label">Technology Areas</span>
+    </div>
+
+    <div class="divider"></div>
+
+    <div class="stat-item">
+      <div class="lock-icon">
+        <div class="lock-shackle"></div>
+        <div class="lock-body"></div>
+      </div>
+      <span class="stat-label">Secured Admin</span>
+    </div>
+  </footer>
+
+</body>
+</html>
