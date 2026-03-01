@@ -898,7 +898,7 @@ export default function App() {
                 <h2 style={{ fontFamily: "'Playfair Display', serif", fontSize: "2rem", fontWeight: 900, marginBottom: "1.5rem" }}>The Knowledge Sharing Journey</h2>
                 <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "2rem" }}>
                   <p style={{ fontSize: "0.95rem", color: "#4B5563", lineHeight: 1.85 }}>My journey in databases began over <strong>a decade ago</strong>, starting with Oracle in enterprise environments. I've worked across industries managing mission-critical databases, building automation frameworks, and migrating workloads to the cloud.</p>
-                  <p style={{ fontSize: "0.95rem", color: "#4B5563", lineHeight: 1.85 }}>Today this hub covers <strong>Oracle, PostgreSQL, MySQL, MongoDB, SQL Server</strong> — plus <strong>Ansible, Terraform</strong> and <strong>AWS, Azure, and Kubernetes</strong>. My goal: share knowledge freely and help the next generation of DBAs.</p>
+                  <p style={{ fontSize: "0.95rem", color: "#4B5563", lineHeight: 1.85 }}>Today this hub covers <strong>Oracle, PostgreSQL, MySQL, MongoDB, SQL Server</strong> — plus <strong>Ansible, Terraform</strong> and <strong>Azure, OCI, AWS,and Kubernetes</strong>. My goal: share knowledge freely and help the next generation of DBAs.</p>
                 </div>
               </div>
             </div>
