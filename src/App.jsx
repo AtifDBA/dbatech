@@ -649,7 +649,7 @@ export default function App() {
                 <div style={{ display: "inline-flex", alignItems: "center", gap: 6, background: "#F0F7FF", color: "#2563EB", border: "1px solid #BFDBFE", borderRadius: 6, padding: "0.25rem 0.75rem", fontSize: "0.72rem", fontWeight: 600, letterSpacing: "0.08em", textTransform: "uppercase", marginBottom: "1.4rem" }}>
                   IT Knowledge Hub
                 </div>
-                <h1 style={{ fontFamily: "'DM Sans', sans-serif", fontSize: "clamp(1.6rem, 3vw, 2.4rem)", fontWeight: 700, lineHeight: 1.3, marginBottom: "1rem", color: "#1A1A2E", letterSpacing: "-0.3px" }}>
+                <h1 style={{ fontFamily: "'DM Sans', sans-serif", fontSize: "clamp(1.3rem, 2.2vw, 1.9rem)", fontWeight: 700, lineHeight: 1.2, marginBottom: "1rem", color: "#1A1A2E", letterSpacing: "-0.3px", whiteSpace: "nowrap" }}>
                   Master{" "}
                   <span style={{ color: "#2563EB", fontWeight: 700 }}>Databases</span>,{" "}
                   <span style={{ color: "#7C3AED", fontWeight: 700 }}>Automation</span>{" "}
