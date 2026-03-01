@@ -536,8 +536,7 @@ export default function App() {
     showToast("✅ Welcome back! Admin session started.");
   };
 
-  const goHome    = () => { setView("home");    setActiveTopic(null); setActivePage(null); };
-  const goSession = () => { setView("session"); setActiveTopic(null); setActivePage(null); };
+  const goHome   = () => { setView("home");   setActiveTopic(null); setActivePage(null); };
   const goAbout  = () => { setView("about");  setActiveTopic(null); setActivePage(null); };
   const goBrowse = (cat = "all") => { setView("browse"); setFilterCat(cat); setActiveTopic(null); setBrowseSearch(""); };
   const goTopic  = (t) => { setActiveTopic(t); setView("topic"); setActivePage(null); };
@@ -619,7 +618,7 @@ export default function App() {
         <GlobalSearch topics={topics} onGoTopic={goTopic} onGoPage={goPage} />
 
         <div style={{ display: "flex", gap: "0.4rem", flexWrap: "wrap", alignItems: "center", flexShrink: 0 }}>
-          {[["Home", goHome], ["About Me", goAbout], ["Browse", () => goBrowse()], ["🎓 Free Session", goSession], ...DEFAULT_CATEGORIES.map((c) => [c.label, () => goBrowse(c.id)])].map(([label, fn]) => (
+          {[["Home", goHome], ["About Me", goAbout], ["Browse", () => goBrowse()], ...DEFAULT_CATEGORIES.map((c) => [c.label, () => goBrowse(c.id)])].map(([label, fn]) => (
             <button key={label} onClick={fn} style={{ padding: "0.4rem 0.85rem", background: "transparent", border: "none", color: "#6B7280", fontFamily: "inherit", fontSize: "0.82rem", fontWeight: 500, cursor: "pointer", borderRadius: 8 }}
               onMouseEnter={(e) => e.target.style.color = "#2563EB"} onMouseLeave={(e) => e.target.style.color = "#6B7280"}>
               {label}
@@ -898,8 +897,8 @@ export default function App() {
                 <div style={{ fontSize: "0.72rem", fontWeight: 600, color: "#2563EB", letterSpacing: "0.1em", textTransform: "uppercase", marginBottom: "0.6rem" }}>📖 My Story</div>
                 <h2 style={{ fontFamily: "'Playfair Display', serif", fontSize: "2rem", fontWeight: 900, marginBottom: "1.5rem" }}>The Knowledge Sharing Journey</h2>
                 <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "2rem" }}>
-                  <p style={{ fontSize: "0.95rem", color: "#4B5563", lineHeight: 1.85 }}>My journey in databases began over <strong>20 years ago</strong>, starting with Oracle in enterprise environments. I've worked across industries managing mission-critical databases, building automation frameworks, and migrating workloads to the cloud.</p>
-                  <p style={{ fontSize: "0.95rem", color: "#4B5563", lineHeight: 1.85 }}>Today this hub covers <strong>Oracle, PostgreSQL, MySQL, MongoDB, SQL Server</strong> — plus <strong>Ansible, Terraform</strong> and <strong>AWS, Azure, and Kubernetes</strong>. My goal: share knowledge freely and help the next generation of DBAs.</p>
+                  <p style={{ fontSize: "0.95rem", color: "#4B5563", lineHeight: 1.85 }}>My journey in databases began over <strong>a decade ago</strong>, starting with Oracle in enterprise environments. I've worked across industries managing mission-critical databases, building automation frameworks, and migrating workloads to the cloud.</p>
+                  <p style={{ fontSize: "0.95rem", color: "#4B5563", lineHeight: 1.85 }}>Today this hub covers <strong>Oracle, PostgreSQL, MySQL, MongoDB, SQL Server</strong> — plus <strong>Ansible, Terraform</strong> and <strong>Azure, OCI, AWS,and Kubernetes</strong>. My goal: share knowledge freely and help the next generation of DBAs.</p>
                 </div>
               </div>
             </div>
@@ -1010,10 +1009,6 @@ export default function App() {
 
         {/* Redirect to home if someone tries to access /admin without being logged in */}
         {view === "admin" && !isAdmin && (() => { setView("home"); return null; })()}
-
-
-        {/* ══════════ FREE SESSION VIEW ══════════ */}
-        {view === "session" && <SessionPage onGoHome={goHome} />}
 
       </main>
 
@@ -1168,262 +1163,6 @@ export function CommentsSection({ pageId, pageTitle, pageUrl }) {
           )}
         </div>
       )}
-    </div>
-  );
-}
-
-// ══════════════════════════════════════════════════════════════════════
-// 🎓 FREE SESSION PAGE — Announcement + Registration
-// ══════════════════════════════════════════════════════════════════════
-const SESSION_CONFIG = {
-  title: "Oracle Basic Troubleshooting",
-  subtitle: "Free 1-Hour Live Session",
-  date: "TBA — Date to be announced soon",
-  time: "TBA",
-  duration: "1 Hour",
-  platform: "Microsoft Teams",
-  meetingLink: "https://teams.microsoft.com/l/meetup-join/YOUR_MEETING_LINK", // ← Replace with your MS Teams link
-  instructor: "Atif — Senior DBA",
-  topics: [
-    "Common Oracle errors and how to diagnose them",
-    "Reading and interpreting alert logs",
-    "ORA- error codes — top 10 most frequent",
-    "Tablespace & space management issues",
-    "Session & locking troubleshooting basics",
-    "Quick performance checks with AWR/ASH",
-  ],
-  spotsLeft: 30,
-};
-
-function SessionPage({ onGoHome }) {
-  const [formData, setFormData] = useState({
-    fullName: "", email: "", phone: "", address: "",
-    company: "", jobTitle: "", experience: "",
-  });
-  const [submitted, setSubmitted] = useState(false);
-  const [errors, setErrors]       = useState({});
-  const [loading, setLoading]     = useState(false);
-  const [registrations, setRegistrations] = useState([]);
-
-  useEffect(() => {
-    // Load existing registrations count
-    try {
-      window.storage.get("session-registrations", true).then(r => {
-        if (r) setRegistrations(JSON.parse(r.value));
-      }).catch(() => {});
-    } catch {}
-  }, []);
-
-  const set = (k, v) => setFormData(p => ({ ...p, [k]: v }));
-
-  const validate = () => {
-    const e = {};
-    if (!formData.fullName.trim())  e.fullName = "Full name is required";
-    if (!formData.email.trim() || !/\S+@\S+\.\S+/.test(formData.email)) e.email = "Valid email is required";
-    if (!formData.phone.trim())     e.phone    = "Phone number is required";
-    if (!formData.experience)       e.experience = "Please select your experience level";
-    return e;
-  };
-
-  const handleSubmit = async () => {
-    const e = validate();
-    if (Object.keys(e).length > 0) { setErrors(e); return; }
-    setLoading(true);
-    try {
-      const reg = {
-        ...formData,
-        id: "reg-" + Date.now(),
-        registeredAt: new Date().toISOString(),
-      };
-      const updated = [...registrations, reg];
-      await window.storage.set("session-registrations", JSON.stringify(updated), true);
-      setRegistrations(updated);
-      setSubmitted(true);
-    } catch {}
-    setLoading(false);
-  };
-
-  const Field = ({ label, field, type = "text", placeholder, required, children }) => (
-    <div style={{ display: "flex", flexDirection: "column", gap: 5 }}>
-      <label style={{ fontSize: "0.82rem", fontWeight: 600, color: "#374151" }}>
-        {label} {required && <span style={{ color: "#EF4444" }}>*</span>}
-      </label>
-      {children || (
-        <input
-          type={type}
-          value={formData[field]}
-          onChange={e => { set(field, e.target.value); setErrors(p => ({ ...p, [field]: "" })); }}
-          placeholder={placeholder}
-          style={{ padding: "0.7rem 0.9rem", border: `1.5px solid ${errors[field] ? "#FCA5A5" : "#E2E2EC"}`, borderRadius: 9, fontSize: "0.88rem", background: "#FAFAF7", outline: "none", transition: "border-color 0.2s" }}
-          onFocus={e => e.target.style.borderColor = "#2563EB"}
-          onBlur={e => e.target.style.borderColor = errors[field] ? "#FCA5A5" : "#E2E2EC"}
-        />
-      )}
-      {errors[field] && <span style={{ fontSize: "0.76rem", color: "#EF4444" }}>{errors[field]}</span>}
-    </div>
-  );
-
-  if (submitted) {
-    return (
-      <div className="fade-in" style={{ minHeight: "60vh", display: "flex", alignItems: "center", justifyContent: "center", padding: "3rem 6%" }}>
-        <div style={{ maxWidth: 520, width: "100%", textAlign: "center" }}>
-          <div style={{ width: 80, height: 80, background: "#F0FDF4", borderRadius: "50%", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "2.5rem", margin: "0 auto 1.5rem" }}>✅</div>
-          <h2 style={{ fontFamily: "'Playfair Display', serif", fontSize: "1.8rem", fontWeight: 900, color: "#1A1A2E", marginBottom: "0.8rem" }}>You're Registered!</h2>
-          <p style={{ color: "#6B7280", lineHeight: 1.8, marginBottom: "1.5rem" }}>
-            Thanks <strong>{formData.fullName}</strong>! Your seat for the <strong>Oracle Basic Troubleshooting</strong> session is confirmed.
-            We'll send details to <strong>{formData.email}</strong> once the date is announced.
-          </p>
-
-          {/* MS Teams link */}
-          <div style={{ background: "#EFF6FF", border: "1px solid #BFDBFE", borderRadius: 12, padding: "1.2rem", marginBottom: "1.5rem" }}>
-            <div style={{ fontSize: "0.78rem", fontWeight: 600, color: "#2563EB", letterSpacing: "0.06em", textTransform: "uppercase", marginBottom: "0.5rem" }}>📅 Join via Microsoft Teams</div>
-            <a href={SESSION_CONFIG.meetingLink} target="_blank" rel="noreferrer"
-              style={{ display: "inline-flex", alignItems: "center", gap: "0.5rem", padding: "0.65rem 1.4rem", background: "#2563EB", color: "#fff", borderRadius: 9, fontFamily: "inherit", fontSize: "0.88rem", fontWeight: 700, textDecoration: "none" }}>
-              🔗 Open MS Teams Meeting
-            </a>
-            <p style={{ fontSize: "0.76rem", color: "#6B7280", marginTop: "0.6rem" }}>Save this link — you'll need it on session day</p>
-          </div>
-
-          <button onClick={onGoHome} style={{ padding: "0.7rem 1.6rem", background: "#1A1A2E", color: "#fff", border: "none", borderRadius: 9, fontFamily: "inherit", fontSize: "0.88rem", fontWeight: 600, cursor: "pointer" }}>
-            ← Back to Home
-          </button>
-        </div>
-      </div>
-    );
-  }
-
-  return (
-    <div className="fade-in">
-      {/* Hero Banner */}
-      <div style={{ background: "linear-gradient(135deg, #1A1A2E 0%, #0F3460 100%)", padding: "60px 6% 50px", position: "relative", overflow: "hidden" }}>
-        <div style={{ position: "absolute", top: -60, right: -60, width: 300, height: 300, background: "radial-gradient(circle, rgba(37,99,235,0.2) 0%, transparent 70%)", borderRadius: "50%" }} />
-        <div style={{ position: "absolute", bottom: -40, left: "20%", width: 200, height: 200, background: "radial-gradient(circle, rgba(196,70,52,0.15) 0%, transparent 70%)", borderRadius: "50%" }} />
-        <div style={{ maxWidth: 700, position: "relative" }}>
-          <div style={{ display: "inline-flex", alignItems: "center", gap: 6, background: "rgba(196,70,52,0.2)", color: "#FCA5A5", border: "1px solid rgba(196,70,52,0.4)", borderRadius: 6, padding: "0.3rem 0.85rem", fontSize: "0.72rem", fontWeight: 700, letterSpacing: "0.08em", textTransform: "uppercase", marginBottom: "1.2rem" }}>
-            🎓 FREE LIVE SESSION
-          </div>
-          <h1 style={{ fontFamily: "'Playfair Display', serif", fontSize: "clamp(1.8rem, 3.5vw, 2.8rem)", fontWeight: 900, color: "#fff", lineHeight: 1.2, marginBottom: "0.8rem" }}>
-            Oracle Basic<br/>
-            <span style={{ color: "#C74634" }}>Troubleshooting</span>
-          </h1>
-          <p style={{ color: "#94A3B8", fontSize: "1rem", lineHeight: 1.7, maxWidth: 500, marginBottom: "1.8rem" }}>
-            A free 1-hour hands-on session covering the most common Oracle errors, how to read alert logs, and how to diagnose real production issues — led by a Senior DBA with 20+ years experience.
-          </p>
-
-          {/* Session meta pills */}
-          <div style={{ display: "flex", gap: "0.8rem", flexWrap: "wrap" }}>
-            {[
-              ["⏱️", "1 Hour"],
-              ["📅", SESSION_CONFIG.date],
-              ["💻", "Microsoft Teams"],
-              ["🆓", "Completely Free"],
-            ].map(([icon, text]) => (
-              <div key={text} style={{ display: "flex", alignItems: "center", gap: "0.4rem", background: "rgba(255,255,255,0.08)", border: "1px solid rgba(255,255,255,0.12)", borderRadius: 100, padding: "0.35rem 0.85rem", fontSize: "0.78rem", color: "#E2E8F0", fontWeight: 500 }}>
-                {icon} {text}
-              </div>
-            ))}
-          </div>
-        </div>
-      </div>
-
-      <div style={{ display: "grid", gridTemplateColumns: "1fr 1.1fr", gap: "2.5rem", padding: "3rem 6%", maxWidth: 1100, margin: "0 auto", alignItems: "start" }}>
-
-        {/* Left — What you'll learn */}
-        <div>
-          <h2 style={{ fontFamily: "'Playfair Display', serif", fontSize: "1.4rem", fontWeight: 900, marginBottom: "1.2rem", color: "#1A1A2E" }}>What You'll Learn</h2>
-          <div style={{ display: "flex", flexDirection: "column", gap: "0.7rem", marginBottom: "2rem" }}>
-            {SESSION_CONFIG.topics.map((topic, i) => (
-              <div key={i} style={{ display: "flex", gap: "0.75rem", alignItems: "flex-start", background: "#fff", border: "1px solid #E2E2EC", borderRadius: 10, padding: "0.85rem 1rem" }}>
-                <div style={{ width: 22, height: 22, background: "#EFF6FF", borderRadius: "50%", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0, fontSize: "0.7rem", fontWeight: 700, color: "#2563EB", marginTop: 1 }}>{i + 1}</div>
-                <span style={{ fontSize: "0.88rem", color: "#374151", lineHeight: 1.6 }}>{topic}</span>
-              </div>
-            ))}
-          </div>
-
-          {/* Instructor card */}
-          <div style={{ background: "#1A1A2E", borderRadius: 14, padding: "1.5rem", color: "#fff" }}>
-            <div style={{ display: "flex", alignItems: "center", gap: "1rem", marginBottom: "0.8rem" }}>
-              <div style={{ width: 50, height: 50, borderRadius: "50%", background: "linear-gradient(135deg, #2563EB, #C74634)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "1.5rem", flexShrink: 0 }}>👨‍💻</div>
-              <div>
-                <div style={{ fontWeight: 700, fontSize: "0.95rem" }}>Atif — Senior DBA</div>
-                <div style={{ fontSize: "0.78rem", color: "#9CA3AF" }}>20+ Years Oracle Experience</div>
-              </div>
-            </div>
-            <p style={{ fontSize: "0.83rem", color: "#94A3B8", lineHeight: 1.7 }}>
-              Covering Oracle, PostgreSQL, AWS, Azure & Kubernetes. Passionate about sharing real-world knowledge that helps DBAs solve problems faster.
-            </p>
-          </div>
-
-          {/* MS Teams Join button */}
-          <div style={{ marginTop: "1.5rem", background: "#EFF6FF", border: "1px solid #BFDBFE", borderRadius: 12, padding: "1.2rem" }}>
-            <div style={{ fontSize: "0.78rem", fontWeight: 700, color: "#1d4ed8", letterSpacing: "0.06em", textTransform: "uppercase", marginBottom: "0.6rem" }}>📅 Meeting Link</div>
-            <a href={SESSION_CONFIG.meetingLink} target="_blank" rel="noreferrer"
-              style={{ display: "inline-flex", alignItems: "center", gap: "0.5rem", padding: "0.65rem 1.2rem", background: "#2563EB", color: "#fff", borderRadius: 9, fontFamily: "inherit", fontSize: "0.85rem", fontWeight: 700, textDecoration: "none" }}>
-              🔗 Join on Microsoft Teams
-            </a>
-            <p style={{ fontSize: "0.75rem", color: "#6B7280", marginTop: "0.5rem" }}>
-              Register first, then use this link to join on session day
-            </p>
-          </div>
-        </div>
-
-        {/* Right — Registration Form */}
-        <div style={{ background: "#fff", border: "1px solid #E2E2EC", borderRadius: 18, padding: "2rem", boxShadow: "0 4px 24px rgba(0,0,0,0.06)" }}>
-          <div style={{ marginBottom: "1.5rem" }}>
-            <h2 style={{ fontFamily: "'Playfair Display', serif", fontSize: "1.4rem", fontWeight: 900, color: "#1A1A2E", marginBottom: "0.3rem" }}>Register Your Seat</h2>
-            <p style={{ fontSize: "0.82rem", color: "#9CA3AF" }}>
-              {SESSION_CONFIG.spotsLeft - registrations.length > 0
-                ? `🔴 Only ${SESSION_CONFIG.spotsLeft - registrations.length} spots remaining — register now!`
-                : "📋 Registrations received — you'll be notified"
-              }
-            </p>
-          </div>
-
-          <div style={{ display: "flex", flexDirection: "column", gap: "1rem" }}>
-            <Field label="Full Name" field="fullName" placeholder="e.g. John Smith" required />
-            <Field label="Email Address" field="email" type="email" placeholder="e.g. john@company.com" required />
-            <Field label="Phone Number" field="phone" placeholder="e.g. +1 234 567 8900" required />
-            <Field label="Address" field="address" placeholder="City, Country" />
-
-            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "1rem" }}>
-              <Field label="Company / Organization" field="company" placeholder="Your company" />
-              <Field label="Job Title" field="jobTitle" placeholder="e.g. DBA, Developer" />
-            </div>
-
-            <Field label="Oracle Experience Level" field="experience" required>
-              <select
-                value={formData.experience}
-                onChange={e => { set("experience", e.target.value); setErrors(p => ({ ...p, experience: "" })); }}
-                style={{ padding: "0.7rem 0.9rem", border: `1.5px solid ${errors.experience ? "#FCA5A5" : "#E2E2EC"}`, borderRadius: 9, fontSize: "0.88rem", background: "#FAFAF7", outline: "none", color: formData.experience ? "#1A1A2E" : "#9CA3AF" }}>
-                <option value="">Select your level…</option>
-                <option value="beginner">🟢 Beginner — just starting out</option>
-                <option value="intermediate">🟡 Intermediate — 1–3 years experience</option>
-                <option value="experienced">🟠 Experienced — 3–7 years</option>
-                <option value="senior">🔴 Senior — 7+ years</option>
-              </select>
-              {errors.experience && <span style={{ fontSize: "0.76rem", color: "#EF4444" }}>{errors.experience}</span>}
-            </Field>
-
-            <button
-              onClick={handleSubmit}
-              disabled={loading}
-              style={{ padding: "0.9rem", background: loading ? "#93C5FD" : "#2563EB", color: "#fff", border: "none", borderRadius: 10, fontFamily: "inherit", fontSize: "0.95rem", fontWeight: 700, cursor: loading ? "not-allowed" : "pointer", transition: "all 0.2s", marginTop: "0.5rem" }}>
-              {loading ? "Registering…" : "🎓 Register for Free Session"}
-            </button>
-
-            <p style={{ fontSize: "0.75rem", color: "#9CA3AF", textAlign: "center", lineHeight: 1.6 }}>
-              Your information is kept private and will only be used to send session details. No spam.
-            </p>
-          </div>
-        </div>
-      </div>
-
-      {/* Mobile stacking fix */}
-      <style>{`
-        @media (max-width: 700px) {
-          .session-grid { grid-template-columns: 1fr !important; }
-        }
-      `}</style>
     </div>
   );
 }
