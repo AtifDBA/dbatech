@@ -588,17 +588,14 @@ export default function App() {
                   Atif — DBA & IT Professional
                 </h1>
                 <p style={{ color: "#94A3B8", fontSize: "1rem", lineHeight: 1.7, maxWidth: 520 }}>
-                  20+ years of hands-on experience managing enterprise databases, building automation pipelines, and architecting cloud infrastructure across global organizations.
+                  11+ years of hands-on experience managing enterprise databases, building automation pipelines, and architecting cloud infrastructure across global organizations.
                 </p>
                 <div style={{ display: "flex", gap: "0.8rem", marginTop: "1.2rem", flexWrap: "wrap" }}>
-                  <a href="https://www.linkedin.com/in/mokhtar-mokhtar-atif-dba" target="_blank" rel="noreferrer"
+                  <a href="https://www.linkedin.com/in/mokhtar-atif-dba" target="_blank" rel="noreferrer"
                     style={{ display: "inline-flex", alignItems: "center", gap: "0.4rem", padding: "0.55rem 1.1rem", background: "#0077B5", color: "#fff", borderRadius: 9, fontSize: "0.85rem", fontWeight: 600, textDecoration: "none", transition: "opacity 0.2s" }}>
                     🔗 LinkedIn Profile
                   </a>
-                  <a href="https://github.com/AtifDBA" target="_blank" rel="noreferrer"
-                    style={{ display: "inline-flex", alignItems: "center", gap: "0.4rem", padding: "0.55rem 1.1rem", background: "rgba(255,255,255,0.1)", color: "#fff", borderRadius: 9, fontSize: "0.85rem", fontWeight: 600, textDecoration: "none", border: "1px solid rgba(255,255,255,0.2)" }}>
-                    🐙 GitHub @AtifDBA
-                  </a>
+                 
                 </div>
               </div>
             </div>
