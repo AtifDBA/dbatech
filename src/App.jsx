@@ -1348,11 +1348,11 @@ export default function App() {
                 {/* ── ROW 3: 5 service cards ── */}
                 <div style={{ display: "grid", gridTemplateColumns: "repeat(5, 1fr)", gap: "0.75rem", marginBottom: "1.2rem" }}>
                   {[
-                    { icon: "🏗️", title: "Design & Build",        color: "#1D4ED8", bg: "#F0F7FF", border: "#BFDBFE", items: ["DB Architecture", "Installation & Config", "Capacity Planning", "Migration Strategy"] },
-                    { icon: "🔄", title: "Upgrades & Migrations",  color: "#B45309", bg: "#FFFBEB", border: "#FDE68A", items: ["Zero-Downtime Cutover", "Cross-Platform Migration", "Major Version Upgrades", "Rollback Strategy"] },
-                    { icon: "⚡", title: "Performance",            color: "#0891B2", bg: "#F0FDFF", border: "#BAE6FD", items: ["Query Optimisation", "AWR / ASH Analysis", "Indexing Strategy", "Bottleneck Analysis"] },
-                    { icon: "🔒", title: "Security & Audit",       color: "#7C3AED", bg: "#FAF5FF", border: "#DDD6FE", items: ["Security Auditing", "Access Control", "Compliance (SOX/GDPR)", "Vulnerability Review"] },
-                    { icon: "☁️", title: "Cloud & Automation",    color: "#059669", bg: "#F0FDF7", border: "#A7F3D0", items: ["Cloud Migration", "Ansible / Terraform", "HA & Disaster Recovery", "CI/CD Pipelines"] },
+                    { icon: "🏗️", title: "Design & Build",color: "#1D4ED8", bg: "#F0F7FF", border: "#BFDBFE", items: ["DB Architecture", "Installation & Config", "Capacity Planning", "Migration Strategy"] },
+                    { icon: "🔄", title: "Upgrades & Migrations", color: "#B45309", bg: "#FFFBEB", border: "#FDE68A", items: ["Zero-Downtime Upgrade Strategy", "Cross-Platform & OS Migration", "Major Version Upgrade", "Secure Cutover & Rollback Planning"] },
+                    { icon: "⚡", title: "Performance Engineering", color: "#0891B2", bg: "#F0FDFF", border: "#BAE6FD", items: ["Query Optimisation", "AWR / ASH Analysis", "Indexing Strategy", "Bottleneck Analysis"] },
+                    { icon: "🔒", title: "Security & Audit", color: "#7C3AED", bg: "#FAF5FF", border: "#DDD6FE", items: ["Security Auditing", "Access Control", "Compliance (SOX/GDPR)", "Vulnerability Review"] },
+                    { icon: "☁️", title: "Cloud Migration & Modernization", color: "#059669", bg: "#F0FDF7", border: "#A7F3D0", items: ["Infrastructure as Code (Ansible / Terraform)", "HA & Disaster Recovery Architecture", "CI/CD Database Pipelines"] },
                   ].map(card => (
                     <div key={card.title} style={{ background: card.bg, border: "1px solid " + card.border, borderRadius: 10, padding: "0.85rem 0.85rem 0.75rem", position: "relative", overflow: "hidden" }}>
                       <div style={{ position: "absolute", top: 0, left: 0, right: 0, height: 3, background: card.color }} />
@@ -1392,7 +1392,7 @@ export default function App() {
                 <div style={{ fontSize: "0.72rem", fontWeight: 600, color: "#2563EB", letterSpacing: "0.1em", textTransform: "uppercase", marginBottom: "0.6rem" }}>📖 My Story</div>
                 <h2 style={{ fontFamily: "'Playfair Display', serif", fontSize: "2rem", fontWeight: 900, marginBottom: "1.5rem" }}>The Knowledge Sharing Journey</h2>
                 <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "2rem" }}>
-                  <p style={{ fontSize: "0.95rem", color: "#4B5563", lineHeight: 1.85 }}>With <strong>11+ years of extensive experience</strong> across Oracle, PostgreSQL, and cloud platforms, I specialise in performance tuning, high availability, automation, and database architecture modernization. I have worked across industries managing mission-critical database systems for enterprise environments.</p>
+                  <p style={{ fontSize: "0.95rem", color: "#4B5563", lineHeight: 1.85 }}>With <strong>11+ years of enterprise experience</strong> across Oracle, PostgreSQL, and cloud platforms, I specialize in performance engineering, high availability, automation, and database modernization, delivering measurable results, not just reports..</p>
                   <p style={{ fontSize: "0.95rem", color: "#4B5563", lineHeight: 1.85 }}>This hub covers <strong>Oracle, PostgreSQL, MySQL, MongoDB, SQL Server</strong> — plus <strong>Ansible, Terraform</strong> and <strong>AWS, Azure, and Kubernetes</strong>. My goal is to share practical, real-world knowledge freely and help the next generation of database professionals and cloud engineers grow faster.</p>
                 </div>
               </div>
