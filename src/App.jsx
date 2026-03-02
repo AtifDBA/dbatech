@@ -1292,21 +1292,62 @@ export default function App() {
         {/* ══════════ ABOUT VIEW ══════════ */}
         {view === "about" && (
           <div className="fade-in">
-            <div style={{ background: "linear-gradient(135deg, #1A1A2E 0%, #16213E 50%, #0F3460 100%)", padding: "70px 6% 60px", position: "relative", overflow: "hidden" }}>
-              <div style={{ position: "absolute", top: -80, right: -80, width: 360, height: 360, background: "radial-gradient(circle, rgba(37,99,235,0.15) 0%, transparent 70%)", borderRadius: "50%" }} />
-              <div style={{ display: "flex", alignItems: "center", gap: "2.5rem", flexWrap: "wrap", position: "relative" }}>
-                <div style={{ width: 120, height: 120, borderRadius: "50%", background: "linear-gradient(135deg, #2563EB, #0891B2)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "3.5rem", flexShrink: 0, boxShadow: "0 8px 32px rgba(37,99,235,0.4)", border: "3px solid rgba(255,255,255,0.15)" }}>👨‍💻</div>
-                <div>
-                  <div style={{ fontSize: "0.75rem", fontWeight: 600, color: "#60A5FA", letterSpacing: "0.12em", textTransform: "uppercase", marginBottom: "0.5rem" }}>🌟 Senior Database Consultant</div>
-                  <h1 style={{ fontFamily: "'Playfair Display', serif", fontSize: "clamp(1.6rem, 3.5vw, 2.6rem)", fontWeight: 900, color: "#fff", lineHeight: 1.2, marginBottom: "0.5rem" }}>Oracle • PostgreSQL • Cloud &amp; Performance Engineering</h1>
-                  <p style={{ color: "#CBD5E1", fontSize: "1.05rem", lineHeight: 1.6, maxWidth: 540, marginBottom: "0.6rem", fontWeight: 500 }}>I help enterprises design, optimize, and secure mission-critical database systems.</p>
-                  <p style={{ color: "#94A3B8", fontSize: "0.92rem", lineHeight: 1.75, maxWidth: 540 }}>With 11+ years of extensive experience across Oracle, PostgreSQL, and cloud platforms, I specialize in performance tuning, high availability, automation, and database architecture modernization.</p>
-                  <div style={{ display: "flex", gap: "0.8rem", marginTop: "1.2rem", flexWrap: "wrap" }}>
-                    <a href="https://www.linkedin.com/in/mokhtar-atif-dba" target="_blank" rel="noreferrer"
-                      style={{ display: "inline-flex", alignItems: "center", gap: "0.4rem", padding: "0.55rem 1.1rem", background: "#0077B5", color: "#fff", borderRadius: 9, fontSize: "0.85rem", fontWeight: 600, textDecoration: "none" }}>
-                      🔗 LinkedIn Profile
-                    </a>
+            <div style={{ background: "linear-gradient(135deg, #0D1117 0%, #1A1A2E 55%, #0F3460 100%)", padding: "64px 6% 56px", position: "relative", overflow: "hidden" }}>
+              <div style={{ position: "absolute", top: -100, right: -60, width: 420, height: 420, background: "radial-gradient(circle, rgba(37,99,235,0.12) 0%, transparent 65%)", borderRadius: "50%", pointerEvents: "none" }} />
+              <div style={{ position: "absolute", bottom: -80, left: "30%", width: 300, height: 300, background: "radial-gradient(circle, rgba(8,145,178,0.08) 0%, transparent 65%)", borderRadius: "50%", pointerEvents: "none" }} />
+              <div style={{ maxWidth: 860, margin: "0 auto", position: "relative", display: "flex", alignItems: "flex-start", gap: "2rem", flexWrap: "wrap" }}>
+
+                {/* Avatar */}
+                <div style={{ flexShrink: 0, width: 96, height: 96, borderRadius: "50%", background: "linear-gradient(135deg, #2563EB 0%, #0891B2 100%)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "3rem", boxShadow: "0 0 0 3px rgba(37,99,235,0.3), 0 0 0 6px rgba(37,99,235,0.1), 0 12px 36px rgba(0,0,0,0.4)" }}>👨‍💻</div>
+
+                {/* Text */}
+                <div style={{ flex: 1, minWidth: 280 }}>
+
+                  {/* Role badge */}
+                  <div style={{ display: "inline-flex", alignItems: "center", gap: "0.45rem", background: "rgba(96,165,250,0.12)", border: "1px solid rgba(96,165,250,0.3)", borderRadius: "100px", padding: "0.3rem 0.9rem", marginBottom: "1rem" }}>
+                    <span style={{ width: 7, height: 7, borderRadius: "50%", background: "#60A5FA", display: "inline-block" }} />
+                    <span style={{ fontSize: "0.72rem", fontWeight: 700, color: "#93C5FD", letterSpacing: "0.1em", textTransform: "uppercase" }}>Senior Database Consultant</span>
                   </div>
+
+                  {/* Specialism chips */}
+                  <div style={{ display: "flex", flexWrap: "wrap", alignItems: "center", gap: "0.5rem", marginBottom: "1.1rem" }}>
+                    {[["🔴","Oracle","#C74634"],["🐘","PostgreSQL","#336791"],["☁️","Cloud","#0891B2"],["⚡","Performance Engineering","#7C3AED"]].map(([icon,label,color]) => (
+                      <span key={label} style={{ display: "inline-flex", alignItems: "center", gap: "0.3rem", background: color + "22", border: "1px solid " + color + "55", borderRadius: 8, padding: "0.3rem 0.75rem", fontSize: "0.85rem", fontWeight: 700, color: "#F1F5F9" }}>
+                        {icon} {label}
+                      </span>
+                    ))}
+                  </div>
+
+                  {/* Tagline */}
+                  <p style={{ fontSize: "clamp(1.05rem, 2vw, 1.3rem)", fontWeight: 600, color: "#F1F5F9", lineHeight: 1.55, marginBottom: "0.9rem", letterSpacing: "-0.1px" }}>
+                    I help enterprises{" "}
+                    <span style={{ color: "#60A5FA" }}>design</span>,{" "}
+                    <span style={{ color: "#34D399" }}>optimize</span>, and{" "}
+                    <span style={{ color: "#F59E0B" }}>secure</span>{" "}
+                    mission-critical database systems.
+                  </p>
+
+                  {/* Supporting text with left border accent */}
+                  <p style={{ fontSize: "0.93rem", color: "#94A3B8", lineHeight: 1.9, maxWidth: 600, marginBottom: "1.5rem", borderLeft: "3px solid rgba(96,165,250,0.4)", paddingLeft: "1rem" }}>
+                    With <strong style={{ color: "#CBD5E1", fontWeight: 600 }}>11+ years of extensive experience</strong> across Oracle, PostgreSQL, and cloud platforms, I specialize in{" "}
+                    <strong style={{ color: "#CBD5E1", fontWeight: 600 }}>performance tuning</strong>,{" "}
+                    <strong style={{ color: "#CBD5E1", fontWeight: 600 }}>high availability</strong>,{" "}
+                    <strong style={{ color: "#CBD5E1", fontWeight: 600 }}>automation</strong>, and{" "}
+                    <strong style={{ color: "#CBD5E1", fontWeight: 600 }}>database architecture modernization</strong>.
+                  </p>
+
+                  {/* CTAs */}
+                  <div style={{ display: "flex", gap: "0.8rem", flexWrap: "wrap" }}>
+                    <a href="https://www.linkedin.com/in/mokhtar-atif-dba" target="_blank" rel="noreferrer"
+                      style={{ display: "inline-flex", alignItems: "center", gap: "0.5rem", padding: "0.65rem 1.4rem", background: "#0077B5", color: "#fff", borderRadius: 10, fontSize: "0.88rem", fontWeight: 700, textDecoration: "none", boxShadow: "0 4px 14px rgba(0,119,181,0.35)" }}>
+                      🔗 Connect on LinkedIn
+                    </a>
+                    <button onClick={() => goBrowse()}
+                      style={{ display: "inline-flex", alignItems: "center", gap: "0.5rem", padding: "0.65rem 1.4rem", background: "rgba(255,255,255,0.07)", border: "1px solid rgba(255,255,255,0.15)", color: "#E2E8F0", borderRadius: 10, fontSize: "0.88rem", fontWeight: 600, cursor: "pointer", fontFamily: "inherit" }}>
+                      📚 Browse Topics
+                    </button>
+                  </div>
+
                 </div>
               </div>
             </div>
