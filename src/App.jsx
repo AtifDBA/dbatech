@@ -1345,7 +1345,7 @@ export default function App() {
                     {/* Row — Secure */}
                     <div style={{ display: "flex", alignItems: "center", gap: "0.5rem", flexWrap: "wrap" }}>
                       <span style={{ fontSize: "0.68rem", fontWeight: 700, color: "#F59E0B", letterSpacing: "0.1em", textTransform: "uppercase", minWidth: 80 }}>Secure</span>
-                      {["Security Auditing", "Access Control", "Compliance"].map(s => (
+                      {["Security & Auditing", "Access Control", "Compliance"].map(s => (
                         <span key={s} style={{ fontSize: "0.82rem", fontWeight: 500, color: "#FDE68A", background: "rgba(245,158,11,0.1)", border: "1px solid rgba(245,158,11,0.25)", borderRadius: 100, padding: "0.22rem 0.75rem" }}>{s}</span>
                       ))}
                     </div>
