@@ -957,6 +957,16 @@ export default function App() {
         input, textarea, select { font-family: 'DM Sans', sans-serif; outline: none; }
         textarea { resize: vertical; }
         .fade-in { animation: fadeIn 0.35s ease; }
+
+        /* ── SERVICE CARD HOVER ── */
+        .service-card {
+          transition: transform 0.18s ease, box-shadow 0.18s ease;
+          cursor: default;
+        }
+        .service-card:hover {
+          transform: translateY(-3px);
+          box-shadow: 0 8px 24px rgba(0,0,0,0.10);
+        }
         @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
         .slide-row { display: flex; gap: 1rem; overflow-x: auto; padding-bottom: 0.5rem; }
         .slide-row::-webkit-scrollbar { height: 4px; }
@@ -1352,10 +1362,10 @@ export default function App() {
                     { icon: "🔒", title: "Security, Compliance & Governance", color: "#7C3AED", bg: "#FAF5FF", border: "#DDD6FE", items: ["Security Auditing", "Access Control", "Compliance (SOX/GDPR)", "Vulnerability Review"] },
                     { icon: "☁️", title: "Cloud Migration & Modernization", color: "#059669", bg: "#F0FDF7", border: "#A7F3D0", items: ["Infrastructure as Code (Ansible / Terraform)", "HA & Disaster Recovery Architecture", "CI/CD Database Pipelines"] },
                   ].map(card => (
-                    <div key={card.title} style={{ background: card.bg, border: "1px solid " + card.border, borderRadius: 10, padding: "0.85rem 0.85rem 0.75rem", position: "relative", overflow: "hidden" }}>
+                    <div key={card.title} className="service-card" style={{ background: card.bg, border: "1px solid " + card.border, borderRadius: 12, padding: "1.1rem 1.1rem 1rem", position: "relative", overflow: "hidden", boxShadow: "0 2px 8px rgba(0,0,0,0.06)" }}>
                       <div style={{ position: "absolute", top: 0, left: 0, right: 0, height: 3, background: card.color }} />
-                      <div style={{ display: "flex", alignItems: "center", gap: "0.4rem", marginBottom: "0.5rem" }}>
-                        <span style={{ fontSize: "1rem" }}>{card.icon}</span>
+                      <div style={{ display: "flex", alignItems: "center", gap: "0.45rem", marginBottom: "0.6rem" }}>
+                        <span style={{ fontSize: "1.25rem" }}>{card.icon}</span>
                         <span style={{ fontSize: "0.67rem", fontWeight: 800, color: card.color, letterSpacing: "0.04em", textTransform: "uppercase", lineHeight: 1.3 }}>{card.title}</span>
                       </div>
                       {card.items.map(item => (
