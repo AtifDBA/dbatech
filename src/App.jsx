@@ -1312,9 +1312,16 @@ export default function App() {
                       <h1 style={{ fontFamily: "'Playfair Display', serif", fontSize: "1.45rem", fontWeight: 900, color: "#0F172A", lineHeight: 1.2 }}>Atif</h1>
                       <span style={{ fontSize: "0.7rem", fontWeight: 700, color: "#1D4ED8", letterSpacing: "0.09em", textTransform: "uppercase", background: "#EFF6FF", border: "1px solid #BFDBFE", borderRadius: 5, padding: "0.22rem 0.7rem" }}>Senior Database Consultant</span>
                     </div>
-                    <p style={{ fontSize: "0.9rem", color: "#475569", lineHeight: 1.6, maxWidth: 560 }}>
-                      I help enterprises <strong style={{ color: "#1D4ED8" }}>design</strong>, <strong style={{ color: "#0891B2" }}>optimize</strong>, and <strong style={{ color: "#7C3AED" }}>secure</strong> mission-critical database systems — Oracle, PostgreSQL, MySQL &amp; Cloud.
-                    </p>
+                    <div style={{ fontSize: "0.86rem", color: "#475569", lineHeight: 1.75, maxWidth: 580 }}>
+                      <div style={{ display: "flex", alignItems: "flex-start", gap: "0.5rem", marginBottom: "0.4rem" }}>
+                        <span style={{ color: "#1D4ED8", fontWeight: 800, flexShrink: 0, fontSize: "0.9rem", lineHeight: 1.5 }}>→</span>
+                        <span>Helping enterprises achieve <strong style={{ color: "#0F172A" }}>high-performance</strong>, <strong style={{ color: "#0F172A" }}>highly available</strong>, and <strong style={{ color: "#0F172A" }}>automation-driven</strong> database platforms.</span>
+                      </div>
+                      <div style={{ display: "flex", alignItems: "flex-start", gap: "0.5rem" }}>
+                        <span style={{ color: "#1D4ED8", fontWeight: 800, flexShrink: 0, fontSize: "0.9rem", lineHeight: 1.5 }}>→</span>
+                        <span>Designing <strong style={{ color: "#0F172A" }}>resilient, high-performance</strong> architectures with <strong style={{ color: "#0F172A" }}>zero-downtime operations</strong> and <strong style={{ color: "#0F172A" }}>enterprise-grade security</strong>.</span>
+                      </div>
+                    </div>
                   </div>
 
                   {/* CTAs — far right */}
@@ -1332,7 +1339,7 @@ export default function App() {
 
                 {/* ── ROW 2: Tech stack pills ── */}
                 <div style={{ display: "flex", gap: "0.4rem", flexWrap: "wrap", marginBottom: "1.4rem", paddingBottom: "1.3rem", borderBottom: "1px solid #E2E8F0" }}>
-                  {[["🔴","Oracle"],["🐘","PostgreSQL"],["🐬","MySQL"],["🪟","SQL Server"],["🔷","Vertica"],["☁️","Azure / OCI / AWS"],["⚙️","Ansible"],["🏗️","Terraform"],["🐧","Linux"]].map(([icon, label]) => (
+                  {[["🔴","Oracle"],["🐘","PostgreSQL"],["🐬","MySQL"],["🪟","SQL Server"],["🔷","Vertica"],["☁️","AWS / Azure / OCI"],["⚙️","Ansible"],["🏗️","Terraform"],["🐧","Linux"]].map(([icon, label]) => (
                     <span key={label} style={{ display: "inline-flex", alignItems: "center", gap: "0.25rem", fontSize: "0.75rem", fontWeight: 600, color: "#374151", background: "#fff", border: "1px solid #E2E8F0", borderRadius: 6, padding: "0.2rem 0.6rem", boxShadow: "0 1px 2px rgba(0,0,0,0.04)" }}>
                       {icon} {label}
                     </span>
