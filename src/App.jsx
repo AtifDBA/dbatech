@@ -1319,13 +1319,38 @@ export default function App() {
                   </div>
 
                   {/* Tagline */}
-                  <p style={{ fontSize: "clamp(1.05rem, 2vw, 1.3rem)", fontWeight: 600, color: "#F1F5F9", lineHeight: 1.55, marginBottom: "0.9rem", letterSpacing: "-0.1px" }}>
-                    I help enterprises{" "}
-                    <span style={{ color: "#60A5FA" }}>design</span>,{" "}
-                    <span style={{ color: "#34D399" }}>optimize</span>, and{" "}
-                    <span style={{ color: "#F59E0B" }}>secure</span>{" "}
-                    mission-critical database systems.
+                  <p style={{ fontSize: "clamp(1rem, 1.8vw, 1.2rem)", fontWeight: 600, color: "#E2E8F0", lineHeight: 1.6, marginBottom: "1rem", letterSpacing: "-0.1px" }}>
+                    I help enterprises build, manage and protect mission-critical database systems.
                   </p>
+
+                  {/* Service pills — grouped by colour */}
+                  <div style={{ marginBottom: "1.4rem" }}>
+
+                    {/* Row label + pills — Design & Build */}
+                    <div style={{ display: "flex", alignItems: "center", gap: "0.5rem", flexWrap: "wrap", marginBottom: "0.55rem" }}>
+                      <span style={{ fontSize: "0.68rem", fontWeight: 700, color: "#60A5FA", letterSpacing: "0.1em", textTransform: "uppercase", minWidth: 80 }}>Design</span>
+                      {["Architecture Design", "Installation & Setup", "Capacity Planning"].map(s => (
+                        <span key={s} style={{ fontSize: "0.82rem", fontWeight: 500, color: "#BFDBFE", background: "rgba(96,165,250,0.12)", border: "1px solid rgba(96,165,250,0.25)", borderRadius: 100, padding: "0.22rem 0.75rem" }}>{s}</span>
+                      ))}
+                    </div>
+
+                    {/* Row — Optimize */}
+                    <div style={{ display: "flex", alignItems: "center", gap: "0.5rem", flexWrap: "wrap", marginBottom: "0.55rem" }}>
+                      <span style={{ fontSize: "0.68rem", fontWeight: 700, color: "#34D399", letterSpacing: "0.1em", textTransform: "uppercase", minWidth: 80 }}>Optimize</span>
+                      {["Performance Tuning", "Troubleshooting", "High Availability"].map(s => (
+                        <span key={s} style={{ fontSize: "0.82rem", fontWeight: 500, color: "#A7F3D0", background: "rgba(52,211,153,0.1)", border: "1px solid rgba(52,211,153,0.25)", borderRadius: 100, padding: "0.22rem 0.75rem" }}>{s}</span>
+                      ))}
+                    </div>
+
+                    {/* Row — Secure */}
+                    <div style={{ display: "flex", alignItems: "center", gap: "0.5rem", flexWrap: "wrap" }}>
+                      <span style={{ fontSize: "0.68rem", fontWeight: 700, color: "#F59E0B", letterSpacing: "0.1em", textTransform: "uppercase", minWidth: 80 }}>Secure</span>
+                      {["Security Auditing", "Access Control", "Compliance"].map(s => (
+                        <span key={s} style={{ fontSize: "0.82rem", fontWeight: 500, color: "#FDE68A", background: "rgba(245,158,11,0.1)", border: "1px solid rgba(245,158,11,0.25)", borderRadius: 100, padding: "0.22rem 0.75rem" }}>{s}</span>
+                      ))}
+                    </div>
+
+                  </div>
 
                   {/* Supporting text with left border accent */}
                   <p style={{ fontSize: "0.93rem", color: "#94A3B8", lineHeight: 1.9, maxWidth: 600, marginBottom: "1.5rem", borderLeft: "3px solid rgba(96,165,250,0.4)", paddingLeft: "1rem" }}>
