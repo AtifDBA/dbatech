@@ -1307,7 +1307,7 @@ export default function App() {
                   <div style={{ flexShrink: 0, width: 72, height: 72, borderRadius: 12, background: "#EFF6FF", border: "2px solid #BFDBFE", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "2.2rem", boxShadow: "0 2px 10px rgba(37,99,235,0.1)" }}>👨‍💻</div>
 
                   {/* Name + role + one-liner */}
-                  <div style={{ flex: 1, minWidth: 260 }}>
+                  <div style={{ flex: 1, minWidth: 300 }}>
                     <div style={{ display: "flex", alignItems: "center", gap: "0.75rem", flexWrap: "wrap", marginBottom: "0.3rem" }}>
                     <span style={{ fontSize: "0.7rem", fontWeight: 700, color: "#1D4ED8", letterSpacing: "0.09em", textTransform: "uppercase", background: "#EFF6FF", border: "1px solid #BFDBFE", borderRadius: 5, padding: "0.22rem 0.7rem" }}>Senior Oracle & PostgreSQL Database Consultant | Cloud Infrastructure Expert</span>
                     </div>
