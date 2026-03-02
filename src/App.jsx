@@ -1292,83 +1292,79 @@ export default function App() {
         {/* ══════════ ABOUT VIEW ══════════ */}
         {view === "about" && (
           <div className="fade-in">
-            <div style={{ background: "linear-gradient(135deg, #0D1117 0%, #1A1A2E 55%, #0F3460 100%)", padding: "64px 6% 56px", position: "relative", overflow: "hidden" }}>
-              <div style={{ position: "absolute", top: -100, right: -60, width: 420, height: 420, background: "radial-gradient(circle, rgba(37,99,235,0.12) 0%, transparent 65%)", borderRadius: "50%", pointerEvents: "none" }} />
-              <div style={{ position: "absolute", bottom: -80, left: "30%", width: 300, height: 300, background: "radial-gradient(circle, rgba(8,145,178,0.08) 0%, transparent 65%)", borderRadius: "50%", pointerEvents: "none" }} />
-              <div style={{ maxWidth: 860, margin: "0 auto", position: "relative", display: "flex", alignItems: "flex-start", gap: "2rem", flexWrap: "wrap" }}>
+
+            {/* ── TOP ACCENT BAR ── */}
+            <div style={{ height: 4, background: "linear-gradient(90deg, #2563EB 0%, #0891B2 50%, #7C3AED 100%)" }} />
+
+            {/* ── PROFESSIONAL HERO — clean white ── */}
+            <div style={{ background: "#fff", borderBottom: "1px solid #E2E8F0", padding: "52px 6% 48px" }}>
+              <div style={{ maxWidth: 900, margin: "0 auto", display: "flex", alignItems: "flex-start", gap: "2.5rem", flexWrap: "wrap" }}>
 
                 {/* Avatar */}
-                <div style={{ flexShrink: 0, width: 96, height: 96, borderRadius: "50%", background: "linear-gradient(135deg, #2563EB 0%, #0891B2 100%)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "3rem", boxShadow: "0 0 0 3px rgba(37,99,235,0.3), 0 0 0 6px rgba(37,99,235,0.1), 0 12px 36px rgba(0,0,0,0.4)" }}>👨‍💻</div>
+                <div style={{ flexShrink: 0, textAlign: "center" }}>
+                  <div style={{ width: 100, height: 100, borderRadius: 16, background: "linear-gradient(135deg, #EFF6FF 0%, #DBEAFE 100%)", border: "2px solid #BFDBFE", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "3.2rem", boxShadow: "0 4px 20px rgba(37,99,235,0.1)", marginBottom: "0.5rem" }}>👨‍💻</div>
+                  <div style={{ fontSize: "0.7rem", fontWeight: 800, color: "#2563EB", letterSpacing: "0.08em", textTransform: "uppercase" }}>Atif</div>
+                </div>
 
-                {/* Text */}
-                <div style={{ flex: 1, minWidth: 280 }}>
+                {/* Main content */}
+                <div style={{ flex: 1, minWidth: 300 }}>
 
-                  {/* Role badge */}
-                  <div style={{ display: "inline-flex", alignItems: "center", gap: "0.45rem", background: "rgba(96,165,250,0.12)", border: "1px solid rgba(96,165,250,0.3)", borderRadius: "100px", padding: "0.3rem 0.9rem", marginBottom: "1rem" }}>
-                    <span style={{ width: 7, height: 7, borderRadius: "50%", background: "#60A5FA", display: "inline-block" }} />
-                    <span style={{ fontSize: "0.72rem", fontWeight: 700, color: "#93C5FD", letterSpacing: "0.1em", textTransform: "uppercase" }}>Senior Database Consultant</span>
+                  {/* Role badge + availability */}
+                  <div style={{ display: "flex", alignItems: "center", gap: "0.75rem", flexWrap: "wrap", marginBottom: "0.8rem" }}>
+                    <span style={{ fontSize: "0.7rem", fontWeight: 700, color: "#2563EB", letterSpacing: "0.09em", textTransform: "uppercase", background: "#EFF6FF", border: "1px solid #BFDBFE", borderRadius: 6, padding: "0.28rem 0.8rem" }}>
+                      Senior Database Consultant
+                    </span>
+                    <span style={{ display: "inline-flex", alignItems: "center", gap: "0.35rem", fontSize: "0.75rem", color: "#16A34A", fontWeight: 600 }}>
+                      <span style={{ width: 7, height: 7, borderRadius: "50%", background: "#22C55E", display: "inline-block" }} />
+                      Available for consulting
+                    </span>
                   </div>
 
-                  {/* Specialism chips */}
-                  <div style={{ display: "flex", flexWrap: "wrap", alignItems: "center", gap: "0.5rem", marginBottom: "1.1rem" }}>
-                    {[["🔴","Oracle","#C74634"],["🐘","PostgreSQL","#336791"],["☁️","Cloud","#0891B2"],["⚡","Performance Engineering","#7C3AED"]].map(([icon,label,color]) => (
-                      <span key={label} style={{ display: "inline-flex", alignItems: "center", gap: "0.3rem", background: color + "22", border: "1px solid " + color + "55", borderRadius: 8, padding: "0.3rem 0.75rem", fontSize: "0.85rem", fontWeight: 700, color: "#F1F5F9" }}>
-                        {icon} {label}
-                      </span>
+                  {/* Headline */}
+                  <h1 style={{ fontFamily: "'Playfair Display', serif", fontSize: "clamp(1.5rem, 3vw, 2.1rem)", fontWeight: 900, color: "#0F172A", lineHeight: 1.25, marginBottom: "0.55rem", letterSpacing: "-0.3px" }}>
+                    Database Architecture,{" "}
+                    <span style={{ color: "#2563EB" }}>Performance &amp; Cloud Engineering</span>
+                  </h1>
+
+                  {/* One-liner tagline */}
+                  <p style={{ fontSize: "1rem", fontWeight: 500, color: "#475569", lineHeight: 1.7, marginBottom: "1.3rem", maxWidth: 560 }}>
+                    I help enterprises <strong style={{ color: "#0F172A" }}>design</strong>, <strong style={{ color: "#0F172A" }}>optimize</strong>, and <strong style={{ color: "#0F172A" }}>secure</strong> mission-critical database systems — with 11+ years of hands-on experience across Oracle, PostgreSQL, and cloud platforms.
+                  </p>
+
+                  {/* Service cards — 3 columns */}
+                  <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(165px, 1fr))", gap: "0.65rem", marginBottom: "1.4rem" }}>
+                    {[
+                      { label: "Design & Build",   color: "#2563EB", bg: "#EFF6FF", border: "#BFDBFE", items: ["Architecture Design", "Installation & Config", "Capacity Planning"] },
+                      { label: "Optimize & Fix",   color: "#0891B2", bg: "#ECFEFF", border: "#A5F3FC", items: ["Performance Tuning", "Troubleshooting",       "High Availability"] },
+                      { label: "Secure & Audit",   color: "#7C3AED", bg: "#F5F3FF", border: "#DDD6FE", items: ["Security Auditing",   "Access Control",        "Compliance"] },
+                    ].map(col => (
+                      <div key={col.label} style={{ background: col.bg, border: "1px solid " + col.border, borderRadius: 10, padding: "0.9rem 1rem" }}>
+                        <div style={{ fontSize: "0.67rem", fontWeight: 800, color: col.color, letterSpacing: "0.08em", textTransform: "uppercase", marginBottom: "0.5rem", paddingBottom: "0.45rem", borderBottom: "1px solid " + col.border }}>{col.label}</div>
+                        {col.items.map(item => (
+                          <div key={item} style={{ display: "flex", alignItems: "center", gap: "0.4rem", fontSize: "0.79rem", color: "#374151", fontWeight: 500, lineHeight: 1.75 }}>
+                            <span style={{ width: 4, height: 4, borderRadius: "50%", background: col.color, flexShrink: 0, display: "inline-block" }} />
+                            {item}
+                          </div>
+                        ))}
+                      </div>
                     ))}
                   </div>
 
-                  {/* Tagline */}
-                  <p style={{ fontSize: "clamp(1rem, 1.8vw, 1.2rem)", fontWeight: 600, color: "#E2E8F0", lineHeight: 1.6, marginBottom: "1rem", letterSpacing: "-0.1px" }}>
-                    I help enterprises build, manage and protect mission-critical database systems.
+                  {/* Experience paragraph */}
+                  <p style={{ fontSize: "0.88rem", color: "#64748B", lineHeight: 1.9, maxWidth: 580, marginBottom: "1.5rem", paddingLeft: "0.9rem", borderLeft: "3px solid #2563EB" }}>
+                    With <strong style={{ color: "#1E293B" }}>11+ years of extensive experience</strong> across Oracle, PostgreSQL, and cloud platforms, I specialize in{" "}
+                    <strong style={{ color: "#1E293B" }}>performance tuning</strong>, <strong style={{ color: "#1E293B" }}>high availability</strong>, <strong style={{ color: "#1E293B" }}>automation</strong>, and{" "}
+                    <strong style={{ color: "#1E293B" }}>database architecture modernization</strong>.
                   </p>
 
-                  {/* Service pills — grouped by colour */}
-                  <div style={{ marginBottom: "1.4rem" }}>
-
-                    {/* Row label + pills — Design & Build */}
-                    <div style={{ display: "flex", alignItems: "center", gap: "0.5rem", flexWrap: "wrap", marginBottom: "0.55rem" }}>
-                      <span style={{ fontSize: "0.68rem", fontWeight: 700, color: "#60A5FA", letterSpacing: "0.1em", textTransform: "uppercase", minWidth: 80 }}>Design</span>
-                      {["Architecture Design", "Installation & Setup", "Capacity Planning"].map(s => (
-                        <span key={s} style={{ fontSize: "0.82rem", fontWeight: 500, color: "#BFDBFE", background: "rgba(96,165,250,0.12)", border: "1px solid rgba(96,165,250,0.25)", borderRadius: 100, padding: "0.22rem 0.75rem" }}>{s}</span>
-                      ))}
-                    </div>
-
-                    {/* Row — Optimize */}
-                    <div style={{ display: "flex", alignItems: "center", gap: "0.5rem", flexWrap: "wrap", marginBottom: "0.55rem" }}>
-                      <span style={{ fontSize: "0.68rem", fontWeight: 700, color: "#34D399", letterSpacing: "0.1em", textTransform: "uppercase", minWidth: 80 }}>Optimize</span>
-                      {["Performance Tuning", "Troubleshooting", "High Availability"].map(s => (
-                        <span key={s} style={{ fontSize: "0.82rem", fontWeight: 500, color: "#A7F3D0", background: "rgba(52,211,153,0.1)", border: "1px solid rgba(52,211,153,0.25)", borderRadius: 100, padding: "0.22rem 0.75rem" }}>{s}</span>
-                      ))}
-                    </div>
-
-                    {/* Row — Secure */}
-                    <div style={{ display: "flex", alignItems: "center", gap: "0.5rem", flexWrap: "wrap" }}>
-                      <span style={{ fontSize: "0.68rem", fontWeight: 700, color: "#F59E0B", letterSpacing: "0.1em", textTransform: "uppercase", minWidth: 80 }}>Secure</span>
-                      {["Security & Auditing", "Access Control", "Compliance"].map(s => (
-                        <span key={s} style={{ fontSize: "0.82rem", fontWeight: 500, color: "#FDE68A", background: "rgba(245,158,11,0.1)", border: "1px solid rgba(245,158,11,0.25)", borderRadius: 100, padding: "0.22rem 0.75rem" }}>{s}</span>
-                      ))}
-                    </div>
-
-                  </div>
-
-                  {/* Supporting text with left border accent */}
-                  <p style={{ fontSize: "0.93rem", color: "#94A3B8", lineHeight: 1.9, maxWidth: 600, marginBottom: "1.5rem", borderLeft: "3px solid rgba(96,165,250,0.4)", paddingLeft: "1rem" }}>
-                    With <strong style={{ color: "#CBD5E1", fontWeight: 600 }}>11+ years of extensive experience</strong> across Oracle, PostgreSQL, and cloud platforms, I specialize in{" "}
-                    <strong style={{ color: "#CBD5E1", fontWeight: 600 }}>performance tuning</strong>,{" "}
-                    <strong style={{ color: "#CBD5E1", fontWeight: 600 }}>high availability</strong>,{" "}
-                    <strong style={{ color: "#CBD5E1", fontWeight: 600 }}>automation</strong>, and{" "}
-                    <strong style={{ color: "#CBD5E1", fontWeight: 600 }}>database architecture modernization</strong>.
-                  </p>
-
-                  {/* CTAs */}
-                  <div style={{ display: "flex", gap: "0.8rem", flexWrap: "wrap" }}>
+                  {/* CTA buttons */}
+                  <div style={{ display: "flex", gap: "0.75rem", flexWrap: "wrap" }}>
                     <a href="https://www.linkedin.com/in/mokhtar-atif-dba" target="_blank" rel="noreferrer"
-                      style={{ display: "inline-flex", alignItems: "center", gap: "0.5rem", padding: "0.65rem 1.4rem", background: "#0077B5", color: "#fff", borderRadius: 10, fontSize: "0.88rem", fontWeight: 700, textDecoration: "none", boxShadow: "0 4px 14px rgba(0,119,181,0.35)" }}>
+                      style={{ display: "inline-flex", alignItems: "center", gap: "0.45rem", padding: "0.65rem 1.4rem", background: "#0077B5", color: "#fff", borderRadius: 9, fontSize: "0.88rem", fontWeight: 700, textDecoration: "none", boxShadow: "0 2px 10px rgba(0,119,181,0.25)" }}>
                       🔗 Connect on LinkedIn
                     </a>
                     <button onClick={() => goBrowse()}
-                      style={{ display: "inline-flex", alignItems: "center", gap: "0.5rem", padding: "0.65rem 1.4rem", background: "rgba(255,255,255,0.07)", border: "1px solid rgba(255,255,255,0.15)", color: "#E2E8F0", borderRadius: 10, fontSize: "0.88rem", fontWeight: 600, cursor: "pointer", fontFamily: "inherit" }}>
+                      style={{ display: "inline-flex", alignItems: "center", gap: "0.45rem", padding: "0.65rem 1.4rem", background: "#fff", border: "1.5px solid #E2E8F0", color: "#374151", borderRadius: 9, fontSize: "0.88rem", fontWeight: 600, cursor: "pointer", fontFamily: "inherit", boxShadow: "0 1px 4px rgba(0,0,0,0.05)" }}>
                       📚 Browse Topics
                     </button>
                   </div>
@@ -1376,7 +1372,6 @@ export default function App() {
                 </div>
               </div>
             </div>
-
             <div style={{ background: "#2563EB", display: "grid", gridTemplateColumns: "repeat(4,1fr)", padding: "1.5rem 6%" }}>
               {[["11+", "Years Experience"], ["5+", "Database Platforms"], ["1000+", "Issues Resolved"], ["∞", "Pages of Knowledge"]].map(([n,l]) => (
                 <div key={l} style={{ textAlign: "center" }}>
