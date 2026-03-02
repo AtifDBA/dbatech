@@ -1332,7 +1332,8 @@ export default function App() {
                   <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(165px, 1fr))", gap: "0.65rem", marginBottom: "1.4rem" }}>
                     {[
                       { label: "Design & Build",   color: "#2563EB", bg: "#EFF6FF", border: "#BFDBFE", items: ["Architecture Design", "Installation & Config", "Capacity Planning"] },
-                      { label: "Optimize & Fix",   color: "#0891B2", bg: "#ECFEFF", border: "#A5F3FC", items: ["Performance Tuning", "Troubleshooting",       "High Availability"] },
+                      { label: "Upgrades & Migrations", color: "#2563EB", bg: "#EFF6FF", border: "#BFDBFE", items: ["Zero-Downtime Cutover Strategy","Cross-Platform & Endian Migration","Major Version Upgrades"]},
+					 { label: "Optimize & Fixes Issues",   color: "#0891B2", bg: "#ECFEFF", border: "#A5F3FC", items: ["Performance Tuning", "Troubleshooting",       "High Availability"] },
                       { label: "Secure & Audit",   color: "#7C3AED", bg: "#F5F3FF", border: "#DDD6FE", items: ["Security Auditing",   "Access Control",        "Compliance"] },
                     ].map(col => (
                       <div key={col.label} style={{ background: col.bg, border: "1px solid " + col.border, borderRadius: 10, padding: "0.9rem 1rem" }}>
