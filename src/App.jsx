@@ -1348,10 +1348,10 @@ export default function App() {
                 {/* ── ROW 3: 5 service cards ── */}
                 <div style={{ display: "grid", gridTemplateColumns: "repeat(5, 1fr)", gap: "0.75rem", marginBottom: "1.2rem" }}>
                   {[
-                    { icon: "🏗️", title: "Design & Build",color: "#1D4ED8", bg: "#F0F7FF", border: "#BFDBFE", items: ["DB Architecture", "Installation & Config", "Capacity Planning", "Migration Strategy"] },
+                    { icon: "🏗️", title: "Architecture & Deployment",color: "#1D4ED8", bg: "#F0F7FF", border: "#BFDBFE", items: ["DB Architecture", "Installation & Config", "Capacity Planning", "Migration Strategy"] },
                     { icon: "🔄", title: "Upgrades & Migrations", color: "#B45309", bg: "#FFFBEB", border: "#FDE68A", items: ["Zero-Downtime Upgrade Strategy", "Cross-Platform & OS Migration", "Major Version Upgrade", "Secure Cutover & Rollback Planning"] },
                     { icon: "⚡", title: "Performance Engineering", color: "#0891B2", bg: "#F0FDFF", border: "#BAE6FD", items: ["Query Optimisation", "AWR / ASH Analysis", "Indexing Strategy", "Bottleneck Analysis"] },
-                    { icon: "🔒", title: "Security & Audit", color: "#7C3AED", bg: "#FAF5FF", border: "#DDD6FE", items: ["Security Auditing", "Access Control", "Compliance (SOX/GDPR)", "Vulnerability Review"] },
+                    { icon: "🔒", title: "Security, Compliance & Governance", color: "#7C3AED", bg: "#FAF5FF", border: "#DDD6FE", items: ["Security Auditing", "Access Control", "Compliance (SOX/GDPR)", "Vulnerability Review"] },
                     { icon: "☁️", title: "Cloud Migration & Modernization", color: "#059669", bg: "#F0FDF7", border: "#A7F3D0", items: ["Infrastructure as Code (Ansible / Terraform)", "HA & Disaster Recovery Architecture", "CI/CD Database Pipelines"] },
                   ].map(card => (
                     <div key={card.title} style={{ background: card.bg, border: "1px solid " + card.border, borderRadius: 10, padding: "0.85rem 0.85rem 0.75rem", position: "relative", overflow: "hidden" }}>
