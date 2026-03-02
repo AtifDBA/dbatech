@@ -1313,12 +1313,10 @@ export default function App() {
                     </div>
                     <div style={{ fontSize: "0.86rem", color: "#475569", lineHeight: 1.75, maxWidth: 580 }}>
                       <div style={{ display: "flex", alignItems: "flex-start", gap: "0.5rem", marginBottom: "0.4rem" }}>
-                        <span style={{ color: "#1D4ED8", fontWeight: 800, flexShrink: 0, fontSize: "0.9rem", lineHeight: 1.5 }}>→</span>
-                        <span>Helping enterprises achieve <strong style={{ color: "#0F172A" }}>high-performance</strong>, <strong style={{ color: "#0F172A" }}>highly available</strong>, and <strong style={{ color: "#0F172A" }}>automation-driven</strong> database platforms.</span>
+                       <span>Helping enterprises achieve <strong style={{ color: "#0F172A" }}>high-performance</strong>, <strong style={{ color: "#0F172A" }}>highly available</strong>, and <strong style={{ color: "#0F172A" }}>automation-driven</strong> database platforms.</span>
                       </div>
                       <div style={{ display: "flex", alignItems: "flex-start", gap: "0.5rem" }}>
-                        <span style={{ color: "#1D4ED8", fontWeight: 800, flexShrink: 0, fontSize: "0.9rem", lineHeight: 1.5 }}>→</span>
-                        <span>Designing <strong style={{ color: "#0F172A" }}>resilient, high-performance</strong> architectures with <strong style={{ color: "#0F172A" }}>zero-downtime operations</strong> and <strong style={{ color: "#0F172A" }}>enterprise-grade security</strong>.</span>
+                       <span>Designing <strong style={{ color: "#0F172A" }}>resilient, high-performance</strong> architectures with <strong style={{ color: "#0F172A" }}>zero-downtime operations</strong> and <strong style={{ color: "#0F172A" }}>enterprise-grade security</strong>.</span>
                       </div>
                     </div>
                   </div>
