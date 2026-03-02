@@ -1309,7 +1309,7 @@ export default function App() {
                   {/* Name + role + one-liner */}
                   <div style={{ flex: 1, minWidth: 260 }}>
                     <div style={{ display: "flex", alignItems: "center", gap: "0.75rem", flexWrap: "wrap", marginBottom: "0.3rem" }}>
-                    <span style={{ fontSize: "0.7rem", fontWeight: 700, color: "#1D4ED8", letterSpacing: "0.09em", textTransform: "uppercase", background: "#EFF6FF", border: "1px solid #BFDBFE", borderRadius: 5, padding: "0.22rem 0.7rem" }}>Senior Oracle & PostgreSQL Database Consultant | Performance & Cloud Expert</span>
+                    <span style={{ fontSize: "0.7rem", fontWeight: 700, color: "#1D4ED8", letterSpacing: "0.09em", textTransform: "uppercase", background: "#EFF6FF", border: "1px solid #BFDBFE", borderRadius: 5, padding: "0.22rem 0.7rem" }}>Senior Oracle & PostgreSQL Database Consultant | Cloud Infrastructure Expert</span>
                     </div>
                     <div style={{ fontSize: "0.86rem", color: "#475569", lineHeight: 1.75, maxWidth: 580 }}>
                       <div style={{ display: "flex", alignItems: "flex-start", gap: "0.5rem", marginBottom: "0.4rem" }}>
