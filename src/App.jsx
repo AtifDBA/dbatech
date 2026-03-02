@@ -3,7 +3,7 @@ import { useState, useEffect, useCallback } from "react";
 // ══════════════════════════════════════════════════════════════════════
 // 🔐 SECURITY CONFIG — CHANGE THIS PASSWORD BEFORE DEPLOYING!
 // ══════════════════════════════════════════════════════════════════════
-const ADMIN_PASSWORD = "	";
+const ADMIN_PASSWORD = "";
 const MAX_LOGIN_ATTEMPTS = 5;
 const LOCKOUT_MINUTES = 15;
 const SESSION_HOURS = 8;
@@ -1297,9 +1297,10 @@ export default function App() {
               <div style={{ display: "flex", alignItems: "center", gap: "2.5rem", flexWrap: "wrap", position: "relative" }}>
                 <div style={{ width: 120, height: 120, borderRadius: "50%", background: "linear-gradient(135deg, #2563EB, #0891B2)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "3.5rem", flexShrink: 0, boxShadow: "0 8px 32px rgba(37,99,235,0.4)", border: "3px solid rgba(255,255,255,0.15)" }}>👨‍💻</div>
                 <div>
-                  <div style={{ fontSize: "0.75rem", fontWeight: 600, color: "#60A5FA", letterSpacing: "0.12em", textTransform: "uppercase", marginBottom: "0.5rem" }}>🌟 Senior Database Administrator</div>
-                  <h1 style={{ fontFamily: "'Playfair Display', serif", fontSize: "clamp(2rem, 4vw, 3rem)", fontWeight: 900, color: "#fff", lineHeight: 1.1, marginBottom: "0.6rem" }}>Atif — DBA & IT Professional</h1>
-                  <p style={{ color: "#94A3B8", fontSize: "1rem", lineHeight: 1.7, maxWidth: 520 }}>11+ years of hands-on experience managing enterprise databases, building automation pipelines, and architecting cloud infrastructure.</p>
+                  <div style={{ fontSize: "0.75rem", fontWeight: 600, color: "#60A5FA", letterSpacing: "0.12em", textTransform: "uppercase", marginBottom: "0.5rem" }}>🌟 Senior Database Consultant</div>
+                  <h1 style={{ fontFamily: "'Playfair Display', serif", fontSize: "clamp(1.6rem, 3.5vw, 2.6rem)", fontWeight: 900, color: "#fff", lineHeight: 1.2, marginBottom: "0.5rem" }}>Oracle • PostgreSQL • Cloud &amp; Performance Engineering</h1>
+                  <p style={{ color: "#CBD5E1", fontSize: "1.05rem", lineHeight: 1.6, maxWidth: 540, marginBottom: "0.6rem", fontWeight: 500 }}>I help enterprises design, optimize, and secure mission-critical database systems.</p>
+                  <p style={{ color: "#94A3B8", fontSize: "0.92rem", lineHeight: 1.75, maxWidth: 540 }}>With 11+ years of extensive experience across Oracle, PostgreSQL, and cloud platforms, I specialize in performance tuning, high availability, automation, and database architecture modernization.</p>
                   <div style={{ display: "flex", gap: "0.8rem", marginTop: "1.2rem", flexWrap: "wrap" }}>
                     <a href="https://www.linkedin.com/in/mokhtar-atif-dba" target="_blank" rel="noreferrer"
                       style={{ display: "inline-flex", alignItems: "center", gap: "0.4rem", padding: "0.55rem 1.1rem", background: "#0077B5", color: "#fff", borderRadius: 9, fontSize: "0.85rem", fontWeight: 600, textDecoration: "none" }}>
@@ -1324,8 +1325,8 @@ export default function App() {
                 <div style={{ fontSize: "0.72rem", fontWeight: 600, color: "#2563EB", letterSpacing: "0.1em", textTransform: "uppercase", marginBottom: "0.6rem" }}>📖 My Story</div>
                 <h2 style={{ fontFamily: "'Playfair Display', serif", fontSize: "2rem", fontWeight: 900, marginBottom: "1.5rem" }}>The Knowledge Sharing Journey</h2>
                 <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "2rem" }}>
-                  <p style={{ fontSize: "0.95rem", color: "#4B5563", lineHeight: 1.85 }}>My journey in databases began over <strong>11 years ago</strong>, starting with Oracle in enterprise environments. I've worked across industries managing mission-critical databases, building automation frameworks, and migrating workloads to the cloud.</p>
-                  <p style={{ fontSize: "0.95rem", color: "#4B5563", lineHeight: 1.85 }}>Today this hub covers <strong>Oracle, PostgreSQL, MySQL, MongoDB, SQL Server</strong> — plus <strong>Ansible, Terraform</strong> and <strong>AWS, Azure, and Kubernetes</strong>. My goal: share knowledge freely and help the next generation of DBAs.</p>
+                  <p style={{ fontSize: "0.95rem", color: "#4B5563", lineHeight: 1.85 }}>With <strong>11+ years of extensive experience</strong> across Oracle, PostgreSQL, and cloud platforms, I specialise in performance tuning, high availability, automation, and database architecture modernization. I have worked across industries managing mission-critical database systems for enterprise environments.</p>
+                  <p style={{ fontSize: "0.95rem", color: "#4B5563", lineHeight: 1.85 }}>This hub covers <strong>Oracle, PostgreSQL, MySQL, MongoDB, SQL Server</strong> — plus <strong>Ansible, Terraform</strong> and <strong>AWS, Azure, and Kubernetes</strong>. My goal is to share practical, real-world knowledge freely and help the next generation of database professionals and cloud engineers grow faster.</p>
                 </div>
               </div>
             </div>
@@ -1444,14 +1445,24 @@ export default function App() {
             {/* ══ SCRIPTS ADMIN VIEW ══ */}
             {adminView === "scripts" && (
               <div style={{ padding: "2rem 6%" }}>
-                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "1.5rem" }}>
-                  <h2 style={{ fontWeight: 700, fontSize: "1.1rem" }}>Script Library Management</h2>
+                {/* Top add button + instructions */}
+                <div style={{ background: "#EFF6FF", border: "1px solid #BFDBFE", borderRadius: 12, padding: "1.2rem 1.5rem", marginBottom: "1.5rem", display: "flex", alignItems: "center", justifyContent: "space-between", gap: "1rem" }}>
+                  <div>
+                    <div style={{ fontWeight: 700, fontSize: "0.95rem", color: "#1A1A2E", marginBottom: "0.2rem" }}>📜 Script Library Management</div>
+                    <div style={{ fontSize: "0.8rem", color: "#6B7280" }}>Add, edit or delete scripts. Each script appears in the public Scripts menu.</div>
+                  </div>
                   <button onClick={() => { setEditingScript({ title: "", description: "", extension: "sql", code: "" }); setEditingScriptCat(scripts[0]?.id); setAdminView("edit-script"); }} className="btn"
-                    style={{ padding: "0.55rem 1.2rem", background: "#2563EB", color: "#fff", fontSize: "0.85rem" }}>＋ New Script</button>
+                    style={{ padding: "0.65rem 1.4rem", background: "#2563EB", color: "#fff", fontSize: "0.9rem", fontWeight: 700, flexShrink: 0 }}>＋ Add New Script</button>
                 </div>
                 {scripts.map(cat => (
                   <div key={cat.id} style={{ marginBottom: "2rem" }}>
-                    <div style={{ fontSize: "0.75rem", fontWeight: 700, color: cat.color, letterSpacing: "0.09em", textTransform: "uppercase", marginBottom: "0.8rem" }}>{cat.icon} {cat.label} ({cat.scripts.length})</div>
+                    <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "0.8rem" }}>
+                      <div style={{ fontSize: "0.75rem", fontWeight: 700, color: cat.color, letterSpacing: "0.09em", textTransform: "uppercase" }}>{cat.icon} {cat.label} ({cat.scripts.length})</div>
+                      <button onClick={() => { setEditingScript({ title: "", description: "", extension: cat.id === "linux" || cat.id === "ansible" ? "sh" : cat.id === "terraform" ? "tf" : "sql", code: "" }); setEditingScriptCat(cat.id); setAdminView("edit-script"); }}
+                        style={{ padding: "0.25rem 0.75rem", background: cat.color + "15", color: cat.color, border: `1px solid ${cat.color}40`, borderRadius: 7, cursor: "pointer", fontSize: "0.75rem", fontWeight: 700, fontFamily: "inherit" }}>
+                        ＋ Add to {cat.label}
+                      </button>
+                    </div>
                     <div style={{ display: "flex", flexDirection: "column", gap: "0.5rem" }}>
                       {cat.scripts.map(s => (
                         <div key={s.id} style={{ background: "#fff", border: "1px solid #E2E2EC", borderRadius: 10, padding: "0.85rem 1.1rem", display: "flex", alignItems: "center", justifyContent: "space-between", gap: "1rem" }}>
