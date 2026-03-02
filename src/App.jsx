@@ -1332,7 +1332,7 @@ export default function App() {
 
                 {/* ── ROW 2: Tech stack pills ── */}
                 <div style={{ display: "flex", gap: "0.4rem", flexWrap: "wrap", marginBottom: "1.4rem", paddingBottom: "1.3rem", borderBottom: "1px solid #E2E8F0" }}>
-                  {[["🔴","Oracle"],["🐘","PostgreSQL"],["🐬","MySQL"],["🪟","SQL Server"],["☁️","AWS / Azure"],["⚙️","Ansible"],["🏗️","Terraform"],["🐧","Linux"]].map(([icon, label]) => (
+                  {[["🔴","Oracle"],["🐘","PostgreSQL"],["🐬","MySQL"],["🪟","SQL Server"],["🔷","Vertica"],["☁️","Azure / OCI / AWS"],["⚙️","Ansible"],["🏗️","Terraform"],["🐧","Linux"]].map(([icon, label]) => (
                     <span key={label} style={{ display: "inline-flex", alignItems: "center", gap: "0.25rem", fontSize: "0.75rem", fontWeight: 600, color: "#374151", background: "#fff", border: "1px solid #E2E8F0", borderRadius: 6, padding: "0.2rem 0.6rem", boxShadow: "0 1px 2px rgba(0,0,0,0.04)" }}>
                       {icon} {label}
                     </span>
