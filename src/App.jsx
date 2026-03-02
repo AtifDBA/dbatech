@@ -3,7 +3,7 @@ import { useState, useEffect, useCallback } from "react";
 // ══════════════════════════════════════════════════════════════════════
 // 🔐 SECURITY CONFIG — CHANGE THIS PASSWORD BEFORE DEPLOYING!
 // ══════════════════════════════════════════════════════════════════════
-const ADMIN_PASSWORD = "";
+const ADMIN_PASSWORD = "cafBT@DBATECH123";
 const MAX_LOGIN_ATTEMPTS = 5;
 const LOCKOUT_MINUTES = 15;
 const SESSION_HOURS = 8;
@@ -1332,7 +1332,7 @@ export default function App() {
                   <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(165px, 1fr))", gap: "0.65rem", marginBottom: "1.4rem" }}>
                     {[
                       { label: "Design & Build",   color: "#2563EB", bg: "#EFF6FF", border: "#BFDBFE", items: ["Architecture Design", "Installation & Config", "Capacity Planning"] },
-                      { label: "Upgrades & Migrations", color: "#2563EB", bg: "#EFF6FF", border: "#BFDBFE", items: ["Zero-Downtime Cutover Strategy","Cross-Platform & Endian Migration","Major Version Upgrades"]},
+                      { label: "Upgrades & Migrations", color: "#2563EB", bg: "#EFF6FF", border: "#BFDBFE", items: ["Zero-Downtime Cutover Strategy","Cross-Platform Migration","Major Version Upgrades"]},
 					 { label: "Optimize & Fixes Issues",   color: "#0891B2", bg: "#ECFEFF", border: "#A5F3FC", items: ["Performance Tuning", "Troubleshooting",       "High Availability"] },
                       { label: "Secure & Audit",   color: "#7C3AED", bg: "#F5F3FF", border: "#DDD6FE", items: ["Security Auditing",   "Access Control",        "Compliance"] },
                     ].map(col => (
