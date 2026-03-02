@@ -1312,12 +1312,9 @@ export default function App() {
                   {/* Role badge + availability */}
                   <div style={{ display: "flex", alignItems: "center", gap: "0.75rem", flexWrap: "wrap", marginBottom: "0.8rem" }}>
                     <span style={{ fontSize: "0.7rem", fontWeight: 700, color: "#2563EB", letterSpacing: "0.09em", textTransform: "uppercase", background: "#EFF6FF", border: "1px solid #BFDBFE", borderRadius: 6, padding: "0.28rem 0.8rem" }}>
-                      Senior Database Consultant
+                      Senior Database Consultant and AI Enthusiast
                     </span>
-                    <span style={{ display: "inline-flex", alignItems: "center", gap: "0.35rem", fontSize: "0.75rem", color: "#16A34A", fontWeight: 600 }}>
-                      <span style={{ width: 7, height: 7, borderRadius: "50%", background: "#22C55E", display: "inline-block" }} />
-                      Available for consulting
-                    </span>
+                   
                   </div>
 
                   {/* Headline */}
