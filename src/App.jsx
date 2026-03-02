@@ -1293,109 +1293,80 @@ export default function App() {
         {view === "about" && (
           <div className="fade-in">
 
-            {/* ── HERO ── */}
-            <div style={{ background: "#F8FAFC", borderBottom: "1px solid #E2E8F0" }}>
+            {/* ── TOP ACCENT BAR ── */}
+            <div style={{ height: 3, background: "linear-gradient(90deg, #1D4ED8, #0891B2)" }} />
 
-              {/* Thin top bar */}
-              <div style={{ height: 3, background: "linear-gradient(90deg, #1D4ED8, #0891B2)" }} />
+            {/* ── HERO — single screen, no scroll ── */}
+            <div style={{ background: "#F8FAFC", borderBottom: "1px solid #E2E8F0", padding: "32px 6% 28px" }}>
+              <div style={{ maxWidth: 960, margin: "0 auto" }}>
 
-              <div style={{ maxWidth: 860, margin: "0 auto", padding: "52px 6% 48px" }}>
+                {/* ── ROW 1: Avatar + Name + Role + Pitch ── */}
+                <div style={{ display: "flex", alignItems: "center", gap: "1.5rem", marginBottom: "1.4rem", flexWrap: "wrap" }}>
 
-                {/* Top row: avatar left, badge right */}
-                <div style={{ display: "flex", alignItems: "flex-start", gap: "2rem", flexWrap: "wrap" }}>
+                  {/* Avatar */}
+                  <div style={{ flexShrink: 0, width: 72, height: 72, borderRadius: 12, background: "#EFF6FF", border: "2px solid #BFDBFE", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "2.2rem", boxShadow: "0 2px 10px rgba(37,99,235,0.1)" }}>👨‍💻</div>
 
-                  {/* Avatar block */}
-                  <div style={{ flexShrink: 0, display: "flex", flexDirection: "column", alignItems: "center", gap: "0.4rem" }}>
-                    <div style={{ width: 88, height: 88, borderRadius: 14, background: "#EFF6FF", border: "2px solid #BFDBFE", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "2.8rem", boxShadow: "0 2px 12px rgba(37,99,235,0.1)" }}>👨‍💻</div>
-                    <span style={{ fontSize: "0.72rem", fontWeight: 800, color: "#1D4ED8", letterSpacing: "0.07em", textTransform: "uppercase" }}>Atif</span>
-                    <span style={{ display: "inline-flex", alignItems: "center", gap: "0.3rem", fontSize: "0.68rem", color: "#15803D", fontWeight: 600 }}>
-                      <span style={{ width: 6, height: 6, borderRadius: "50%", background: "#22C55E", display: "inline-block" }} />Open to work
-                    </span>
+                  {/* Name + role + one-liner */}
+                  <div style={{ flex: 1, minWidth: 260 }}>
+                    <div style={{ display: "flex", alignItems: "center", gap: "0.75rem", flexWrap: "wrap", marginBottom: "0.3rem" }}>
+                      <h1 style={{ fontFamily: "'Playfair Display', serif", fontSize: "1.45rem", fontWeight: 900, color: "#0F172A", lineHeight: 1.2 }}>Atif</h1>
+                      <span style={{ fontSize: "0.7rem", fontWeight: 700, color: "#1D4ED8", letterSpacing: "0.09em", textTransform: "uppercase", background: "#EFF6FF", border: "1px solid #BFDBFE", borderRadius: 5, padding: "0.22rem 0.7rem" }}>Senior Database Consultant</span>
+                    </div>
+                    <p style={{ fontSize: "0.9rem", color: "#475569", lineHeight: 1.6, maxWidth: 560 }}>
+                      I help enterprises <strong style={{ color: "#1D4ED8" }}>design</strong>, <strong style={{ color: "#0891B2" }}>optimize</strong>, and <strong style={{ color: "#7C3AED" }}>secure</strong> mission-critical database systems — Oracle, PostgreSQL, MySQL &amp; Cloud.
+                    </p>
                   </div>
 
-                  {/* Text block */}
-                  <div style={{ flex: 1, minWidth: 280 }}>
+                  {/* CTAs — far right */}
+                  <div style={{ display: "flex", gap: "0.6rem", flexShrink: 0, flexWrap: "wrap" }}>
+                    <a href="https://www.linkedin.com/in/mokhtar-atif-dba" target="_blank" rel="noreferrer"
+                      style={{ display: "inline-flex", alignItems: "center", gap: "0.4rem", padding: "0.5rem 1rem", background: "#0A66C2", color: "#fff", borderRadius: 7, fontSize: "0.8rem", fontWeight: 700, textDecoration: "none" }}>
+                      🔗 LinkedIn
+                    </a>
+                    <button onClick={goSession}
+                      style={{ display: "inline-flex", alignItems: "center", gap: "0.4rem", padding: "0.5rem 1rem", background: "#C74634", color: "#fff", borderRadius: 7, fontSize: "0.8rem", fontWeight: 700, cursor: "pointer", fontFamily: "inherit", border: "none" }}>
+                      🎓 Free Session
+                    </button>
+                  </div>
+                </div>
 
-                    {/* Role chip */}
-                    <div style={{ marginBottom: "0.9rem" }}>
-                      <span style={{ fontSize: "0.7rem", fontWeight: 700, color: "#1D4ED8", letterSpacing: "0.09em", textTransform: "uppercase", background: "#EFF6FF", border: "1px solid #BFDBFE", borderRadius: 5, padding: "0.28rem 0.8rem" }}>
-                        Senior Database Consultant
-                      </span>
-                    </div>
+                {/* ── ROW 2: Tech stack pills ── */}
+                <div style={{ display: "flex", gap: "0.4rem", flexWrap: "wrap", marginBottom: "1.4rem", paddingBottom: "1.3rem", borderBottom: "1px solid #E2E8F0" }}>
+                  {[["🔴","Oracle"],["🐘","PostgreSQL"],["🐬","MySQL"],["🪟","SQL Server"],["☁️","AWS / Azure"],["⚙️","Ansible"],["🏗️","Terraform"],["🐧","Linux"]].map(([icon, label]) => (
+                    <span key={label} style={{ display: "inline-flex", alignItems: "center", gap: "0.25rem", fontSize: "0.75rem", fontWeight: 600, color: "#374151", background: "#fff", border: "1px solid #E2E8F0", borderRadius: 6, padding: "0.2rem 0.6rem", boxShadow: "0 1px 2px rgba(0,0,0,0.04)" }}>
+                      {icon} {label}
+                    </span>
+                  ))}
+                </div>
 
-                    {/* Headline — tight, single line on desktop */}
-                    <h1 style={{ fontFamily: "'Playfair Display', serif", fontSize: "clamp(1.45rem, 2.8vw, 1.95rem)", fontWeight: 900, color: "#0F172A", lineHeight: 1.3, marginBottom: "0.6rem", letterSpacing: "-0.3px", maxWidth: 540 }}>
-                      Database Architecture &amp; Performance Engineering
-                    </h1>
-
-                    {/* Sub-headline — the pitch */}
-                    <p style={{ fontSize: "0.98rem", color: "#334155", lineHeight: 1.75, marginBottom: "1.3rem", maxWidth: 520, fontWeight: 400 }}>
-                      I partner with enterprises to <span style={{ fontWeight: 600, color: "#1D4ED8" }}>design reliable systems</span>, <span style={{ fontWeight: 600, color: "#0891B2" }}>eliminate performance bottlenecks</span>, and <span style={{ fontWeight: 600, color: "#7C3AED" }}>harden database security</span> — across Oracle, PostgreSQL, MySQL and cloud platforms.
-                    </p>
-
-                    {/* Tech stack pills — clean, minimal */}
-                    <div style={{ display: "flex", gap: "0.45rem", flexWrap: "wrap", marginBottom: "1.5rem" }}>
-                      {[["🔴","Oracle","#C74634"],["🐘","PostgreSQL","#336791"],["🐬","MySQL","#E48E00"],["☁️","AWS / Azure","#0891B2"],["⚙️","Ansible · Terraform","#7C3AED"]].map(([icon, label, color]) => (
-                        <span key={label} style={{ display: "inline-flex", alignItems: "center", gap: "0.3rem", fontSize: "0.76rem", fontWeight: 600, color: "#374151", background: "#fff", border: "1px solid #E2E8F0", borderRadius: 6, padding: "0.25rem 0.65rem", boxShadow: "0 1px 3px rgba(0,0,0,0.05)" }}>
-                          {icon} <span>{label}</span>
-                        </span>
+                {/* ── ROW 3: 5 service cards ── */}
+                <div style={{ display: "grid", gridTemplateColumns: "repeat(5, 1fr)", gap: "0.75rem", marginBottom: "1.2rem" }}>
+                  {[
+                    { icon: "🏗️", title: "Design & Build",        color: "#1D4ED8", bg: "#F0F7FF", border: "#BFDBFE", items: ["DB Architecture", "Installation & Config", "Capacity Planning", "Migration Strategy"] },
+                    { icon: "🔄", title: "Upgrades & Migrations",  color: "#B45309", bg: "#FFFBEB", border: "#FDE68A", items: ["Zero-Downtime Cutover", "Cross-Platform Migration", "Major Version Upgrades", "Rollback Strategy"] },
+                    { icon: "⚡", title: "Performance",            color: "#0891B2", bg: "#F0FDFF", border: "#BAE6FD", items: ["Query Optimisation", "AWR / ASH Analysis", "Indexing Strategy", "Bottleneck Analysis"] },
+                    { icon: "🔒", title: "Security & Audit",       color: "#7C3AED", bg: "#FAF5FF", border: "#DDD6FE", items: ["Security Auditing", "Access Control", "Compliance (SOX/GDPR)", "Vulnerability Review"] },
+                    { icon: "☁️", title: "Cloud & Automation",    color: "#059669", bg: "#F0FDF7", border: "#A7F3D0", items: ["Cloud Migration", "Ansible / Terraform", "HA & Disaster Recovery", "CI/CD Pipelines"] },
+                  ].map(card => (
+                    <div key={card.title} style={{ background: card.bg, border: "1px solid " + card.border, borderRadius: 10, padding: "0.85rem 0.85rem 0.75rem", position: "relative", overflow: "hidden" }}>
+                      <div style={{ position: "absolute", top: 0, left: 0, right: 0, height: 3, background: card.color }} />
+                      <div style={{ display: "flex", alignItems: "center", gap: "0.4rem", marginBottom: "0.5rem" }}>
+                        <span style={{ fontSize: "1rem" }}>{card.icon}</span>
+                        <span style={{ fontSize: "0.67rem", fontWeight: 800, color: card.color, letterSpacing: "0.04em", textTransform: "uppercase", lineHeight: 1.3 }}>{card.title}</span>
+                      </div>
+                      {card.items.map(item => (
+                        <div key={item} style={{ display: "flex", alignItems: "flex-start", gap: "0.35rem", fontSize: "0.75rem", color: "#374151", lineHeight: 1.6 }}>
+                          <span style={{ color: card.color, fontWeight: 700, flexShrink: 0 }}>·</span>{item}
+                        </div>
                       ))}
                     </div>
-
-                    {/* CTA row */}
-                    <div style={{ display: "flex", gap: "0.7rem", flexWrap: "wrap" }}>
-                      <a href="https://www.linkedin.com/in/mokhtar-atif-dba" target="_blank" rel="noreferrer"
-                        style={{ display: "inline-flex", alignItems: "center", gap: "0.45rem", padding: "0.6rem 1.3rem", background: "#0A66C2", color: "#fff", borderRadius: 8, fontSize: "0.85rem", fontWeight: 700, textDecoration: "none", boxShadow: "0 2px 8px rgba(10,102,194,0.3)" }}>
-                        🔗 LinkedIn Profile
-                      </a>
-                      <button onClick={goSession}
-                        style={{ display: "inline-flex", alignItems: "center", gap: "0.45rem", padding: "0.6rem 1.3rem", background: "#C74634", color: "#fff", borderRadius: 8, fontSize: "0.85rem", fontWeight: 700, cursor: "pointer", fontFamily: "inherit", border: "none", boxShadow: "0 2px 8px rgba(199,70,52,0.3)" }}>
-                        🎓 Free Oracle Session
-                      </button>
-                      <button onClick={() => goBrowse()}
-                        style={{ display: "inline-flex", alignItems: "center", gap: "0.45rem", padding: "0.6rem 1.3rem", background: "#fff", border: "1.5px solid #CBD5E1", color: "#475569", borderRadius: 8, fontSize: "0.85rem", fontWeight: 600, cursor: "pointer", fontFamily: "inherit" }}>
-                        📚 Browse Topics
-                      </button>
-                    </div>
-
-                  </div>
+                  ))}
                 </div>
 
-                {/* ── SERVICES — 4 equal cards ── */}
-                <div style={{ marginTop: "2.5rem", paddingTop: "2rem", borderTop: "1px solid #E2E8F0" }}>
-                  <div style={{ fontSize: "0.68rem", fontWeight: 700, color: "#94A3B8", letterSpacing: "0.12em", textTransform: "uppercase", marginBottom: "1rem" }}>What I Do</div>
-                  <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(155px,1fr))", gap: "1rem" }}>
-                    {[
-                      { icon: "🏗️", title: "Design & Build",     color: "#1D4ED8", bg: "#F0F7FF", border: "#BFDBFE",
-                        items: ["DB Architecture", "Installation & Config", "Capacity Planning", "Migration Strategy"] },
-                      { icon: "🔄", title: "Upgrades & Migrations", color: "#B45309", bg: "#FFFBEB", border: "#FDE68A",
-                        items: ["Zero-Downtime Cutover", "Cross-Platform Migration", "Major Version Upgrades", "Rollback Strategy"] },
-                      { icon: "⚡", title: "Performance",         color: "#0891B2", bg: "#F0FDFF", border: "#BAE6FD",
-                        items: ["Query Optimisation", "AWR / ASH Analysis", "Indexing Strategy", "Bottleneck Analysis"] },
-                      { icon: "🔒", title: "Security & Audit",   color: "#7C3AED", bg: "#FAF5FF", border: "#DDD6FE",
-                        items: ["Security Auditing", "Access Control", "Compliance (SOX/GDPR)", "Vulnerability Review"] },
-                      { icon: "☁️", title: "Cloud & Automation", color: "#059669", bg: "#F0FDF7", border: "#A7F3D0",
-                        items: ["Cloud Migration", "Ansible / Terraform", "HA & Disaster Recovery", "CI/CD Pipelines"] },
-                    ].map(card => (
-                      <div key={card.title} style={{ background: card.bg, border: "1px solid " + card.border, borderRadius: 12, padding: "1.1rem 1.1rem 1rem", position: "relative", overflow: "hidden" }}>
-                        <div style={{ position: "absolute", top: 0, left: 0, right: 0, height: 3, background: card.color }} />
-                        <div style={{ fontSize: "1.3rem", marginBottom: "0.4rem" }}>{card.icon}</div>
-                        <div style={{ fontSize: "0.78rem", fontWeight: 800, color: card.color, letterSpacing: "0.05em", textTransform: "uppercase", marginBottom: "0.65rem" }}>{card.title}</div>
-                        {card.items.map(item => (
-                          <div key={item} style={{ display: "flex", alignItems: "flex-start", gap: "0.4rem", fontSize: "0.8rem", color: "#374151", lineHeight: 1.65, marginBottom: "0.1rem" }}>
-                            <span style={{ color: card.color, fontWeight: 700, marginTop: "0.1rem", flexShrink: 0 }}>·</span>
-                            {item}
-                          </div>
-                        ))}
-                      </div>
-                    ))}
-                  </div>
-                </div>
-
-                {/* ── EXPERIENCE STATEMENT ── */}
-                <div style={{ marginTop: "2rem", padding: "1.3rem 1.5rem", background: "#fff", border: "1px solid #E2E8F0", borderRadius: 12, borderLeft: "4px solid #1D4ED8" }}>
-                  <p style={{ fontSize: "0.9rem", color: "#475569", lineHeight: 1.9, margin: 0 }}>
-                    With <strong style={{ color: "#0F172A" }}>11+ years of enterprise experience</strong> across Oracle, PostgreSQL, MySQL and cloud platforms, I bring deep expertise in <strong style={{ color: "#0F172A" }}>performance tuning</strong>, <strong style={{ color: "#0F172A" }}>high availability</strong>, <strong style={{ color: "#0F172A" }}>automation</strong>, and <strong style={{ color: "#0F172A" }}>architecture modernisation</strong>. I work with teams to solve real problems — not just deliver reports.
+                {/* ── ROW 4: Experience statement — compact ── */}
+                <div style={{ padding: "0.9rem 1.2rem", background: "#fff", border: "1px solid #E2E8F0", borderRadius: 10, borderLeft: "4px solid #1D4ED8" }}>
+                  <p style={{ fontSize: "0.83rem", color: "#475569", lineHeight: 1.8, margin: 0 }}>
+                    With <strong style={{ color: "#0F172A" }}>11+ years of enterprise experience</strong> across Oracle, PostgreSQL, MySQL and cloud platforms — specialising in <strong style={{ color: "#0F172A" }}>performance tuning</strong>, <strong style={{ color: "#0F172A" }}>high availability</strong>, <strong style={{ color: "#0F172A" }}>automation</strong>, and <strong style={{ color: "#0F172A" }}>architecture modernisation</strong>. I work with teams to solve real problems — not just deliver reports.
                   </p>
                 </div>
 
