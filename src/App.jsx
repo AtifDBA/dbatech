@@ -155,332 +155,6 @@ async function saveData(topics) {
   try { await window.storage.set("itplatform-topics", JSON.stringify(topics)); } catch {}
 }
 
-// ── DEFAULT SCRIPTS ────────────────────────────────────────────────────
-const DEFAULT_SCRIPTS = [
-  { id: "oracle", label: "Oracle", icon: "🔴", color: "#C74634", scripts: [
-    { id: "ora-tablesize",      title: "Check Table Size",           description: "Shows size of all tables in current schema", extension: "sql",
-      code: `-- Check Table Size in Current Schema
-SELECT
-  segment_name   AS table_name,
-  ROUND(bytes / 1024 / 1024, 2) AS size_mb
-FROM user_segments
-WHERE segment_type = 'TABLE'
-ORDER BY bytes DESC;` },
-    { id: "ora-tablespace",     title: "Check Tablespace Size",      description: "Used, free and total space per tablespace", extension: "sql",
-      code: `-- Tablespace Usage
-SELECT
-  df.tablespace_name,
-  ROUND(df.total_mb, 2)     AS total_mb,
-  ROUND(df.total_mb - fs.free_mb, 2) AS used_mb,
-  ROUND(fs.free_mb, 2)      AS free_mb,
-  ROUND((1 - fs.free_mb / df.total_mb) * 100, 1) AS pct_used
-FROM
-  (SELECT tablespace_name, SUM(bytes)/1024/1024 total_mb FROM dba_data_files GROUP BY tablespace_name) df,
-  (SELECT tablespace_name, SUM(bytes)/1024/1024 free_mb  FROM dba_free_space   GROUP BY tablespace_name) fs
-WHERE df.tablespace_name = fs.tablespace_name
-ORDER BY pct_used DESC;` },
-    { id: "ora-blocking",       title: "Find Blocking Sessions",     description: "Identify sessions blocking other sessions", extension: "sql",
-      code: `-- Blocking Sessions
-SELECT
-  l1.sid     AS blocking_sid,
-  s1.username AS blocking_user,
-  s1.status   AS blocking_status,
-  l2.sid     AS waiting_sid,
-  s2.username AS waiting_user,
-  s2.sql_id   AS waiting_sql
-FROM v$lock l1
-JOIN v$lock    l2 ON l1.id1 = l2.id1 AND l1.id2 = l2.id2
-JOIN v$session s1 ON l1.sid = s1.sid
-JOIN v$session s2 ON l2.sid = s2.sid
-WHERE l1.block = 1 AND l2.request > 0;` },
-    { id: "ora-topsql",         title: "Top SQL by CPU",             description: "Find the most CPU-intensive SQL statements", extension: "sql",
-      code: `-- Top SQL by CPU Usage
-SELECT *
-FROM (
-  SELECT
-    sql_id,
-    ROUND(cpu_time/1e6, 2)        AS cpu_secs,
-    ROUND(elapsed_time/1e6, 2)    AS elapsed_secs,
-    executions,
-    ROUND(cpu_time/NULLIF(executions,0)/1e6,4) AS cpu_per_exec,
-    SUBSTR(sql_text, 1, 80)       AS sql_preview
-  FROM v$sqlarea
-  ORDER BY cpu_time DESC
-)
-WHERE ROWNUM <= 20;` },
-    { id: "ora-alertlog",       title: "Alert Log Location",         description: "Find the Oracle alert log file path", extension: "sql",
-      code: `-- Find Alert Log Location
-SELECT value AS alert_log_dir
-FROM v$diag_info
-WHERE name = 'Diag Trace';` },
-  ]},
-  { id: "postgresql", label: "PostgreSQL", icon: "🐘", color: "#336791", scripts: [
-    { id: "pg-dbsize",          title: "Check Database Size",        description: "Size of all databases on the server", extension: "sql",
-      code: `-- Database Sizes
-SELECT
-  datname       AS database,
-  pg_size_pretty(pg_database_size(datname)) AS size
-FROM pg_database
-ORDER BY pg_database_size(datname) DESC;` },
-    { id: "pg-tablesize",       title: "Check Table Size",           description: "Top tables by size including indexes", extension: "sql",
-      code: `-- Table Sizes with Indexes
-SELECT
-  schemaname,
-  tablename,
-  pg_size_pretty(pg_total_relation_size(schemaname||'.'||tablename)) AS total_size,
-  pg_size_pretty(pg_relation_size(schemaname||'.'||tablename))       AS table_size,
-  pg_size_pretty(pg_indexes_size(schemaname||'.'||tablename))        AS index_size
-FROM pg_tables
-WHERE schemaname NOT IN ('pg_catalog','information_schema')
-ORDER BY pg_total_relation_size(schemaname||'.'||tablename) DESC
-LIMIT 20;` },
-    { id: "pg-locks",           title: "Find Blocking Locks",        description: "Show blocked and blocking queries", extension: "sql",
-      code: `-- Blocking Locks
-SELECT
-  blocked.pid          AS blocked_pid,
-  blocked.query        AS blocked_query,
-  blocking.pid         AS blocking_pid,
-  blocking.query       AS blocking_query,
-  blocked.wait_event_type,
-  blocked.wait_event
-FROM pg_stat_activity blocked
-JOIN pg_stat_activity blocking
-  ON blocking.pid = ANY(pg_blocking_pids(blocked.pid))
-WHERE blocked.cardinality(pg_blocking_pids(blocked.pid)) > 0;` },
-    { id: "pg-slowqueries",     title: "Slow Query Analysis",        description: "Top slow queries via pg_stat_statements", extension: "sql",
-      code: `-- Slow Queries (requires pg_stat_statements)
-SELECT
-  ROUND(mean_exec_time::numeric, 2) AS avg_ms,
-  calls,
-  ROUND(total_exec_time::numeric/1000, 2) AS total_secs,
-  SUBSTR(query, 1, 100)             AS query_preview
-FROM pg_stat_statements
-ORDER BY mean_exec_time DESC
-LIMIT 20;` },
-  ]},
-  { id: "mysql", label: "MySQL", icon: "🐬", color: "#F29111", scripts: [
-    { id: "my-processlist",     title: "Show Running Processes",     description: "Active queries and their status", extension: "sql",
-      code: `-- Running Processes
-SELECT
-  id, user, host, db,
-  command, time, state,
-  SUBSTR(info, 1, 80) AS query
-FROM information_schema.processlist
-WHERE command != 'Sleep'
-ORDER BY time DESC;` },
-    { id: "my-tablesize",       title: "Check Table Size",           description: "Table and index sizes per database", extension: "sql",
-      code: `-- Table Sizes
-SELECT
-  table_schema              AS db,
-  table_name,
-  ROUND(data_length/1024/1024, 2)  AS data_mb,
-  ROUND(index_length/1024/1024, 2) AS index_mb,
-  ROUND((data_length+index_length)/1024/1024, 2) AS total_mb
-FROM information_schema.tables
-WHERE table_schema NOT IN ('information_schema','performance_schema','sys','mysql')
-ORDER BY (data_length+index_length) DESC
-LIMIT 30;` },
-    { id: "my-replication",     title: "Check Replication Status",   description: "Show slave/replica replication lag", extension: "sql",
-      code: `-- Replication Status
-SHOW SLAVE STATUS\G
--- Or in MySQL 8+:
--- SHOW REPLICA STATUS\G
-
--- Check seconds behind master:
--- Look for: Seconds_Behind_Master` },
-  ]},
-  { id: "linux", label: "Linux", icon: "🐧", color: "#374151", scripts: [
-    { id: "lx-diskusage",       title: "Disk Usage Check",           description: "Check disk space usage across all mounts", extension: "sh",
-      code: `#!/bin/bash
-# Disk Usage Summary
-echo "=== Disk Usage ==="
-df -hT | grep -v tmpfs | grep -v udev
-
-echo ""
-echo "=== Top 10 Largest Directories ==="
-du -sh /* 2>/dev/null | sort -rh | head -10` },
-    { id: "lx-topcpu",          title: "Top CPU Processes",          description: "Find top CPU-consuming processes", extension: "sh",
-      code: `#!/bin/bash
-# Top CPU & Memory Consumers
-echo "=== Top 10 by CPU ==="
-ps aux --sort=-%cpu | head -11
-
-echo ""
-echo "=== Top 10 by Memory ==="
-ps aux --sort=-%mem | head -11` },
-    { id: "lx-logcheck",        title: "Recent Error Log Check",     description: "Scan system logs for errors and warnings", extension: "sh",
-      code: `#!/bin/bash
-# Check recent errors in system logs
-echo "=== Last 50 System Errors ==="
-grep -i "error\|critical\|failed" /var/log/syslog 2>/dev/null | tail -50
-
-# For RHEL/CentOS:
-# grep -i "error\|critical\|failed" /var/log/messages | tail -50
-
-echo ""
-echo "=== Last 20 Auth Failures ==="
-grep "Failed password" /var/log/auth.log 2>/dev/null | tail -20` },
-    { id: "lx-netconn",         title: "Active Network Connections",  description: "Show all active TCP connections", extension: "sh",
-      code: `#!/bin/bash
-# Active Network Connections
-echo "=== Listening Ports ==="
-ss -tlnp
-
-echo ""
-echo "=== Established Connections ==="
-ss -tnp state established
-
-echo ""
-echo "=== Connection Count by State ==="
-ss -tan | awk '{print $1}' | sort | uniq -c | sort -rn` },
-  ]},
-  { id: "ansible", label: "Ansible", icon: "🤖", color: "#EE0000", scripts: [
-    { id: "ans-ping",           title: "Ping All Hosts",             description: "Test connectivity to all inventory hosts", extension: "sh",
-      code: `#!/bin/bash
-# Ping all hosts in inventory
-ansible all -m ping
-
-# Ping specific group:
-# ansible db_servers -m ping
-
-# With custom inventory:
-# ansible all -i inventory.ini -m ping` },
-    { id: "ans-facts",          title: "Gather Host Facts",          description: "Collect system facts from remote hosts", extension: "sh",
-      code: `#!/bin/bash
-# Gather facts from all hosts
-ansible all -m setup
-
-# Filter specific facts:
-ansible all -m setup -a 'filter=ansible_memory_mb'
-ansible all -m setup -a 'filter=ansible_os_family'
-ansible all -m setup -a 'filter=ansible_processor_vcpus'` },
-    { id: "ans-playbook",       title: "Run Playbook Template",      description: "Basic Ansible playbook structure", extension: "yaml",
-      code: `---
-- name: Example Playbook
-  hosts: db_servers
-  become: yes
-  vars:
-    db_port: 5432
-    app_user: dbadmin
-
-  tasks:
-    - name: Ensure package is installed
-      ansible.builtin.package:
-        name: postgresql
-        state: present
-
-    - name: Start and enable service
-      ansible.builtin.service:
-        name: postgresql
-        state: started
-        enabled: yes
-
-    - name: Copy config file
-      ansible.builtin.template:
-        src: templates/pg_hba.conf.j2
-        dest: /etc/postgresql/pg_hba.conf
-        owner: postgres
-        group: postgres
-        mode: '0640'
-      notify: Restart PostgreSQL
-
-  handlers:
-    - name: Restart PostgreSQL
-      ansible.builtin.service:
-        name: postgresql
-        state: restarted` },
-  ]},
-  { id: "terraform", label: "Terraform", icon: "🏗️", color: "#7B42BC", scripts: [
-    { id: "tf-rds",             title: "AWS RDS Instance",           description: "Provision an AWS RDS Oracle/PostgreSQL instance", extension: "tf",
-      code: `# AWS RDS Instance
-resource "aws_db_instance" "main" {
-  identifier        = "prod-database"
-  engine            = "postgres"
-  engine_version    = "15.4"
-  instance_class    = "db.t3.medium"
-  allocated_storage = 100
-  storage_type      = "gp3"
-
-  db_name  = "appdb"
-  username = "dbadmin"
-  password = var.db_password
-
-  vpc_security_group_ids = [aws_security_group.rds.id]
-  db_subnet_group_name   = aws_db_subnet_group.main.name
-
-  backup_retention_period = 7
-  backup_window           = "03:00-04:00"
-  maintenance_window      = "sun:04:00-sun:05:00"
-
-  multi_az               = true
-  deletion_protection    = true
-  skip_final_snapshot    = false
-  final_snapshot_identifier = "prod-database-final"
-
-  tags = {
-    Name        = "prod-database"
-    Environment = "production"
-  }
-}` },
-    { id: "tf-commands",        title: "Common Terraform Commands",  description: "Day-to-day Terraform workflow commands", extension: "sh",
-      code: `#!/bin/bash
-# Terraform Workflow
-
-# Initialise working directory
-terraform init
-
-# Format code
-terraform fmt -recursive
-
-# Validate configuration
-terraform validate
-
-# Preview changes
-terraform plan -out=tfplan
-
-# Apply changes
-terraform apply tfplan
-
-# Destroy infrastructure
-# terraform destroy
-
-# Show current state
-terraform show
-
-# List resources in state
-terraform state list
-
-# Import existing resource
-# terraform import aws_instance.web i-1234567890abcdef0` },
-  ]},
-];
-
-async function loadScripts() {
-  try {
-    const r = await window.storage.get("itplatform-scripts");
-    if (r) {
-      const stored = JSON.parse(r.value);
-      // Merge: keep defaults as base, overlay stored changes
-      return DEFAULT_SCRIPTS.map(defCat => {
-        const storedCat = stored.find(s => s.id === defCat.id);
-        if (!storedCat) return defCat;
-        const mergedScripts = [...defCat.scripts];
-        storedCat.scripts.forEach(ss => {
-          const idx = mergedScripts.findIndex(ds => ds.id === ss.id);
-          if (idx >= 0) mergedScripts[idx] = ss;
-          else mergedScripts.push(ss);
-        });
-        return { ...storedCat, scripts: mergedScripts };
-      }).concat(stored.filter(s => !DEFAULT_SCRIPTS.find(d => d.id === s.id)));
-    }
-  } catch {}
-  return DEFAULT_SCRIPTS;
-}
-async function saveScripts(scriptCats) {
-  try { await window.storage.set("itplatform-scripts", JSON.stringify(scriptCats)); } catch {}
-}
-
-
 // ── MARKDOWN RENDERER ─────────────────────────────────────────────────
 function inlineFormat(text) {
   return text
@@ -813,61 +487,9 @@ export default function App() {
   const [editingTopic, setEditingTopic]             = useState(null);
   const [editingPage, setEditingPage]               = useState(null);
   const [editingPageTopicId, setEditingPageTopicId] = useState(null);
-  const [scripts, setScripts]           = useState(DEFAULT_SCRIPTS);
-  const [scriptCat, setScriptCat]       = useState(null);   // active category id
-  const [activeScript, setActiveScript] = useState(null);   // active script object
-  const [scriptDropdown, setScriptDropdown] = useState(null); // open dropdown cat id
-  const [editingScript, setEditingScript]   = useState(null);
-  const [editingScriptCat, setEditingScriptCat] = useState(null);
-  const [topicDocs, setTopicDocs]           = useState(() => {
-    try { return JSON.parse(localStorage.getItem("itlearn_docs") || "{}"); } catch { return {}; }
-  });
-  const [showDocUpload, setShowDocUpload]   = useState(false);
-  const [docUploadTopicId, setDocUploadTopicId] = useState(null);
-  const [docUploadProgress, setDocUploadProgress] = useState(null);
-
-  const saveDocs = (docs) => {
-    setTopicDocs(docs);
-    try { localStorage.setItem("itlearn_docs", JSON.stringify(docs)); } catch(e) { showToast("⚠️ Storage full — remove old documents first."); }
-  };
-
-  const handleDocUpload = (topicId, file) => {
-    const allowed = ["application/pdf","application/vnd.openxmlformats-officedocument.wordprocessingml.document","application/msword",
-      "application/vnd.openxmlformats-officedocument.presentationml.presentation","application/vnd.ms-powerpoint"];
-    const ext = file.name.split(".").pop().toLowerCase();
-    const allowedExt = ["pdf","docx","doc","pptx","ppt"];
-    if (!allowedExt.includes(ext)) { showToast("❌ Only PDF, DOCX, DOC, PPTX, PPT allowed."); return; }
-    if (file.size > 10 * 1024 * 1024) { showToast("❌ File too large. Max 10 MB."); return; }
-    setDocUploadProgress("Reading file…");
-    const reader = new FileReader();
-    reader.onload = (e) => {
-      const doc = {
-        id: "doc_" + Date.now(),
-        name: file.name,
-        ext: ext,
-        size: (file.size / 1024).toFixed(0),
-        uploadedAt: new Date().toLocaleDateString("en-GB"),
-        data: e.target.result,
-      };
-      const updated = { ...topicDocs, [topicId]: [...(topicDocs[topicId] || []), doc] };
-      saveDocs(updated);
-      setDocUploadProgress(null);
-      setShowDocUpload(false);
-      showToast("✅ Document uploaded successfully!");
-    };
-    reader.onerror = () => { setDocUploadProgress(null); showToast("❌ Failed to read file."); };
-    reader.readAsDataURL(file);
-  };
-
-  const deleteDoc = (topicId, docId) => {
-    const updated = { ...topicDocs, [topicId]: (topicDocs[topicId] || []).filter(d => d.id !== docId) };
-    saveDocs(updated);
-    showToast("🗑️ Document removed.");
-  };
 
   useEffect(() => {
     loadData().then(setTopics);
-    loadScripts().then(setScripts);
     const sec = getSecurityState();
     if (isSessionValid(sec)) setIsAdmin(true);
   }, []);
@@ -894,37 +516,6 @@ export default function App() {
   }, [isAdmin]);
 
   const persist = useCallback((newTopics) => { setTopics(newTopics); saveData(newTopics); }, []);
-  const persistScripts = (s) => { setScripts(s); saveScripts(s); };
-
-  const goScripts = (catId) => {
-    const cat = scripts.find(c => c.id === catId);
-    setScriptCat(cat || scripts[0]);
-    setActiveScript(null);
-    setView("scripts");
-    setScriptDropdown(null);
-  };
-  const openScript = (script) => setActiveScript(script);
-
-  const saveScriptItem = (catId, scriptData) => {
-    const updated = scripts.map(cat => {
-      if (cat.id !== catId) return cat;
-      const exists = cat.scripts.find(s => s.id === scriptData.id);
-      const newScripts = exists
-        ? cat.scripts.map(s => s.id === scriptData.id ? scriptData : s)
-        : [...cat.scripts, { ...scriptData, id: "script-" + Date.now() }];
-      return { ...cat, scripts: newScripts };
-    });
-    persistScripts(updated);
-    setAdminView("scripts");
-    setEditingScript(null);
-    showToast("✅ Script saved!");
-  };
-  const deleteScriptItem = (catId, scriptId) => {
-    persistScripts(scripts.map(cat =>
-      cat.id === catId ? { ...cat, scripts: cat.scripts.filter(s => s.id !== scriptId) } : cat
-    ));
-    showToast("🗑️ Script deleted");
-  };
   const showToast = (msg) => { setToast(msg); setTimeout(() => setToast(null), 3000); };
 
   const handleLogout = () => {
@@ -945,8 +536,7 @@ export default function App() {
     showToast("✅ Welcome back! Admin session started.");
   };
 
-  const goHome    = () => { setView("home");    setActiveTopic(null); setActivePage(null); };
-  const goSession = () => { window.open("/session.html", "_blank"); };
+  const goHome   = () => { setView("home");   setActiveTopic(null); setActivePage(null); };
   const goAbout  = () => { setView("about");  setActiveTopic(null); setActivePage(null); };
   const goBrowse = (cat = "all") => { setView("browse"); setFilterCat(cat); setActiveTopic(null); setBrowseSearch(""); };
   const goTopic  = (t) => { setActiveTopic(t); setView("topic"); setActivePage(null); };
@@ -988,14 +578,6 @@ export default function App() {
     showToast("🗑️ Page deleted");
   };
 
-  // ── DOC TYPE ICON & STYLE ──
-  const docIcon = (ext) => {
-    if (ext === "pdf")                return { icon: "📄", color: "#DC2626", bg: "#FEF2F2", label: "PDF"  };
-    if (["doc","docx"].includes(ext)) return { icon: "📝", color: "#2563EB", bg: "#EFF6FF", label: "WORD" };
-    if (["ppt","pptx"].includes(ext)) return { icon: "📊", color: "#D97706", bg: "#FFFBEB", label: "PPT"  };
-    return { icon: "📎", color: "#6B7280", bg: "#F3F4F6", label: ext.toUpperCase() };
-  };
-
   return (
     // ✅ KEY FIX: flex column + min-height 100vh pushes footer to bottom
     <div style={{ fontFamily: "'DM Sans', sans-serif", minHeight: "100vh", background: "#FAFAF7", color: "#1A1A2E", display: "flex", flexDirection: "column" }}>
@@ -1010,16 +592,6 @@ export default function App() {
         input, textarea, select { font-family: 'DM Sans', sans-serif; outline: none; }
         textarea { resize: vertical; }
         .fade-in { animation: fadeIn 0.35s ease; }
-
-        /* ── SERVICE CARD HOVER ── */
-        .service-card {
-          transition: transform 0.18s ease, box-shadow 0.18s ease;
-          cursor: default;
-        }
-        .service-card:hover {
-          transform: translateY(-3px);
-          box-shadow: 0 8px 24px rgba(0,0,0,0.10);
-        }
         @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
         .slide-row { display: flex; gap: 1rem; overflow-x: auto; padding-bottom: 0.5rem; }
         .slide-row::-webkit-scrollbar { height: 4px; }
@@ -1030,52 +602,6 @@ export default function App() {
 
       {showLogin && <AdminLogin onSuccess={handleLoginSuccess} onCancel={() => setShowLogin(false)} />}
 
-      {/* ══ DOC UPLOAD MODAL ══ */}
-      {showDocUpload && docUploadTopicId && (() => {
-        const topic = topics.find(t => t.id === docUploadTopicId);
-        return (
-          <div style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.5)", zIndex: 9000, display: "flex", alignItems: "center", justifyContent: "center", padding: "1rem" }}>
-            <div style={{ background: "#fff", borderRadius: 16, padding: "2rem", width: "100%", maxWidth: 460, boxShadow: "0 20px 60px rgba(0,0,0,0.25)" }}>
-              <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "1.4rem" }}>
-                <div>
-                  <div style={{ fontWeight: 900, fontSize: "1.1rem", color: "#0F172A" }}>Upload Document</div>
-                  <div style={{ fontSize: "0.8rem", color: "#64748B", marginTop: "0.2rem" }}>Topic: <strong style={{ color: topic?.color }}>{topic?.title}</strong></div>
-                </div>
-                <button onClick={() => { setShowDocUpload(false); setDocUploadProgress(null); }}
-                  style={{ background: "#F1F5F9", border: "none", borderRadius: 8, width: 32, height: 32, cursor: "pointer", fontSize: "1rem" }}>✕</button>
-              </div>
-              <div style={{ display: "flex", gap: "0.5rem", marginBottom: "1.2rem", flexWrap: "wrap" }}>
-                {[["📄","PDF","#DC2626","#FEF2F2"],["📝","DOCX","#2563EB","#EFF6FF"],["📊","PPTX","#D97706","#FFFBEB"]].map(([icon,label,color,bg]) => (
-                  <span key={label} style={{ display:"inline-flex", alignItems:"center", gap:"0.3rem", background:bg, color, border:`1px solid ${color}30`, borderRadius:6, padding:"0.25rem 0.65rem", fontSize:"0.75rem", fontWeight:700 }}>
-                    {icon} {label}
-                  </span>
-                ))}
-                <span style={{ fontSize:"0.72rem", color:"#94A3B8", alignSelf:"center" }}>Max 10 MB</span>
-              </div>
-              <label style={{ display:"block", border:"2px dashed #BFDBFE", borderRadius:12, padding:"2rem 1rem", textAlign:"center", cursor:"pointer", background:"#F8FAFC" }}
-                onDragOver={e => e.preventDefault()}
-                onDrop={e => { e.preventDefault(); const f = e.dataTransfer.files[0]; if(f) handleDocUpload(docUploadTopicId, f); }}>
-                <input type="file" accept=".pdf,.doc,.docx,.ppt,.pptx" style={{ display:"none" }}
-                  onChange={e => { const f = e.target.files[0]; if(f) handleDocUpload(docUploadTopicId, f); }} />
-                <div style={{ fontSize:"2.5rem", marginBottom:"0.6rem" }}>📂</div>
-                {docUploadProgress ? (
-                  <div style={{ fontSize:"0.88rem", color:"#2563EB", fontWeight:600 }}>{docUploadProgress}</div>
-                ) : (
-                  <>
-                    <div style={{ fontWeight:700, fontSize:"0.9rem", color:"#334155", marginBottom:"0.3rem" }}>Click to browse or drag & drop</div>
-                    <div style={{ fontSize:"0.78rem", color:"#94A3B8" }}>PDF, DOC, DOCX, PPT, PPTX · Max 10 MB</div>
-                  </>
-                )}
-              </label>
-              <button onClick={() => { setShowDocUpload(false); setDocUploadProgress(null); }}
-                style={{ width:"100%", marginTop:"1rem", padding:"0.65rem", background:"#F1F5F9", border:"none", borderRadius:9, fontFamily:"inherit", fontSize:"0.88rem", fontWeight:600, color:"#475569", cursor:"pointer" }}>
-                Cancel
-              </button>
-            </div>
-          </div>
-        );
-      })()}
-
       {toast && (
         <div style={{ position: "fixed", bottom: "1.5rem", right: "1.5rem", zIndex: 9999, background: "#1A1A2E", color: "#fff", borderRadius: 12, padding: "0.85rem 1.5rem", fontSize: "0.88rem", fontWeight: 500, boxShadow: "0 8px 30px rgba(0,0,0,0.25)", animation: "fadeIn 0.3s ease" }}>
           {toast}
@@ -1083,75 +609,28 @@ export default function App() {
       )}
 
       {/* ── NAV ── */}
-      <nav style={{ position: "sticky", top: 0, zIndex: 100, background: "rgba(250,250,247,0.94)", backdropFilter: "blur(14px)", borderBottom: "1px solid #E2E2EC", display: "flex", alignItems: "center", justifyContent: "space-between", padding: "0 3%", height: 58, gap: "0.5rem", overflow: "visible" }}>
-
-        {/* Logo */}
-        <div onClick={goHome} style={{ fontFamily: "'Playfair Display', serif", fontSize: "1.2rem", fontWeight: 900, cursor: "pointer", flexShrink: 0, whiteSpace: "nowrap" }}>
+      <nav style={{ position: "sticky", top: 0, zIndex: 100, background: "rgba(250,250,247,0.94)", backdropFilter: "blur(14px)", borderBottom: "1px solid #E2E2EC", display: "flex", alignItems: "center", justifyContent: "space-between", padding: "0 4%", height: 62, gap: "1rem" }}>
+        <div onClick={goHome} style={{ fontFamily: "'Playfair Display', serif", fontSize: "1.3rem", fontWeight: 900, cursor: "pointer", flexShrink: 0 }}>
           IT<span style={{ color: "#2563EB" }}>Learn</span> Hub
         </div>
 
-        {/* Search — shrinks in middle */}
-        <div style={{ flex: 1, minWidth: 0, maxWidth: 320, margin: "0 0.5rem" }}>
-          <GlobalSearch topics={topics} onGoTopic={goTopic} onGoPage={goPage} />
-        </div>
+        {/* ✅ GLOBAL SEARCH in nav */}
+        <GlobalSearch topics={topics} onGoTopic={goTopic} onGoPage={goPage} />
 
-        {/* Nav links — always visible, no wrap */}
-        <div style={{ display: "flex", alignItems: "center", gap: "0.1rem", flexShrink: 0 }}>
-          {[["Home", goHome], ["Browse", () => goBrowse()], ["About", goAbout]].map(([label, fn]) => (
-            <button key={label} onClick={fn}
-              style={{ padding: "0.35rem 0.7rem", background: "transparent", border: "none", color: "#6B7280", fontFamily: "inherit", fontSize: "0.8rem", fontWeight: 500, cursor: "pointer", borderRadius: 7, whiteSpace: "nowrap" }}
-              onMouseEnter={e => e.target.style.color="#2563EB"} onMouseLeave={e => e.target.style.color="#6B7280"}>
+        <div style={{ display: "flex", gap: "0.4rem", flexWrap: "wrap", alignItems: "center", flexShrink: 0 }}>
+          {[["Home", goHome], ["About Me", goAbout], ["Browse", () => goBrowse()], ...DEFAULT_CATEGORIES.map((c) => [c.label, () => goBrowse(c.id)])].map(([label, fn]) => (
+            <button key={label} onClick={fn} style={{ padding: "0.4rem 0.85rem", background: "transparent", border: "none", color: "#6B7280", fontFamily: "inherit", fontSize: "0.82rem", fontWeight: 500, cursor: "pointer", borderRadius: 8 }}
+              onMouseEnter={(e) => e.target.style.color = "#2563EB"} onMouseLeave={(e) => e.target.style.color = "#6B7280"}>
               {label}
             </button>
           ))}
-
-          {/* ── SCRIPTS DROPDOWN ── */}
-          <div style={{ position: "relative" }}
-            onMouseEnter={() => setScriptDropdown("open")}
-            onMouseLeave={() => setScriptDropdown(null)}>
-            <button style={{ padding: "0.35rem 0.7rem", background: scriptDropdown ? "#EFF6FF" : "transparent", border: "none", color: scriptDropdown ? "#2563EB" : "#6B7280", fontFamily: "inherit", fontSize: "0.8rem", fontWeight: scriptDropdown ? 600 : 500, cursor: "pointer", borderRadius: 7, display: "flex", alignItems: "center", gap: "0.3rem", whiteSpace: "nowrap" }}>
-              📜 Scripts <span style={{ fontSize: "0.55rem" }}>▼</span>
-            </button>
-            {scriptDropdown && (
-              <div style={{ position: "absolute", top: "calc(100% + 4px)", left: "50%", transform: "translateX(-50%)", background: "#fff", border: "1px solid #E2E2EC", borderRadius: 12, boxShadow: "0 12px 40px rgba(0,0,0,0.14)", minWidth: 200, zIndex: 9999, overflow: "hidden", padding: "6px 0" }}>
-                {scripts.map(cat => (
-                  <button key={cat.id} onClick={() => goScripts(cat.id)}
-                    style={{ display: "flex", alignItems: "center", gap: "0.6rem", width: "100%", padding: "0.55rem 1rem", background: "transparent", border: "none", color: "#374151", fontFamily: "inherit", fontSize: "0.83rem", cursor: "pointer" }}
-                    onMouseEnter={e => e.currentTarget.style.background="#F5F5FF"}
-                    onMouseLeave={e => e.currentTarget.style.background="transparent"}>
-                    <span>{cat.icon}</span>
-                    <span style={{ fontWeight: 500, flex: 1, textAlign: "left" }}>{cat.label}</span>
-                    <span style={{ fontSize: "0.7rem", color: "#9CA3AF", background: "#F3F4F6", padding: "0.1rem 0.4rem", borderRadius: 100 }}>{cat.scripts.length}</span>
-                  </button>
-                ))}
-                <div style={{ margin: "4px 8px 2px", borderTop: "1px solid #F3F4F6" }} />
-                <button onClick={() => goScripts(scripts[0]?.id)}
-                  style={{ display: "flex", alignItems: "center", justifyContent: "center", width: "100%", padding: "0.5rem 1rem", background: "transparent", border: "none", color: "#2563EB", fontFamily: "inherit", fontSize: "0.78rem", fontWeight: 600, cursor: "pointer" }}
-                  onMouseEnter={e => e.currentTarget.style.background="#EFF6FF"}
-                  onMouseLeave={e => e.currentTarget.style.background="transparent"}>
-                  View All Scripts →
-                </button>
-              </div>
-            )}
-          </div>
-
-          {/* Free Session */}
-          <button onClick={goSession}
-            style={{ padding: "0.35rem 0.75rem", background: "#FEF2F0", border: "1px solid #FCA5A5", color: "#C74634", fontFamily: "inherit", fontSize: "0.78rem", fontWeight: 700, cursor: "pointer", borderRadius: 7, whiteSpace: "nowrap" }}
-            onMouseEnter={e => e.currentTarget.style.background="#FEE2E2"}
-            onMouseLeave={e => e.currentTarget.style.background="#FEF2F0"}>
-            🎓 Free Session
-          </button>
-
-          {/* Admin — only when logged in */}
+          {/* Admin buttons only visible when already logged in — no public admin button */}
           {isAdmin && (
             <>
-              <button onClick={() => { setView("admin"); setAdminView("topics"); }} className="btn"
-                style={{ padding: "0.35rem 0.85rem", background: "#1A1A2E", color: "#fff", fontSize: "0.78rem", marginLeft: "0.3rem" }}>
+              <button onClick={() => { setView("admin"); setAdminView("topics"); }} className="btn" style={{ padding: "0.4rem 1rem", background: "#1A1A2E", color: "#fff", fontSize: "0.82rem" }}>
                 ✏️ Manage
               </button>
-              <button onClick={handleLogout} className="btn"
-                style={{ padding: "0.35rem 0.7rem", background: "#FEF2F2", color: "#DC2626", fontSize: "0.78rem" }}>
+              <button onClick={handleLogout} className="btn" style={{ padding: "0.4rem 0.85rem", background: "#FEF2F2", color: "#DC2626", fontSize: "0.78rem" }}>
                 Logout
               </button>
             </>
@@ -1186,21 +665,6 @@ export default function App() {
                 </div>
               </div>
             </section>
-
-            {/* 🎓 FREE SESSION PROMO BANNER */}
-            <div style={{ background: "linear-gradient(135deg, #1A1A2E 0%, #0F3460 100%)", padding: "20px 6%", display: "flex", alignItems: "center", justifyContent: "space-between", gap: "1rem", flexWrap: "wrap", borderBottom: "1px solid #E2E2EC" }}>
-              <div style={{ display: "flex", alignItems: "center", gap: "1rem" }}>
-                <div style={{ background: "rgba(196,70,52,0.2)", border: "1px solid rgba(196,70,52,0.4)", borderRadius: 6, padding: "0.2rem 0.7rem", fontSize: "0.68rem", fontWeight: 700, color: "#fca5a5", letterSpacing: "0.08em", textTransform: "uppercase", flexShrink: 0 }}>🔴 Free</div>
-                <div>
-                  <div style={{ fontWeight: 700, fontSize: "0.92rem", color: "#f1f5f9" }}>Oracle Basic Troubleshooting — Free 1-Hour Live Session</div>
-                  <div style={{ fontSize: "0.78rem", color: "#94a3b8", marginTop: 2 }}>Limited seats · Microsoft Teams · Date TBA</div>
-                </div>
-              </div>
-              <button onClick={goSession} style={{ padding: "0.55rem 1.3rem", background: "#C74634", color: "#fff", border: "none", borderRadius: 9, fontFamily: "inherit", fontSize: "0.83rem", fontWeight: 700, cursor: "pointer", flexShrink: 0, transition: "opacity 0.2s" }}
-                onMouseEnter={e => e.target.style.opacity = "0.85"} onMouseLeave={e => e.target.style.opacity = "1"}>
-                Register Free →
-              </button>
-            </div>
 
             {byCategory.map((cat) => (
               <section key={cat.id} style={{ padding: "50px 6% 40px", borderBottom: "1px solid #E2E2EC" }}>
@@ -1335,130 +799,37 @@ export default function App() {
               </div>
             </div>
             <div style={{ padding: "2.5rem 6%" }}>
-
-              {/* ── TABS: Pages | Documents ── */}
-              {(() => {
-                const topicDocList = topicDocs[activeTopic.id] || [];
-                const [activeTab, setActiveTab] = React.useState("false");
-                return (
-                  <>
-                    {/* Tab bar */}
-                    <div style={{ display: "flex", gap: "0.25rem", marginBottom: "1.5rem", borderBottom: "2px solid #E2E8F0", paddingBottom: "0" }}>
-                      {[
-                        { id: "pages", label: "📄 Knowledge Pages", count: activeTopic.pages.length },
-                        { id: "docs",  label: "📁 Documents",        count: topicDocList.length },
-                      ].map(tab => (
-                        <button key={tab.id} onClick={() => setActiveTab(tab.id)}
-                          style={{ padding: "0.55rem 1.1rem", border: "none", background: "none", cursor: "pointer", fontFamily: "inherit",
-                            fontSize: "0.85rem", fontWeight: 700, color: activeTab === tab.id ? activeTopic.color : "#94A3B8",
-                            borderBottom: activeTab === tab.id ? `2.5px solid ${activeTopic.color}` : "2.5px solid transparent",
-                            marginBottom: "-2px", transition: "color 0.15s" }}>
-                          {tab.label}
-                          <span style={{ marginLeft: "0.4rem", fontSize: "0.7rem", fontWeight: 700, background: activeTab === tab.id ? activeTopic.lightColor : "#F1F5F9",
-                            color: activeTab === tab.id ? activeTopic.color : "#94A3B8", borderRadius: 100, padding: "0.1rem 0.45rem" }}>
-                            {tab.count}
-                          </span>
-                        </button>
-                      ))}
-
-                      {/* Upload button — admin only, right-aligned */}
-                      {isAdmin && activeTab === "docs" && (
-                        <button onClick={() => { setDocUploadTopicId(activeTopic.id); setShowDocUpload(true); }}
-                          style={{ marginLeft: "auto", display: "inline-flex", alignItems: "center", gap: "0.4rem",
-                            padding: "0.45rem 1rem", background: activeTopic.color, color: "#fff", border: "none",
-                            borderRadius: 8, fontSize: "0.8rem", fontWeight: 700, cursor: "pointer", fontFamily: "inherit" }}>
-                          ⬆ Upload Document
-                        </button>
-                      )}
-                    </div>
-
-                    {/* ── PAGES TAB ── */}
-                    {activeTab === "pages" && (
-                      activeTopic.pages.length === 0 ? (
-                        <div style={{ textAlign: "center", padding: "4rem", color: "#9CA3AF", border: "2px dashed #E2E2EC", borderRadius: 16 }}>
-                          <div style={{ fontSize: "2.5rem", marginBottom: "0.8rem" }}>📄</div>
-                          <div style={{ fontWeight: 600 }}>No pages yet — content coming soon!</div>
-                        </div>
-                      ) : (
-                        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(280px,1fr))", gap: "1rem" }}>
-                          {activeTopic.pages.map((page) => (
-                            <div key={page.id} style={{ background: "#fff", border: "1px solid #E2E2EC", borderRadius: 14, padding: "1.5rem" }}>
-                              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
-                                <div onClick={() => goPage(activeTopic, page)} style={{ flex: 1, cursor: "pointer" }}>
-                                  <div style={{ fontWeight: 700, fontSize: "0.95rem", marginBottom: "0.3rem" }}>{page.title}</div>
-                                  <div style={{ fontSize: "0.78rem", color: "#9CA3AF" }}>Updated: {page.lastUpdated}</div>
-                                  <div style={{ fontSize: "0.82rem", color: "#6B7280", marginTop: "0.5rem", lineHeight: 1.5 }}>
-                                    {page.content.replace(/```[\s\S]*?```/g,"[code]").replace(/\*\*/g,"").substring(0,100)}…
-                                  </div>
-                                </div>
-                                {isAdmin && (
-                                  <div style={{ display: "flex", gap: "0.3rem", marginLeft: "0.5rem" }}>
-                                    <button onClick={() => { setEditingPage(page); setEditingPageTopicId(activeTopic.id); setView("admin"); setAdminView("edit-page"); }}
-                                      style={{ background: "#EFF6FF", color: "#2563EB", border: "none", borderRadius: 7, padding: "0.3rem 0.6rem", cursor: "pointer", fontSize: "0.78rem" }}>Edit</button>
-                                    <button onClick={() => deletePage(activeTopic.id, page.id)}
-                                      style={{ background: "#FEF2F2", color: "#EF4444", border: "none", borderRadius: 7, padding: "0.3rem 0.6rem", cursor: "pointer", fontSize: "0.78rem" }}>Del</button>
-                                  </div>
-                                )}
-                              </div>
-                              <div onClick={() => goPage(activeTopic, page)} style={{ marginTop: "1rem", fontSize: "0.78rem", color: "#2563EB", fontWeight: 600, cursor: "pointer" }}>Read more →</div>
-                            </div>
-                          ))}
-                        </div>
-                      )
-                    )}
-
-                    {/* ── DOCUMENTS TAB ── */}
-                    {activeTab === "docs" && (
-                      topicDocList.length === 0 ? (
-                        <div style={{ textAlign: "center", padding: "4rem 2rem", border: "2px dashed #E2E8F0", borderRadius: 16, color: "#94A3B8" }}>
-                          <div style={{ fontSize: "3rem", marginBottom: "0.8rem" }}>📁</div>
-                          <div style={{ fontWeight: 700, fontSize: "0.95rem", marginBottom: "0.4rem", color: "#475569" }}>No documents yet</div>
-                          <div style={{ fontSize: "0.82rem" }}>
-                            {isAdmin ? "Upload PDF, DOCX or PPTX files using the button above." : "No documents have been uploaded for this topic yet."}
+              {activeTopic.pages.length === 0 ? (
+                <div style={{ textAlign: "center", padding: "4rem", color: "#9CA3AF", border: "2px dashed #E2E2EC", borderRadius: 16 }}>
+                  <div style={{ fontSize: "2.5rem", marginBottom: "0.8rem" }}>📄</div>
+                  <div style={{ fontWeight: 600 }}>No pages yet — content coming soon!</div>
+                </div>
+              ) : (
+                <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(280px,1fr))", gap: "1rem" }}>
+                  {activeTopic.pages.map((page) => (
+                    <div key={page.id} style={{ background: "#fff", border: "1px solid #E2E2EC", borderRadius: 14, padding: "1.5rem" }}>
+                      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
+                        <div onClick={() => goPage(activeTopic, page)} style={{ flex: 1, cursor: "pointer" }}>
+                          <div style={{ fontWeight: 700, fontSize: "0.95rem", marginBottom: "0.3rem" }}>{page.title}</div>
+                          <div style={{ fontSize: "0.78rem", color: "#9CA3AF" }}>Updated: {page.lastUpdated}</div>
+                          <div style={{ fontSize: "0.82rem", color: "#6B7280", marginTop: "0.5rem", lineHeight: 1.5 }}>
+                            {page.content.replace(/```[\s\S]*?```/g,"[code]").replace(/\*\*/g,"").substring(0,100)}…
                           </div>
                         </div>
-                      ) : (
-                        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(260px,1fr))", gap: "1rem" }}>
-                          {topicDocList.map((doc) => {
-                            const di = docIcon(doc.ext);
-                            return (
-                              <div key={doc.id} style={{ background: "#fff", border: "1px solid #E2E8F0", borderRadius: 12, padding: "1.2rem", display: "flex", flexDirection: "column", gap: "0.75rem", boxShadow: "0 1px 4px rgba(0,0,0,0.05)" }}>
-                                {/* Doc header */}
-                                <div style={{ display: "flex", alignItems: "flex-start", gap: "0.75rem" }}>
-                                  <div style={{ width: 42, height: 42, borderRadius: 10, background: di.bg, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
-                                    <span style={{ fontSize: "1.2rem", lineHeight: 1 }}>{di.icon}</span>
-                                    <span style={{ fontSize: "0.5rem", fontWeight: 800, color: di.color, letterSpacing: "0.05em", marginTop: "0.1rem" }}>{di.label}</span>
-                                  </div>
-                                  <div style={{ flex: 1, minWidth: 0 }}>
-                                    <div style={{ fontWeight: 700, fontSize: "0.88rem", color: "#0F172A", lineHeight: 1.3, marginBottom: "0.2rem", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{doc.name}</div>
-                                    <div style={{ fontSize: "0.72rem", color: "#94A3B8" }}>{doc.size} KB · Uploaded {doc.uploadedAt}</div>
-                                  </div>
-                                </div>
-                                {/* Actions */}
-                                <div style={{ display: "flex", gap: "0.5rem", marginTop: "auto" }}>
-                                  <a href={doc.data} download={doc.name}
-                                    style={{ flex: 1, display: "inline-flex", alignItems: "center", justifyContent: "center", gap: "0.35rem",
-                                      padding: "0.45rem 0", background: di.bg, color: di.color, border: `1px solid ${di.color}30`,
-                                      borderRadius: 7, fontSize: "0.78rem", fontWeight: 700, textDecoration: "none" }}>
-                                    ⬇ Download
-                                  </a>
-                                  {isAdmin && (
-                                    <button onClick={() => deleteDoc(activeTopic.id, doc.id)}
-                                      style={{ padding: "0.45rem 0.75rem", background: "#FEF2F2", color: "#EF4444", border: "none",
-                                        borderRadius: 7, fontSize: "0.78rem", fontWeight: 700, cursor: "pointer", fontFamily: "inherit" }}>
-                                      🗑
-                                    </button>
-                                  )}
-                                </div>
-                              </div>
-                            );
-                          })}
-                        </div>
-                      )
-                    )}
-                  </>
-                );
-              })()}
+                        {isAdmin && (
+                          <div style={{ display: "flex", gap: "0.3rem", marginLeft: "0.5rem" }}>
+                            <button onClick={() => { setEditingPage(page); setEditingPageTopicId(activeTopic.id); setView("admin"); setAdminView("edit-page"); }}
+                              style={{ background: "#EFF6FF", color: "#2563EB", border: "none", borderRadius: 7, padding: "0.3rem 0.6rem", cursor: "pointer", fontSize: "0.78rem" }}>Edit</button>
+                            <button onClick={() => deletePage(activeTopic.id, page.id)}
+                              style={{ background: "#FEF2F2", color: "#EF4444", border: "none", borderRadius: 7, padding: "0.3rem 0.6rem", cursor: "pointer", fontSize: "0.78rem" }}>Del</button>
+                          </div>
+                        )}
+                      </div>
+                      <div onClick={() => goPage(activeTopic, page)} style={{ marginTop: "1rem", fontSize: "0.78rem", color: "#2563EB", fontWeight: 600, cursor: "pointer" }}>Read more →</div>
+                    </div>
+                  ))}
+                </div>
+              )}
             </div>
           </div>
         )}
@@ -1494,116 +865,24 @@ export default function App() {
         {/* ══════════ ABOUT VIEW ══════════ */}
         {view === "about" && (
           <div className="fade-in">
-
-            {/* ── TOP ACCENT BAR ── */}
-            <div style={{ height: 3, background: "linear-gradient(90deg, #1D4ED8, #0891B2)" }} />
-
-            {/* ── HERO — single screen, no scroll ── */}
-            <div style={{ background: "#F8FAFC", borderBottom: "1px solid #E2E8F0", padding: "32px 6% 28px" }}>
-              <div style={{ maxWidth: 960, margin: "0 auto" }}>
-
-                {/* ── ROW 1: Avatar + Name + Role + Pitch ── */}
-                <div style={{ display: "flex", alignItems: "center", gap: "1.5rem", marginBottom: "1.4rem", flexWrap: "wrap" }}>
-
-                  {/* Avatar */}
-                  <div style={{ flexShrink: 0, width: 72, height: 72, borderRadius: 12, background: "#EFF6FF", border: "2px solid #BFDBFE", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "2.2rem", boxShadow: "0 2px 10px rgba(37,99,235,0.1)" }}>👨‍💻</div>
-
-                  {/* Name + role + one-liner */}
-                  <div style={{ flex: 1, minWidth: 300 }}>
-                    <div style={{ display: "flex", alignItems: "center", gap: "0.75rem", flexWrap: "wrap", marginBottom: "0.3rem" }}>
-                    <span style={{ fontSize: "0.7rem", fontWeight: 700, color: "#1D4ED8", letterSpacing: "0.09em", textTransform: "uppercase", background: "#EFF6FF", border: "1px solid #BFDBFE", borderRadius: 5, padding: "0.22rem 0.7rem" }}>Senior Oracle & PostgreSQL Database Consultant | Cloud Infrastructure Expert</span>
-                    </div>
-                    
-					
-					<div style={{ fontSize: "0.86rem", color: "#475569", lineHeight: 1.75, maxWidth: 580 }}>
-
-  <div style={{ display: "flex", alignItems: "flex-start", gap: "0.5rem", marginBottom: "0.4rem" }}>
-    <span>
-      Helping enterprises build{" "}
-      <strong style={{ color: "#0F172A" }}>resilient</strong>,{" "}
-      <strong style={{ color: "#0F172A" }}>scalable</strong>, and{" "}
-      <strong style={{ color: "#0F172A" }}>high-performance</strong>{" "}
-      data platforms that deliver{" "}
-      <strong style={{ color: "#0F172A" }}>measurable business impact</strong>{" "}
-      and{" "}
-      <strong style={{ color: "#0F172A" }}>operational excellence</strong>.
-    </span>
-  </div>
-
-  <div style={{ display: "flex", alignItems: "flex-start", gap: "0.5rem" }}>
-    <span>
-      Leading{" "}
-      <strong style={{ color: "#0F172A" }}>complex database modernization</strong>{" "}
-      initiatives,{" "}
-      <strong style={{ color: "#0F172A" }}>zero-downtime migrations</strong>,{" "}
-      <strong style={{ color: "#0F172A" }}>high-availability architecture design</strong>,{" "}
-      and{" "}
-      <strong style={{ color: "#0F172A" }}>performance engineering at scale</strong>.
-    </span>
-  </div>
-
-</div>
-					
-		
-		
-					
-                  </div>
-
-                  {/* CTAs — far right */}
-                  <div style={{ display: "flex", gap: "0.6rem", flexShrink: 0, flexWrap: "wrap" }}>
+            <div style={{ background: "linear-gradient(135deg, #1A1A2E 0%, #16213E 50%, #0F3460 100%)", padding: "70px 6% 60px", position: "relative", overflow: "hidden" }}>
+              <div style={{ position: "absolute", top: -80, right: -80, width: 360, height: 360, background: "radial-gradient(circle, rgba(37,99,235,0.15) 0%, transparent 70%)", borderRadius: "50%" }} />
+              <div style={{ display: "flex", alignItems: "center", gap: "2.5rem", flexWrap: "wrap", position: "relative" }}>
+                <div style={{ width: 120, height: 120, borderRadius: "50%", background: "linear-gradient(135deg, #2563EB, #0891B2)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "3.5rem", flexShrink: 0, boxShadow: "0 8px 32px rgba(37,99,235,0.4)", border: "3px solid rgba(255,255,255,0.15)" }}>👨‍💻</div>
+                <div>
+                  <div style={{ fontSize: "0.75rem", fontWeight: 600, color: "#60A5FA", letterSpacing: "0.12em", textTransform: "uppercase", marginBottom: "0.5rem" }}>🌟 Senior Database Administrator</div>
+                  <h1 style={{ fontFamily: "'Playfair Display', serif", fontSize: "clamp(2rem, 4vw, 3rem)", fontWeight: 900, color: "#fff", lineHeight: 1.1, marginBottom: "0.6rem" }}>Atif — DBA & IT Professional</h1>
+                  <p style={{ color: "#94A3B8", fontSize: "1rem", lineHeight: 1.7, maxWidth: 520 }}>11+ years of hands-on experience managing enterprise databases, building automation pipelines, and architecting cloud infrastructure.</p>
+                  <div style={{ display: "flex", gap: "0.8rem", marginTop: "1.2rem", flexWrap: "wrap" }}>
                     <a href="https://www.linkedin.com/in/mokhtar-atif-dba" target="_blank" rel="noreferrer"
-                      style={{ display: "inline-flex", alignItems: "center", gap: "0.4rem", padding: "0.5rem 1rem", background: "#0A66C2", color: "#fff", borderRadius: 7, fontSize: "0.8rem", fontWeight: 700, textDecoration: "none" }}>
-                      🔗 LinkedIn
+                      style={{ display: "inline-flex", alignItems: "center", gap: "0.4rem", padding: "0.55rem 1.1rem", background: "#0077B5", color: "#fff", borderRadius: 9, fontSize: "0.85rem", fontWeight: 600, textDecoration: "none" }}>
+                      🔗 LinkedIn Profile
                     </a>
-                    <button onClick={goSession}
-                      style={{ display: "inline-flex", alignItems: "center", gap: "0.4rem", padding: "0.5rem 1rem", background: "#C74634", color: "#fff", borderRadius: 7, fontSize: "0.8rem", fontWeight: 700, cursor: "pointer", fontFamily: "inherit", border: "none" }}>
-                      🎓 Free Session
-                    </button>
                   </div>
                 </div>
-
-                {/* ── ROW 2: Tech stack pills ── */}
-                <div style={{ display: "flex", gap: "0.4rem", flexWrap: "wrap", marginBottom: "1.4rem", paddingBottom: "1.3rem", borderBottom: "1px solid #E2E8F0" }}>
-                  {[["🔴","Oracle"],["🐘","PostgreSQL"],["🐬","MySQL"],["🪟","SQL Server"],["🔷","Vertica"],["☁️","AWS / Azure / OCI"],["⚙️","Ansible"],["🏗️","Terraform"],["🐧","Linux"]].map(([icon, label]) => (
-                    <span key={label} style={{ display: "inline-flex", alignItems: "center", gap: "0.25rem", fontSize: "0.75rem", fontWeight: 600, color: "#374151", background: "#fff", border: "1px solid #E2E8F0", borderRadius: 6, padding: "0.2rem 0.6rem", boxShadow: "0 1px 2px rgba(0,0,0,0.04)" }}>
-                      {icon} {label}
-                    </span>
-                  ))}
-                </div>
-
-                {/* ── ROW 3: 5 service cards ── */}
-                <div style={{ display: "grid", gridTemplateColumns: "repeat(5, 1fr)", gap: "0.75rem", marginBottom: "1.2rem" }}>
-                  {[
-                    { icon: "🏗️", title: "Architecture & Deployment",color: "#1D4ED8", bg: "#F0F7FF", border: "#BFDBFE", items: ["Database Architecture Design", "Enterprise Installation & Configuration", "Capacity & Scalability Planning", "Migration & Modernization Strategy"] },
-                    { icon: "🔄", title: "Upgrades & Migrations", color: "#B45309", bg: "#FFFBEB", border: "#FDE68A", items: ["Zero-Downtime Upgrade Strategy", "Cross-Platform & Cross-OS Migration", "Major Version Upgrade", "Secure Cutover & Rollback Planning"] },
-                    { icon: "⚡", title: "Performance Engineering", color: "#0891B2", bg: "#F0FDFF", border: "#BAE6FD", items: ["Query Optimisation", "AWR / ASH Analysis", "Indexing Strategy", "System & Workload Bottleneck Analysis"] },
-                    { icon: "🔒", title: "Security, Compliance & Governance", color: "#7C3AED", bg: "#FAF5FF", border: "#DDD6FE", items: ["Security Auditing", "Access Control", "Compliance (SOX/GDPR)", "Vulnerability Review"] },
-                    { icon: "☁️", title: "Cloud Migration & Modernization", color: "#059669", bg: "#F0FDF7", border: "#A7F3D0", items: ["Infrastructure as Code (Ansible / Terraform)", "HA & Disaster Recovery Architecture", "CI/CD Database Pipelines"] },
-                  ].map(card => (
-                    <div key={card.title} className="service-card" style={{ background: card.bg, border: "1px solid " + card.border, borderRadius: 12, padding: "1.1rem 1.1rem 1rem", position: "relative", overflow: "hidden", boxShadow: "0 2px 8px rgba(0,0,0,0.06)" }}>
-                      <div style={{ position: "absolute", top: 0, left: 0, right: 0, height: 3, background: card.color }} />
-                      <div style={{ display: "flex", alignItems: "center", gap: "0.45rem", marginBottom: "0.6rem" }}>
-                        <span style={{ fontSize: "1.25rem" }}>{card.icon}</span>
-                        <span style={{ fontSize: "0.67rem", fontWeight: 800, color: card.color, letterSpacing: "0.04em", textTransform: "uppercase", lineHeight: 1.3 }}>{card.title}</span>
-                      </div>
-                      {card.items.map(item => (
-                        <div key={item} style={{ display: "flex", alignItems: "flex-start", gap: "0.35rem", fontSize: "0.75rem", color: "#374151", lineHeight: 1.6 }}>
-                          <span style={{ color: card.color, fontWeight: 700, flexShrink: 0 }}>·</span>{item}
-                        </div>
-                      ))}
-                    </div>
-                  ))}
-                </div>
-
-                {/* ── ROW 4: Experience statement — compact ── */}
-                <div style={{ padding: "0.9rem 1.2rem", background: "#fff", border: "1px solid #E2E8F0", borderRadius: 10, borderLeft: "4px solid #1D4ED8" }}>
-                  <p style={{ fontSize: "0.83rem", color: "#475569", lineHeight: 1.8, margin: 0 }}>
-                    With <strong style={{ color: "#0F172A" }}>11+ years of enterprise experience</strong> across Oracle, PostgreSQL, MySQL and cloud platforms — specialising in <strong style={{ color: "#0F172A" }}>performance tuning</strong>, <strong style={{ color: "#0F172A" }}>high availability</strong>, <strong style={{ color: "#0F172A" }}>automation</strong>, and <strong style={{ color: "#0F172A" }}>architecture modernisation</strong>. I work with teams to solve real problems — not just deliver reports.
-                  </p>
-                </div>
-
               </div>
             </div>
+
             <div style={{ background: "#2563EB", display: "grid", gridTemplateColumns: "repeat(4,1fr)", padding: "1.5rem 6%" }}>
               {[["11+", "Years Experience"], ["5+", "Database Platforms"], ["1000+", "Issues Resolved"], ["∞", "Pages of Knowledge"]].map(([n,l]) => (
                 <div key={l} style={{ textAlign: "center" }}>
@@ -1618,8 +897,8 @@ export default function App() {
                 <div style={{ fontSize: "0.72rem", fontWeight: 600, color: "#2563EB", letterSpacing: "0.1em", textTransform: "uppercase", marginBottom: "0.6rem" }}>📖 My Story</div>
                 <h2 style={{ fontFamily: "'Playfair Display', serif", fontSize: "2rem", fontWeight: 900, marginBottom: "1.5rem" }}>The Knowledge Sharing Journey</h2>
                 <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "2rem" }}>
-                  <p style={{ fontSize: "0.95rem", color: "#4B5563", lineHeight: 1.85 }}>With <strong>11+ years of enterprise experience</strong> across Oracle, PostgreSQL, and cloud platforms, I specialize in performance engineering, high availability, automation, and database modernization, delivering measurable results, not just reports..</p>
-                  <p style={{ fontSize: "0.95rem", color: "#4B5563", lineHeight: 1.85 }}>This hub covers <strong>Oracle, PostgreSQL, MySQL, MongoDB, SQL Server</strong> — plus <strong>Ansible, Terraform</strong> and <strong>AWS, Azure, and Kubernetes</strong>. My goal is to share practical, real-world knowledge freely and help the next generation of database professionals and cloud engineers grow faster.</p>
+                  <p style={{ fontSize: "0.95rem", color: "#4B5563", lineHeight: 1.85 }}>My journey in databases began over <strong>a decade ago</strong>, starting with Oracle in enterprise environments. I've worked across industries managing mission-critical databases, building automation frameworks, and migrating workloads to the cloud.</p>
+                  <p style={{ fontSize: "0.95rem", color: "#4B5563", lineHeight: 1.85 }}>Today this hub covers <strong>Oracle, PostgreSQL, MySQL, MongoDB, SQL Server</strong> — plus <strong>Ansible, Terraform</strong> and <strong>Azure, OCI, AWS,and Kubernetes</strong>. My goal: share knowledge freely and help the next generation of DBAs.</p>
                 </div>
               </div>
             </div>
@@ -1682,16 +961,6 @@ export default function App() {
                 <button onClick={handleLogout} className="btn" style={{ padding: "0.5rem 1.1rem", background: "#DC2626", color: "#fff", fontSize: "0.82rem" }}>🚪 Logout</button>
               </div>
             </div>
-            {/* Admin tab nav */}
-            <div style={{ display: "flex", gap: 0, borderBottom: "1px solid #E2E2EC", background: "#fff", padding: "0 6%" }}>
-              {[["topics","📚 Content"],["scripts","📜 Scripts"],["registrations","🎓 Registrations"],["session-settings","⚙️ Session Settings"]].map(([v,label]) => (
-                <button key={v} onClick={() => setAdminView(v)}
-                  style={{ padding: "0.85rem 1.2rem", background: "transparent", border: "none", borderBottom: adminView === v ? "2px solid #2563EB" : "2px solid transparent", color: adminView === v ? "#2563EB" : "#6B7280", fontFamily: "inherit", fontSize: "0.85rem", fontWeight: adminView === v ? 700 : 500, cursor: "pointer", transition: "all 0.15s" }}>
-                  {label}
-                </button>
-              ))}
-            </div>
-
             {adminView === "topics" && (
               <div style={{ padding: "2rem 6%" }}>
                 <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "1.5rem" }}>
@@ -1735,141 +1004,11 @@ export default function App() {
             {adminView === "edit-page" && editingPage !== null && (
               <PageEditor page={editingPage} topicId={editingPageTopicId} topics={topics} onSave={savePage} onCancel={() => { setAdminView("topics"); setEditingPage(null); setEditingPageTopicId(null); }} />
             )}
-            {/* ══ SCRIPTS ADMIN VIEW ══ */}
-            {adminView === "scripts" && (
-              <div style={{ padding: "2rem 6%" }}>
-                {/* Top add button + instructions */}
-                <div style={{ background: "#EFF6FF", border: "1px solid #BFDBFE", borderRadius: 12, padding: "1.2rem 1.5rem", marginBottom: "1.5rem", display: "flex", alignItems: "center", justifyContent: "space-between", gap: "1rem" }}>
-                  <div>
-                    <div style={{ fontWeight: 700, fontSize: "0.95rem", color: "#1A1A2E", marginBottom: "0.2rem" }}>📜 Script Library Management</div>
-                    <div style={{ fontSize: "0.8rem", color: "#6B7280" }}>Add, edit or delete scripts. Each script appears in the public Scripts menu.</div>
-                  </div>
-                  <button onClick={() => { setEditingScript({ title: "", description: "", extension: "sql", code: "" }); setEditingScriptCat(scripts[0]?.id); setAdminView("edit-script"); }} className="btn"
-                    style={{ padding: "0.65rem 1.4rem", background: "#2563EB", color: "#fff", fontSize: "0.9rem", fontWeight: 700, flexShrink: 0 }}>＋ Add New Script</button>
-                </div>
-                {scripts.map(cat => (
-                  <div key={cat.id} style={{ marginBottom: "2rem" }}>
-                    <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "0.8rem" }}>
-                      <div style={{ fontSize: "0.75rem", fontWeight: 700, color: cat.color, letterSpacing: "0.09em", textTransform: "uppercase" }}>{cat.icon} {cat.label} ({cat.scripts.length})</div>
-                      <button onClick={() => { setEditingScript({ title: "", description: "", extension: cat.id === "linux" || cat.id === "ansible" ? "sh" : cat.id === "terraform" ? "tf" : "sql", code: "" }); setEditingScriptCat(cat.id); setAdminView("edit-script"); }}
-                        style={{ padding: "0.25rem 0.75rem", background: cat.color + "15", color: cat.color, border: `1px solid ${cat.color}40`, borderRadius: 7, cursor: "pointer", fontSize: "0.75rem", fontWeight: 700, fontFamily: "inherit" }}>
-                        ＋ Add to {cat.label}
-                      </button>
-                    </div>
-                    <div style={{ display: "flex", flexDirection: "column", gap: "0.5rem" }}>
-                      {cat.scripts.map(s => (
-                        <div key={s.id} style={{ background: "#fff", border: "1px solid #E2E2EC", borderRadius: 10, padding: "0.85rem 1.1rem", display: "flex", alignItems: "center", justifyContent: "space-between", gap: "1rem" }}>
-                          <div style={{ display: "flex", alignItems: "center", gap: "0.7rem", flex: 1, minWidth: 0 }}>
-                            <span style={{ fontSize: "0.7rem", fontFamily: "'DM Mono',monospace", background: "#F3F4F6", color: "#6B7280", padding: "0.15rem 0.5rem", borderRadius: 4, flexShrink: 0 }}>.{s.extension}</span>
-                            <div style={{ minWidth: 0 }}>
-                              <div style={{ fontWeight: 700, fontSize: "0.88rem", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{s.title}</div>
-                              <div style={{ fontSize: "0.75rem", color: "#9CA3AF", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{s.description}</div>
-                            </div>
-                          </div>
-                          <div style={{ display: "flex", gap: "0.5rem", flexShrink: 0 }}>
-                            <button onClick={() => { openScript(s); setScriptCat(cat); setView("scripts"); }} style={{ padding: "0.3rem 0.7rem", background: "#F3F4F6", color: "#374151", border: "none", borderRadius: 7, cursor: "pointer", fontSize: "0.75rem", fontWeight: 600 }}>View</button>
-                            <button onClick={() => { setEditingScript(s); setEditingScriptCat(cat.id); setAdminView("edit-script"); }} style={{ padding: "0.3rem 0.7rem", background: "#F0FDF4", color: "#16A34A", border: "none", borderRadius: 7, cursor: "pointer", fontSize: "0.75rem", fontWeight: 600 }}>Edit</button>
-                            <button onClick={() => deleteScriptItem(cat.id, s.id)} style={{ padding: "0.3rem 0.7rem", background: "#FEF2F2", color: "#EF4444", border: "none", borderRadius: 7, cursor: "pointer", fontSize: "0.75rem", fontWeight: 600 }}>Del</button>
-                          </div>
-                        </div>
-                      ))}
-                      {cat.scripts.length === 0 && <div style={{ fontSize: "0.82rem", color: "#9CA3AF", padding: "0.5rem 0" }}>No scripts yet.</div>}
-                    </div>
-                  </div>
-                ))}
-              </div>
-            )}
-
-            {adminView === "edit-script" && editingScript !== null && (
-              <ScriptEditor
-                script={editingScript}
-                catId={editingScriptCat}
-                categories={scripts}
-                onSave={saveScriptItem}
-                onCancel={() => { setAdminView("scripts"); setEditingScript(null); }}
-              />
-            )}
-
-            {/* ══ REGISTRATIONS VIEW ══ */}
-            {adminView === "registrations" && <RegistrationsPanel />}
-
-            {/* ══ SESSION SETTINGS VIEW ══ */}
-            {adminView === "session-settings" && <SessionSettingsPanel onSaved={() => { showToast("✅ Session settings saved! Reload session.html to see changes."); }} />}
-
-          </div>
-        )}
-
-        {/* ══════════ SCRIPTS VIEW ══════════ */}
-        {view === "scripts" && (
-          <div className="fade-in">
-            <div style={{ background: "#fff", padding: "32px 6% 0", borderBottom: "1px solid #E2E2EC" }}>
-              <Breadcrumb items={[{ label: "Home", fn: goHome }, { label: "Scripts" }]} />
-              <div style={{ display: "flex", alignItems: "baseline", gap: "1rem", marginTop: "0.8rem", marginBottom: "1rem" }}>
-                <h1 style={{ fontFamily: "'Playfair Display', serif", fontSize: "1.8rem", fontWeight: 900 }}>Script Library</h1>
-                <span style={{ fontSize: "0.82rem", color: "#9CA3AF" }}>{scripts.reduce((a,c) => a + c.scripts.length, 0)} scripts</span>
-              </div>
-              {/* Category tabs */}
-              <div style={{ display: "flex", gap: 0, overflowX: "auto" }}>
-                {scripts.map(cat => (
-                  <button key={cat.id} onClick={() => { setScriptCat(cat); setActiveScript(null); }}
-                    style={{ padding: "0.75rem 1.1rem", background: "transparent", border: "none", borderBottom: scriptCat?.id === cat.id ? `2px solid ${cat.color}` : "2px solid transparent", color: scriptCat?.id === cat.id ? cat.color : "#6B7280", fontFamily: "inherit", fontSize: "0.83rem", fontWeight: scriptCat?.id === cat.id ? 700 : 500, cursor: "pointer", whiteSpace: "nowrap", display: "flex", alignItems: "center", gap: "0.4rem", transition: "all 0.15s" }}>
-                    {cat.icon} {cat.label}
-                    <span style={{ background: scriptCat?.id === cat.id ? cat.color + "20" : "#F3F4F6", color: scriptCat?.id === cat.id ? cat.color : "#9CA3AF", fontSize: "0.68rem", fontWeight: 700, padding: "0.1rem 0.4rem", borderRadius: 100 }}>{cat.scripts.length}</span>
-                  </button>
-                ))}
-              </div>
-            </div>
-
-            <div style={{ display: "grid", gridTemplateColumns: activeScript ? "280px 1fr" : "1fr", gap: 0, minHeight: "60vh" }}>
-              {/* Script list sidebar */}
-              <div style={{ borderRight: "1px solid #E2E2EC", background: "#FAFAF7" }}>
-                {(scriptCat || scripts[0])?.scripts.map(s => (
-                  <div key={s.id} onClick={() => openScript(s)}
-                    style={{ padding: "1rem 1.2rem", borderBottom: "1px solid #E2E2EC", cursor: "pointer", background: activeScript?.id === s.id ? "#fff" : "transparent", borderLeft: activeScript?.id === s.id ? `3px solid ${(scriptCat || scripts[0]).color}` : "3px solid transparent", transition: "all 0.12s" }}
-                    onMouseEnter={e => { if (activeScript?.id !== s.id) e.currentTarget.style.background = "#F0F0F8"; }}
-                    onMouseLeave={e => { if (activeScript?.id !== s.id) e.currentTarget.style.background = "transparent"; }}>
-                    <div style={{ fontWeight: 600, fontSize: "0.88rem", color: "#1A1A2E", marginBottom: "0.2rem" }}>{s.title}</div>
-                    <div style={{ fontSize: "0.76rem", color: "#9CA3AF", lineHeight: 1.4 }}>{s.description}</div>
-                    <div style={{ marginTop: "0.4rem" }}>
-                      <span style={{ fontSize: "0.68rem", fontFamily: "'DM Mono', monospace", background: "#F3F4F6", color: "#6B7280", padding: "0.1rem 0.4rem", borderRadius: 4 }}>.{s.extension}</span>
-                    </div>
-                  </div>
-                ))}
-                {(scriptCat || scripts[0])?.scripts.length === 0 && (
-                  <div style={{ padding: "3rem 1.5rem", textAlign: "center", color: "#9CA3AF", fontSize: "0.83rem" }}>No scripts yet in this category</div>
-                )}
-              </div>
-
-              {/* Script viewer */}
-              {activeScript ? (
-                <div style={{ background: "#fff" }}>
-                  <div style={{ padding: "1.5rem 2rem", borderBottom: "1px solid #E2E2EC", display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: "1rem" }}>
-                    <div>
-                      <div style={{ fontSize: "0.72rem", color: (scriptCat || scripts[0]).color, fontWeight: 700, letterSpacing: "0.08em", textTransform: "uppercase", marginBottom: "0.3rem" }}>{(scriptCat || scripts[0]).icon} {(scriptCat || scripts[0]).label}</div>
-                      <h2 style={{ fontFamily: "'Playfair Display', serif", fontSize: "1.3rem", fontWeight: 900, color: "#1A1A2E" }}>{activeScript.title}</h2>
-                      <p style={{ fontSize: "0.82rem", color: "#6B7280", marginTop: "0.3rem" }}>{activeScript.description}</p>
-                    </div>
-                    <CopyButton text={activeScript.code} />
-                  </div>
-                  <div style={{ padding: "1.5rem 2rem" }}>
-                    <pre style={{ background: "#1e1e2e", color: "#cdd6f4", padding: "1.5rem", borderRadius: 12, fontFamily: "'DM Mono', monospace", fontSize: "0.82rem", lineHeight: 1.8, overflowX: "auto", border: "1px solid #313244", whiteSpace: "pre-wrap", wordBreak: "break-word" }}>
-                      <code>{activeScript.code}</code>
-                    </pre>
-                  </div>
-                </div>
-              ) : (
-                <div style={{ display: "flex", alignItems: "center", justifyContent: "center", color: "#9CA3AF", fontSize: "0.88rem", flexDirection: "column", gap: "0.8rem", padding: "4rem" }}>
-                  <div style={{ fontSize: "3rem" }}>👈</div>
-                  <div>Select a script to view it</div>
-                </div>
-              )}
-            </div>
           </div>
         )}
 
         {/* Redirect to home if someone tries to access /admin without being logged in */}
         {view === "admin" && !isAdmin && (() => { setView("home"); return null; })()}
-
 
       </main>
 
@@ -2024,368 +1163,6 @@ export function CommentsSection({ pageId, pageTitle, pageUrl }) {
           )}
         </div>
       )}
-    </div>
-  );
-}
-
-// ══════════════════════════════════════════════════════════════════════
-// 🎓 REGISTRATIONS PANEL — view all session sign-ups
-// ══════════════════════════════════════════════════════════════════════
-function RegistrationsPanel() {
-  const [regs, setRegs] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [selected, setSelected] = useState(null);
-
-  useEffect(() => {
-    window.storage.get("oracle-session-regs", true)
-      .then(r => { if (r) setRegs(JSON.parse(r.value)); })
-      .catch(() => {})
-      .finally(() => setLoading(false));
-  }, []);
-
-  const expLevel = { beginner: "🟢 Beginner", intermediate: "🟡 Intermediate", experienced: "🟠 Experienced", senior: "🔴 Senior" };
-
-  const copyCSV = () => {
-    const headers = "Full Name,Email,Phone,Address,Company,Job Title,Experience,Registered At";
-    const rows = regs.map(r => [r.fullName,r.email,r.phone,r.address,r.company,r.jobTitle,r.experience,r.registeredAt].map(v => `"${(v||"").replace(/"/g,'""')}"`).join(","));
-    navigator.clipboard.writeText([headers,...rows].join("\n"));
-  };
-
-  if (loading) return <div style={{ padding: "3rem 6%", color: "#9CA3AF" }}>Loading registrations…</div>;
-
-  return (
-    <div style={{ padding: "2rem 6%" }}>
-      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "1.5rem", flexWrap: "wrap", gap: "1rem" }}>
-        <div>
-          <h2 style={{ fontWeight: 700, fontSize: "1.1rem" }}>Session Registrations</h2>
-          <p style={{ fontSize: "0.82rem", color: "#6B7280", marginTop: 3 }}>{regs.length} total registrant{regs.length !== 1 ? "s" : ""}</p>
-        </div>
-        {regs.length > 0 && (
-          <button onClick={copyCSV} className="btn" style={{ padding: "0.5rem 1.1rem", background: "#F0FDF4", color: "#16A34A", border: "1px solid #86EFAC", fontSize: "0.82rem" }}>
-            📋 Copy as CSV
-          </button>
-        )}
-      </div>
-
-      {regs.length === 0 ? (
-        <div style={{ textAlign: "center", padding: "4rem", background: "#FAFAF7", borderRadius: 14, border: "1px dashed #E2E2EC" }}>
-          <div style={{ fontSize: "3rem", marginBottom: "1rem" }}>📭</div>
-          <div style={{ fontWeight: 600, color: "#374151", marginBottom: "0.4rem" }}>No registrations yet</div>
-          <div style={{ fontSize: "0.83rem", color: "#9CA3AF" }}>Share the session page link to start collecting sign-ups</div>
-        </div>
-      ) : (
-        <div style={{ display: "flex", flexDirection: "column", gap: "0.7rem" }}>
-          {/* Summary cards */}
-          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit,minmax(160px,1fr))", gap: "0.8rem", marginBottom: "1rem" }}>
-            {[
-              { label: "Total Registered", value: regs.length, color: "#2563EB", bg: "#EFF6FF" },
-              { label: "Beginners",       value: regs.filter(r=>r.experience==="beginner").length,     color: "#16A34A", bg: "#F0FDF4" },
-              { label: "Intermediate",    value: regs.filter(r=>r.experience==="intermediate").length,  color: "#D97706", bg: "#FFFBEB" },
-              { label: "Experienced+",    value: regs.filter(r=>["experienced","senior"].includes(r.experience)).length, color: "#C74634", bg: "#FEF2F0" },
-            ].map(s => (
-              <div key={s.label} style={{ background: s.bg, border: `1px solid ${s.color}30`, borderRadius: 10, padding: "1rem 1.2rem" }}>
-                <div style={{ fontSize: "1.5rem", fontWeight: 900, color: s.color, fontFamily: "'Playfair Display',serif" }}>{s.value}</div>
-                <div style={{ fontSize: "0.75rem", color: "#6B7280", marginTop: 2 }}>{s.label}</div>
-              </div>
-            ))}
-          </div>
-
-          {/* Registrant list */}
-          {regs.map((r, i) => (
-            <div key={i} style={{ background: "#fff", border: "1px solid #E2E2EC", borderRadius: 12, padding: "1rem 1.3rem", cursor: "pointer", transition: "box-shadow 0.15s" }}
-              onClick={() => setSelected(selected === i ? null : i)}>
-              <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: "1rem" }}>
-                <div style={{ display: "flex", alignItems: "center", gap: "0.8rem" }}>
-                  <div style={{ width: 36, height: 36, borderRadius: "50%", background: "#EFF6FF", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "1rem", fontWeight: 700, color: "#2563EB", flexShrink: 0 }}>
-                    {(r.fullName||"?")[0].toUpperCase()}
-                  </div>
-                  <div>
-                    <div style={{ fontWeight: 700, fontSize: "0.92rem" }}>{r.fullName}</div>
-                    <div style={{ fontSize: "0.78rem", color: "#6B7280" }}>{r.email}</div>
-                  </div>
-                </div>
-                <div style={{ display: "flex", alignItems: "center", gap: "0.6rem", flexShrink: 0 }}>
-                  <span style={{ fontSize: "0.75rem", background: "#F3F4F6", color: "#374151", padding: "0.2rem 0.6rem", borderRadius: 100 }}>{expLevel[r.experience] || r.experience}</span>
-                  <span style={{ color: "#9CA3AF", fontSize: "0.8rem" }}>{selected === i ? "▲" : "▼"}</span>
-                </div>
-              </div>
-              {selected === i && (
-                <div style={{ marginTop: "1rem", paddingTop: "1rem", borderTop: "1px solid #F3F4F6", display: "grid", gridTemplateColumns: "repeat(auto-fill,minmax(200px,1fr))", gap: "0.6rem" }}>
-                  {[["📞 Phone", r.phone], ["🏢 Company", r.company], ["💼 Job Title", r.jobTitle], ["📍 Address", r.address], ["🕐 Registered", r.registeredAt ? new Date(r.registeredAt).toLocaleString() : "—"]].map(([label, val]) => val && (
-                    <div key={label} style={{ fontSize: "0.8rem" }}>
-                      <div style={{ color: "#9CA3AF", marginBottom: 2 }}>{label}</div>
-                      <div style={{ color: "#374151", fontWeight: 500 }}>{val}</div>
-                    </div>
-                  ))}
-                </div>
-              )}
-            </div>
-          ))}
-        </div>
-      )}
-    </div>
-  );
-}
-
-// ══════════════════════════════════════════════════════════════════════
-// ⚙️ SESSION SETTINGS PANEL — customize session.html from admin
-// ══════════════════════════════════════════════════════════════════════
-const DEFAULT_SESSION_SETTINGS = {
-  date:       "TBA — Date to be announced soon",
-  time:       "TBA",
-  teamsLink:  "https://teams.microsoft.com/l/meetup-join/YOUR_LINK_HERE",
-  spots:      "30",
-  accentColor:"#C74634",
-  topics: [
-    "Common Oracle errors and how to diagnose them quickly in production",
-    "Reading and interpreting Oracle alert logs — what to look for",
-    "Top 10 most frequent ORA- error codes and their root causes",
-    "Tablespace & space management issues — detection and resolution",
-    "Session & locking troubleshooting — find and kill blocking sessions",
-    "Quick performance checks using AWR/ASH snapshots",
-  ],
-};
-
-function SessionSettingsPanel({ onSaved }) {
-  const [cfg, setCfg] = useState(DEFAULT_SESSION_SETTINGS);
-  const [loading, setLoading] = useState(true);
-  const [saving, setSaving] = useState(false);
-  const set = (k, v) => setCfg(p => ({ ...p, [k]: v }));
-
-  useEffect(() => {
-    window.storage.get("session-config")
-      .then(r => { if (r) setCfg({ ...DEFAULT_SESSION_SETTINGS, ...JSON.parse(r.value) }); })
-      .catch(() => {})
-      .finally(() => setLoading(false));
-  }, []);
-
-  const save = async () => {
-    setSaving(true);
-    try {
-      await window.storage.set("session-config", JSON.stringify(cfg));
-      onSaved();
-    } catch {}
-    setSaving(false);
-  };
-
-  const updateTopic = (i, val) => {
-    const t = [...cfg.topics]; t[i] = val; set("topics", t);
-  };
-  const addTopic    = () => set("topics", [...cfg.topics, ""]);
-  const removeTopic = (i) => set("topics", cfg.topics.filter((_, idx) => idx !== i));
-
-  if (loading) return <div style={{ padding: "3rem 6%", color: "#9CA3AF" }}>Loading settings…</div>;
-
-  const Field = ({ label, hint, children }) => (
-    <div style={{ display: "flex", flexDirection: "column", gap: 5, marginBottom: "1.2rem" }}>
-      <label style={{ fontSize: "0.82rem", fontWeight: 700, color: "#374151" }}>{label}</label>
-      {hint && <span style={{ fontSize: "0.75rem", color: "#9CA3AF", marginTop: -3 }}>{hint}</span>}
-      {children}
-    </div>
-  );
-
-  const Input = ({ value, onChange, placeholder, type="text" }) => (
-    <input type={type} value={value} onChange={e => onChange(e.target.value)} placeholder={placeholder}
-      style={{ padding: "0.7rem 0.9rem", border: "1.5px solid #E2E2EC", borderRadius: 9, fontSize: "0.88rem", outline: "none", fontFamily: "inherit" }}
-      onFocus={e => e.target.style.borderColor = "#2563EB"}
-      onBlur={e => e.target.style.borderColor = "#E2E2EC"} />
-  );
-
-  return (
-    <div style={{ padding: "2rem 6%" }}>
-      <div style={{ maxWidth: 720 }}>
-        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "1.8rem" }}>
-          <div>
-            <h2 style={{ fontWeight: 700, fontSize: "1.1rem" }}>Session Page Settings</h2>
-            <p style={{ fontSize: "0.82rem", color: "#6B7280", marginTop: 3 }}>Changes apply to session.html instantly — no code editing needed</p>
-          </div>
-          <button onClick={save} disabled={saving} className="btn"
-            style={{ padding: "0.6rem 1.4rem", background: saving ? "#93C5FD" : "#2563EB", color: "#fff", fontSize: "0.88rem" }}>
-            {saving ? "Saving…" : "💾 Save Settings"}
-          </button>
-        </div>
-
-        {/* Date & Time */}
-        <div style={{ background: "#fff", border: "1px solid #E2E2EC", borderRadius: 14, padding: "1.5rem", marginBottom: "1.2rem" }}>
-          <div style={{ fontWeight: 700, fontSize: "0.88rem", color: "#1A1A2E", marginBottom: "1rem", paddingBottom: "0.6rem", borderBottom: "1px solid #F3F4F6" }}>📅 Date & Time</div>
-          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "1rem" }}>
-            <Field label="Session Date" hint='e.g. "Saturday, 15 March 2026" or "TBA"'>
-              <Input value={cfg.date} onChange={v => set("date", v)} placeholder="Saturday, 15 March 2026" />
-            </Field>
-            <Field label="Session Time" hint='e.g. "2:00 PM — 3:00 PM GMT"'>
-              <Input value={cfg.time} onChange={v => set("time", v)} placeholder="2:00 PM — 3:00 PM GMT" />
-            </Field>
-          </div>
-        </div>
-
-        {/* Teams Link & Spots */}
-        <div style={{ background: "#fff", border: "1px solid #E2E2EC", borderRadius: 14, padding: "1.5rem", marginBottom: "1.2rem" }}>
-          <div style={{ fontWeight: 700, fontSize: "0.88rem", color: "#1A1A2E", marginBottom: "1rem", paddingBottom: "0.6rem", borderBottom: "1px solid #F3F4F6" }}>🔗 Meeting & Spots</div>
-          <Field label="Microsoft Teams Meeting Link" hint="Paste your full Teams invite link here">
-            <Input value={cfg.teamsLink} onChange={v => set("teamsLink", v)} placeholder="https://teams.microsoft.com/l/meetup-join/..." />
-          </Field>
-          <Field label="Total Available Spots" hint="Number of seats you want to offer">
-            <Input value={cfg.spots} onChange={v => set("spots", v)} placeholder="30" type="number" />
-          </Field>
-        </div>
-
-        {/* Accent Colour */}
-        <div style={{ background: "#fff", border: "1px solid #E2E2EC", borderRadius: 14, padding: "1.5rem", marginBottom: "1.2rem" }}>
-          <div style={{ fontWeight: 700, fontSize: "0.88rem", color: "#1A1A2E", marginBottom: "1rem", paddingBottom: "0.6rem", borderBottom: "1px solid #F3F4F6" }}>🎨 Page Theme</div>
-          <Field label="Accent Colour" hint="Used for the session title highlight and buttons">
-            <div style={{ display: "flex", alignItems: "center", gap: "0.8rem" }}>
-              <input type="color" value={cfg.accentColor} onChange={e => set("accentColor", e.target.value)}
-                style={{ width: 48, height: 38, border: "1.5px solid #E2E2EC", borderRadius: 8, cursor: "pointer", padding: 2 }} />
-              <span style={{ fontSize: "0.85rem", color: "#374151", fontFamily: "monospace" }}>{cfg.accentColor}</span>
-              <div style={{ width: 80, height: 32, borderRadius: 8, background: cfg.accentColor, display: "flex", alignItems: "center", justifyContent: "center", fontSize: "0.72rem", color: "#fff", fontWeight: 700 }}>Preview</div>
-              {[["Oracle Red","#C74634"],["Blue","#2563EB"],["Purple","#7C3AED"],["Green","#16A34A"],["Dark","#1A1A2E"]].map(([name, hex]) => (
-                <div key={hex} onClick={() => set("accentColor", hex)} title={name}
-                  style={{ width: 26, height: 26, borderRadius: "50%", background: hex, cursor: "pointer", border: cfg.accentColor === hex ? "2px solid #1A1A2E" : "2px solid transparent", transition: "transform 0.15s" }}
-                  onMouseEnter={e => e.target.style.transform="scale(1.15)"} onMouseLeave={e => e.target.style.transform="scale(1)"} />
-              ))}
-            </div>
-          </Field>
-        </div>
-
-        {/* Topics */}
-        <div style={{ background: "#fff", border: "1px solid #E2E2EC", borderRadius: 14, padding: "1.5rem", marginBottom: "1.5rem" }}>
-          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "1rem", paddingBottom: "0.6rem", borderBottom: "1px solid #F3F4F6" }}>
-            <div style={{ fontWeight: 700, fontSize: "0.88rem", color: "#1A1A2E" }}>📚 Session Topics</div>
-            <button onClick={addTopic} className="btn" style={{ padding: "0.3rem 0.8rem", background: "#EFF6FF", color: "#2563EB", fontSize: "0.78rem" }}>＋ Add Topic</button>
-          </div>
-          <div style={{ display: "flex", flexDirection: "column", gap: "0.6rem" }}>
-            {cfg.topics.map((topic, i) => (
-              <div key={i} style={{ display: "flex", gap: "0.6rem", alignItems: "center" }}>
-                <div style={{ width: 22, height: 22, borderRadius: "50%", background: "#EFF6FF", color: "#2563EB", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "0.7rem", fontWeight: 700, flexShrink: 0 }}>{i+1}</div>
-                <input value={topic} onChange={e => updateTopic(i, e.target.value)}
-                  style={{ flex: 1, padding: "0.6rem 0.85rem", border: "1.5px solid #E2E2EC", borderRadius: 8, fontSize: "0.85rem", outline: "none", fontFamily: "inherit" }}
-                  onFocus={e => e.target.style.borderColor="#2563EB"} onBlur={e => e.target.style.borderColor="#E2E2EC"} />
-                <button onClick={() => removeTopic(i)} style={{ padding: "0.4rem 0.6rem", background: "#FEF2F2", color: "#EF4444", border: "none", borderRadius: 7, cursor: "pointer", fontSize: "0.75rem", flexShrink: 0 }}>✕</button>
-              </div>
-            ))}
-          </div>
-        </div>
-
-        <button onClick={save} disabled={saving} className="btn"
-          style={{ padding: "0.75rem 2rem", background: saving ? "#93C5FD" : "#2563EB", color: "#fff", fontSize: "0.95rem", width: "100%" }}>
-          {saving ? "Saving…" : "💾 Save All Settings"}
-        </button>
-        <p style={{ fontSize: "0.75rem", color: "#9CA3AF", textAlign: "center", marginTop: "0.8rem" }}>
-          After saving, reload your session.html page to see the changes live
-        </p>
-      </div>
-    </div>
-  );
-}
-
-// ══════════════════════════════════════════════════════════════════════
-// 📋 COPY BUTTON
-// ══════════════════════════════════════════════════════════════════════
-function CopyButton({ text }) {
-  const [copied, setCopied] = useState(false);
-  const copy = () => {
-    navigator.clipboard.writeText(text).then(() => {
-      setCopied(true);
-      setTimeout(() => setCopied(false), 2000);
-    });
-  };
-  return (
-    <button onClick={copy} className="btn"
-      style={{ padding: "0.5rem 1.1rem", background: copied ? "#F0FDF4" : "#F3F4F6", color: copied ? "#16A34A" : "#374151", border: `1px solid ${copied ? "#86EFAC" : "#E2E2EC"}`, fontSize: "0.82rem", flexShrink: 0, transition: "all 0.2s" }}>
-      {copied ? "✅ Copied!" : "📋 Copy"}
-    </button>
-  );
-}
-
-// ══════════════════════════════════════════════════════════════════════
-// ✏️ SCRIPT EDITOR — Admin add/edit scripts
-// ══════════════════════════════════════════════════════════════════════
-function ScriptEditor({ script, catId, categories, onSave, onCancel }) {
-  const [form, setForm] = useState({ ...script });
-  const [selectedCat, setSelectedCat] = useState(catId || categories[0]?.id);
-  const set = (k, v) => setForm(p => ({ ...p, [k]: v }));
-
-  const extOptions = ["sql", "sh", "yaml", "tf", "py", "txt", "bash"];
-
-  return (
-    <div style={{ padding: "2rem 6%" }}>
-      <div style={{ maxWidth: 860 }}>
-        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "1.5rem" }}>
-          <h2 style={{ fontWeight: 700, fontSize: "1.1rem" }}>{script.id ? "Edit Script" : "New Script"}</h2>
-          <button onClick={onCancel} style={{ background: "none", border: "none", color: "#9CA3AF", cursor: "pointer", fontSize: "0.85rem" }}>✕ Cancel</button>
-        </div>
-
-        <div style={{ background: "#fff", border: "1px solid #E2E2EC", borderRadius: 14, padding: "1.5rem", display: "flex", flexDirection: "column", gap: "1rem" }}>
-          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "1rem" }}>
-            {/* Category */}
-            <div style={{ display: "flex", flexDirection: "column", gap: 5 }}>
-              <label style={{ fontSize: "0.8rem", fontWeight: 600, color: "#374151" }}>Category</label>
-              <select value={selectedCat} onChange={e => setSelectedCat(e.target.value)}
-                style={{ padding: "0.65rem 0.85rem", border: "1.5px solid #E2E2EC", borderRadius: 9, fontSize: "0.87rem", fontFamily: "inherit", outline: "none" }}>
-                {categories.map(c => <option key={c.id} value={c.id}>{c.icon} {c.label}</option>)}
-              </select>
-            </div>
-            {/* Extension */}
-            <div style={{ display: "flex", flexDirection: "column", gap: 5 }}>
-              <label style={{ fontSize: "0.8rem", fontWeight: 600, color: "#374151" }}>File Type</label>
-              <select value={form.extension} onChange={e => set("extension", e.target.value)}
-                style={{ padding: "0.65rem 0.85rem", border: "1.5px solid #E2E2EC", borderRadius: 9, fontSize: "0.87rem", fontFamily: "inherit", outline: "none" }}>
-                {extOptions.map(e => <option key={e} value={e}>.{e}</option>)}
-              </select>
-            </div>
-          </div>
-
-          {/* Title */}
-          <div style={{ display: "flex", flexDirection: "column", gap: 5 }}>
-            <label style={{ fontSize: "0.8rem", fontWeight: 600, color: "#374151" }}>Script Title <span style={{ color: "#EF4444" }}>*</span></label>
-            <input value={form.title} onChange={e => set("title", e.target.value)} placeholder="e.g. Check Tablespace Size"
-              style={{ padding: "0.65rem 0.85rem", border: "1.5px solid #E2E2EC", borderRadius: 9, fontSize: "0.87rem", fontFamily: "inherit", outline: "none" }}
-              onFocus={e => e.target.style.borderColor="#2563EB"} onBlur={e => e.target.style.borderColor="#E2E2EC"} />
-          </div>
-
-          {/* Description */}
-          <div style={{ display: "flex", flexDirection: "column", gap: 5 }}>
-            <label style={{ fontSize: "0.8rem", fontWeight: 600, color: "#374151" }}>Short Description</label>
-            <input value={form.description} onChange={e => set("description", e.target.value)} placeholder="e.g. Shows used and free space per tablespace"
-              style={{ padding: "0.65rem 0.85rem", border: "1.5px solid #E2E2EC", borderRadius: 9, fontSize: "0.87rem", fontFamily: "inherit", outline: "none" }}
-              onFocus={e => e.target.style.borderColor="#2563EB"} onBlur={e => e.target.style.borderColor="#E2E2EC"} />
-          </div>
-
-          {/* Code */}
-          <div style={{ display: "flex", flexDirection: "column", gap: 5 }}>
-            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-              <label style={{ fontSize: "0.8rem", fontWeight: 600, color: "#374151" }}>Script Code <span style={{ color: "#EF4444" }}>*</span></label>
-              <span style={{ fontSize: "0.72rem", color: "#9CA3AF" }}>Paste your script here — no formatting needed</span>
-            </div>
-            <textarea value={form.code} onChange={e => set("code", e.target.value)}
-              placeholder={"-- Paste your script here\nSELECT * FROM v$instance;"}
-              rows={16}
-              style={{ padding: "0.9rem", border: "1.5px solid #E2E2EC", borderRadius: 9, fontSize: "0.82rem", fontFamily: "'DM Mono', monospace", lineHeight: 1.7, outline: "none", background: "#1e1e2e", color: "#cdd6f4", resize: "vertical" }}
-              onFocus={e => e.target.style.borderColor="#2563EB"} onBlur={e => e.target.style.borderColor="#E2E2EC"} />
-          </div>
-
-          {/* Preview */}
-          {form.code && (
-            <div>
-              <div style={{ fontSize: "0.78rem", fontWeight: 600, color: "#6B7280", marginBottom: "0.5rem" }}>Preview</div>
-              <pre style={{ background: "#1e1e2e", color: "#cdd6f4", padding: "1rem", borderRadius: 10, fontSize: "0.8rem", lineHeight: 1.7, overflow: "auto", maxHeight: 200, border: "1px solid #313244", whiteSpace: "pre-wrap" }}>
-                <code>{form.code}</code>
-              </pre>
-            </div>
-          )}
-
-          <div style={{ display: "flex", gap: "0.8rem", paddingTop: "0.5rem" }}>
-            <button onClick={() => { if (!form.title.trim() || !form.code.trim()) return; onSave(selectedCat, form); }} className="btn"
-              style={{ flex: 1, padding: "0.75rem", background: "#2563EB", color: "#fff", fontSize: "0.92rem" }}>
-              💾 Save Script
-            </button>
-            <button onClick={onCancel} className="btn"
-              style={{ flex: 1, padding: "0.75rem", background: "#F3F4F6", color: "#374151", fontSize: "0.92rem" }}>
-              Cancel
-            </button>
-          </div>
-        </div>
-      </div>
     </div>
   );
 }
