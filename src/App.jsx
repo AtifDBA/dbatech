@@ -1074,8 +1074,8 @@ export default function App() {
                   IT Knowledge Hub
                 </div>
                 <h1 style={{ fontFamily: "'DM Sans', serif", fontSize: "clamp(1.4rem, 2.4vw, 2rem)", fontWeight: 900, lineHeight: 1.25, marginBottom: "0.75rem", color: "#0F172A", letterSpacing: "-0.4px" }}>
-                  Enterprise Database Knowledge —{" "}
-                  <span style={{ color: "#2563EB" }}> Knowledge HUB from Expertise Enterprise-Grade Oracle & PostgreSQL </span>
+                  Enterprise Database Knowledge HUB from Expertise Enterprise-Grade Database{" "}
+                
                 </h1>
                 <p style={{ fontSize: "0.95rem", color: "#475569", lineHeight: 1.85, marginBottom: "1.4rem", maxWidth: 500, fontWeight: 400 }}>
                   Stop guessing. Find the exact Oracle troubleshooting command, PostgreSQL tuning query, or Ansible playbook you need — written from <strong style={{ color: "#0F172A" }}>11+ years of production experience</strong>.
