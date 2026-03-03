@@ -1075,14 +1075,14 @@ export default function App() {
                 </div>
                 <h1 style={{ fontFamily: "'DM Sans', serif", fontSize: "clamp(1.4rem, 2.4vw, 2rem)", fontWeight: 900, lineHeight: 1.25, marginBottom: "0.75rem", color: "#0F172A", letterSpacing: "-0.4px" }}>
                   Enterprise Database Knowledge —{" "}
-                  <span style={{ color: "#2563EB" }}>Built by a Senior DBA</span>
+                  <span style={{ color: "#2563EB" }}> Knowledge HUB from Expertise Enterprise-Grade Oracle & PostgreSQL </span>
                 </h1>
                 <p style={{ fontSize: "0.95rem", color: "#475569", lineHeight: 1.85, marginBottom: "1.4rem", maxWidth: 500, fontWeight: 400 }}>
                   Stop guessing. Find the exact Oracle troubleshooting command, PostgreSQL tuning query, or Ansible playbook you need — written from <strong style={{ color: "#0F172A" }}>11+ years of production experience</strong>.
                 </p>
                 {/* ── Mini stats row ── */}
                 <div style={{ display: "flex", gap: "1.8rem", marginBottom: "1.8rem", flexWrap: "wrap" }}>
-                  {[["11+","Years Experience"],["1000+","Issues Resolved"],["5+","DB Platforms"],["18+","Ready Scripts"]].map(([n,l]) => (
+                  {[["11+","Years Experience"],["1000+","Issues Resolved"],["5+","DB Platforms"],["18+ Production-Ready Automation Scripts"]].map(([n,l]) => (
                     <div key={l}>
                       <div style={{ fontFamily: "'Playfair Display', serif", fontSize: "1.35rem", fontWeight: 900, color: "#1D4ED8", lineHeight: 1 }}>{n}</div>
                       <div style={{ fontSize: "0.68rem", color: "#94A3B8", fontWeight: 500, marginTop: 2 }}>{l}</div>
@@ -1438,7 +1438,7 @@ export default function App() {
               </div>
             </div>
             <div style={{ background: "#2563EB", display: "grid", gridTemplateColumns: "repeat(4,1fr)", padding: "1.5rem 6%" }}>
-              {[["11+", "Years Experience"], ["5+", "Database Platforms"], ["1000+", "Issues Resolved"], ["∞", "Pages of Knowledge"]].map(([n,l]) => (
+              {[["11+", "Years Experience"], ["5+", "Enterprise Database Platforms"], ["1000+", "Production Incidents Resolved"], ["∞", "Pages of Knowledge"]].map(([n,l]) => (
                 <div key={l} style={{ textAlign: "center" }}>
                   <div style={{ fontFamily: "'Playfair Display', serif", fontSize: "1.8rem", fontWeight: 900, color: "#fff" }}>{n}</div>
                   <div style={{ fontSize: "0.75rem", color: "#BFDBFE", marginTop: 2 }}>{l}</div>
