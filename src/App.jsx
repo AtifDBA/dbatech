@@ -852,9 +852,9 @@ export default function App() {
   const persistScripts = (s) => { setScripts(s); saveScripts(s); };
 
   const goScripts = (catId) => {
-    const cat = scripts.find(c => c.id === catId);
-    setScriptCat(cat || scripts[0]);
-    setActiveScript(null);
+    const cat = scripts.find(c => c.id === catId) || scripts[0];
+    setScriptCat(cat);
+    setActiveScript(cat?.scripts?.[0] || null);
     setView("scripts");
     setScriptDropdown(null);
   };
@@ -957,6 +957,8 @@ export default function App() {
         input, textarea, select { font-family: 'DM Sans', sans-serif; outline: none; }
         textarea { resize: vertical; }
         .fade-in { animation: fadeIn 0.35s ease; }
+        .service-card { transition: transform 0.18s ease, box-shadow 0.18s ease; cursor: default; }
+        .service-card:hover { transform: translateY(-3px); box-shadow: 0 8px 24px rgba(0,0,0,0.10); }
 
         /* ── SERVICE CARD HOVER ── */
         .service-card {
@@ -1011,7 +1013,7 @@ export default function App() {
             onMouseEnter={() => setScriptDropdown("open")}
             onMouseLeave={() => setScriptDropdown(null)}>
             <button style={{ padding: "0.35rem 0.7rem", background: scriptDropdown ? "#EFF6FF" : "transparent", border: "none", color: scriptDropdown ? "#2563EB" : "#6B7280", fontFamily: "inherit", fontSize: "0.8rem", fontWeight: scriptDropdown ? 600 : 500, cursor: "pointer", borderRadius: 7, display: "flex", alignItems: "center", gap: "0.3rem", whiteSpace: "nowrap" }}>
-              📜 Scripts <span style={{ fontSize: "0.55rem" }}>▼</span>
+              💻 Scripts <span style={{ fontSize: "0.55rem" }}>▼</span>
             </button>
             {scriptDropdown && (
               <div style={{ position: "absolute", top: "calc(100% + 4px)", left: "50%", transform: "translateX(-50%)", background: "#fff", border: "1px solid #E2E2EC", borderRadius: 12, boxShadow: "0 12px 40px rgba(0,0,0,0.14)", minWidth: 200, zIndex: 9999, overflow: "hidden", padding: "6px 0" }}>
@@ -1071,18 +1073,25 @@ export default function App() {
                 <div style={{ display: "inline-flex", alignItems: "center", gap: 6, background: "#F0F7FF", color: "#2563EB", border: "1px solid #BFDBFE", borderRadius: 6, padding: "0.25rem 0.75rem", fontSize: "0.72rem", fontWeight: 600, letterSpacing: "0.08em", textTransform: "uppercase", marginBottom: "1.4rem" }}>
                   IT Knowledge Hub
                 </div>
-                <h1 style={{ fontFamily: "'DM Sans', sans-serif", fontSize: "clamp(1.3rem, 2.2vw, 1.9rem)", fontWeight: 700, lineHeight: 1.2, marginBottom: "1rem", color: "#1A1A2E", letterSpacing: "-0.3px", whiteSpace: "nowrap" }}>
-                  Master{" "}
-                  <span style={{ color: "#2563EB", fontWeight: 700 }}>Databases</span>,{" "}
-                  <span style={{ color: "#7C3AED", fontWeight: 700 }}>Automation</span>{" "}
-                  <span style={{ color: "#374151", fontWeight: 400 }}>&</span>{" "}
-                  <span style={{ color: "#0891B2", fontWeight: 700 }}>Cloud Technologies</span>
+                <h1 style={{ fontFamily: "'DM Sans', serif", fontSize: "clamp(1.4rem, 2.4vw, 2rem)", fontWeight: 900, lineHeight: 1.25, marginBottom: "0.75rem", color: "#0F172A", letterSpacing: "-0.4px" }}>
+                  Enterprise Database Knowledge —{" "}
+                  <span style={{ color: "#2563EB" }}>Built by a Senior DBA</span>
                 </h1>
-                <p style={{ fontSize: "0.95rem", color: "#6B7280", lineHeight: 1.8, marginBottom: "2rem", maxWidth: 480, fontWeight: 400 }}>
-                  A practical IT knowledge base covering Oracle, PostgreSQL, MySQL, MongoDB, SQL Server, Ansible, Terraform, AWS, Azure, and Kubernetes.
+                <p style={{ fontSize: "0.95rem", color: "#475569", lineHeight: 1.85, marginBottom: "1.4rem", maxWidth: 500, fontWeight: 400 }}>
+                  Stop guessing. Find the exact Oracle troubleshooting command, PostgreSQL tuning query, or Ansible playbook you need — written from <strong style={{ color: "#0F172A" }}>11+ years of production experience</strong>.
                 </p>
+                {/* ── Mini stats row ── */}
+                <div style={{ display: "flex", gap: "1.8rem", marginBottom: "1.8rem", flexWrap: "wrap" }}>
+                  {[["11+","Years Experience"],["1000+","Issues Resolved"],["5+","DB Platforms"],["18+","Ready Scripts"]].map(([n,l]) => (
+                    <div key={l}>
+                      <div style={{ fontFamily: "'Playfair Display', serif", fontSize: "1.35rem", fontWeight: 900, color: "#1D4ED8", lineHeight: 1 }}>{n}</div>
+                      <div style={{ fontSize: "0.68rem", color: "#94A3B8", fontWeight: 500, marginTop: 2 }}>{l}</div>
+                    </div>
+                  ))}
+                </div>
                 <div style={{ display: "flex", gap: "0.75rem", flexWrap: "wrap", alignItems: "center" }}>
-                  <button onClick={() => goBrowse()} className="btn" style={{ padding: "0.7rem 1.4rem", background: "#2563EB", color: "#fff", fontSize: "0.88rem", fontWeight: 600 }}>Browse Topics →</button>
+                  <button onClick={() => goBrowse()} className="btn" style={{ padding: "0.7rem 1.4rem", background: "#2563EB", color: "#fff", fontSize: "0.88rem", fontWeight: 700 }}>Browse Topics →</button>
+                  <button onClick={() => goScripts(scripts[0]?.id)} className="btn" style={{ padding: "0.7rem 1.2rem", background: "#F0FDF7", color: "#059669", border: "1px solid #A7F3D0", fontSize: "0.88rem", fontWeight: 600 }}>💻 Scripts Library</button>
                   <button onClick={goAbout} className="btn" style={{ padding: "0.7rem 1.2rem", background: "transparent", color: "#6B7280", border: "1px solid #E2E2EC", fontSize: "0.88rem", fontWeight: 500 }}>About Me</button>
                 </div>
               </div>
@@ -1358,10 +1367,14 @@ export default function App() {
                   </div>
 
                   {/* CTAs — far right */}
-                  <div style={{ display: "flex", gap: "0.6rem", flexShrink: 0, flexWrap: "wrap" }}>
+                  <div style={{ display: "flex", gap: "0.5rem", flexShrink: 0, flexWrap: "wrap" }}>
                     <a href="https://www.linkedin.com/in/mokhtar-atif-dba" target="_blank" rel="noreferrer"
                       style={{ display: "inline-flex", alignItems: "center", gap: "0.4rem", padding: "0.5rem 1rem", background: "#0A66C2", color: "#fff", borderRadius: 7, fontSize: "0.8rem", fontWeight: 700, textDecoration: "none" }}>
                       🔗 LinkedIn
+                    </a>
+                    <a href="mailto:mokhtar.atif@gmail.com?subject=Consulting Enquiry — ITLearn Hub"
+                      style={{ display: "inline-flex", alignItems: "center", gap: "0.4rem", padding: "0.5rem 1rem", background: "#059669", color: "#fff", borderRadius: 7, fontSize: "0.8rem", fontWeight: 700, textDecoration: "none" }}>
+                      ✉️ Work With Me
                     </a>
                     <button onClick={goSession}
                       style={{ display: "inline-flex", alignItems: "center", gap: "0.4rem", padding: "0.5rem 1rem", background: "#C74634", color: "#fff", borderRadius: 7, fontSize: "0.8rem", fontWeight: 700, cursor: "pointer", fontFamily: "inherit", border: "none" }}>
@@ -1372,7 +1385,7 @@ export default function App() {
 
                 {/* ── ROW 2: Tech stack pills ── */}
                 <div style={{ display: "flex", gap: "0.4rem", flexWrap: "wrap", marginBottom: "1.4rem", paddingBottom: "1.3rem", borderBottom: "1px solid #E2E8F0" }}>
-                  {[["🔴","Oracle"],["🐘","PostgreSQL"],["🐬","MySQL"],["🪟","SQL Server"],["🔷","Vertica"],["☁️","AWS / Azure / OCI"],["⚙️","Ansible"],["🏗️","Terraform"],["🐧","Linux"]].map(([icon, label]) => (
+                  {[["🔴","Oracle"],["🐘","PostgreSQL"],["🐬","MySQL"],["🗄️","SQL Server"],["📊","Vertica"],["☁️","AWS / Azure / OCI"],["⚙️","Ansible"],["🏗️","Terraform"],["🐧","Linux"]].map(([icon, label]) => (
                     <span key={label} style={{ display: "inline-flex", alignItems: "center", gap: "0.25rem", fontSize: "0.75rem", fontWeight: 600, color: "#374151", background: "#fff", border: "1px solid #E2E8F0", borderRadius: 6, padding: "0.2rem 0.6rem", boxShadow: "0 1px 2px rgba(0,0,0,0.04)" }}>
                       {icon} {label}
                     </span>
@@ -1667,8 +1680,9 @@ export default function App() {
                 </div>
               ) : (
                 <div style={{ display: "flex", alignItems: "center", justifyContent: "center", color: "#9CA3AF", fontSize: "0.88rem", flexDirection: "column", gap: "0.8rem", padding: "4rem" }}>
-                  <div style={{ fontSize: "3rem" }}>👈</div>
-                  <div>Select a script to view it</div>
+                  <div style={{ fontSize: "3rem" }}>💻</div>
+                  <div style={{ fontWeight: 600, color: "#6B7280" }}>Select a script from the list</div>
+                  <div style={{ fontSize: "0.78rem", color: "#9CA3AF" }}>Click any script on the left to view and copy it</div>
                 </div>
               )}
             </div>
