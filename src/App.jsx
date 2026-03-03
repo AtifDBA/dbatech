@@ -1328,7 +1328,7 @@ export default function App() {
                   {/* Name + role + one-liner */}
                   <div style={{ flex: 1, minWidth: 300 }}>
                     <div style={{ display: "flex", alignItems: "center", gap: "0.75rem", flexWrap: "wrap", marginBottom: "0.3rem" }}>
-                    <span style={{ fontSize: "0.7rem", fontWeight: 700, color: "#1D4ED8", letterSpacing: "0.09em", textTransform: "uppercase", background: "#EFF6FF", border: "1px solid #BFDBFE", borderRadius: 5, padding: "0.22rem 0.7rem" }}>Senior Oracle & PostgreSQL Database Consultant | Cloud Infrastructure Expert</span>
+                    <span style={{ fontSize: "0.7rem", fontWeight: 700, color: "#1D4ED8", letterSpacing: "0.08em", textTransform: "uppercase", background: "#EFF6FF", border: "1px solid #BFDBFE", borderRadius: 5, padding: "0.22rem 0.7rem", whiteSpace: "nowrap" }}>Senior Oracle & PostgreSQL DBA · Cloud Infrastructure Expert</span>
                     </div>
                     
 					
@@ -1385,9 +1385,21 @@ export default function App() {
 
                 {/* ── ROW 2: Tech stack pills ── */}
                 <div style={{ display: "flex", gap: "0.4rem", flexWrap: "wrap", marginBottom: "1.4rem", paddingBottom: "1.3rem", borderBottom: "1px solid #E2E8F0" }}>
-                  {[["🔴","Oracle"],["🐘","PostgreSQL"],["🐬","MySQL"],["🗄️","SQL Server"],["📊","Vertica"],["☁️","AWS / Azure / OCI"],["⚙️","Ansible"],["🏗️","Terraform"],["🐧","Linux"]].map(([icon, label]) => (
-                    <span key={label} style={{ display: "inline-flex", alignItems: "center", gap: "0.25rem", fontSize: "0.75rem", fontWeight: 600, color: "#374151", background: "#fff", border: "1px solid #E2E8F0", borderRadius: 6, padding: "0.2rem 0.6rem", boxShadow: "0 1px 2px rgba(0,0,0,0.04)" }}>
-                      {icon} {label}
+                  {[
+                    { label:"Oracle",     bg:"#C74634", tc:"#fff",     svg:<svg width="14" height="14" viewBox="0 0 100 100"><circle cx="50" cy="50" r="48" fill="#C74634"/><circle cx="50" cy="50" r="26" fill="#fff"/></svg> },
+                    { label:"PostgreSQL", bg:"#336791", tc:"#fff",     svg:<svg width="14" height="14" viewBox="0 0 100 100"><circle cx="50" cy="50" r="48" fill="#336791"/><text x="50" y="67" textAnchor="middle" fontSize="50" fontWeight="900" fill="#fff" fontFamily="sans-serif">pg</text></svg> },
+                    { label:"MySQL",      bg:"#2B5D80", tc:"#fff",     svg:<svg width="14" height="14" viewBox="0 0 100 100"><rect width="100" height="100" rx="8" fill="#2B5D80"/><text x="50" y="67" textAnchor="middle" fontSize="42" fontWeight="900" fill="#F29221" fontFamily="sans-serif">MY</text></svg> },
+                    { label:"SQL Server", bg:"#CC2927", tc:"#fff",     svg:<svg width="14" height="14" viewBox="0 0 100 100"><rect width="100" height="100" rx="8" fill="#CC2927"/><text x="50" y="67" textAnchor="middle" fontSize="36" fontWeight="900" fill="#fff" fontFamily="sans-serif">SQL</text></svg> },
+                    { label:"Vertica",    bg:"#003865", tc:"#00AEEF",  svg:<svg width="14" height="14" viewBox="0 0 100 100"><rect width="100" height="100" rx="8" fill="#003865"/><text x="50" y="70" textAnchor="middle" fontSize="56" fontWeight="900" fill="#00AEEF" fontFamily="sans-serif">V</text></svg> },
+                    { label:"AWS",        bg:"#232F3E", tc:"#FF9900",  svg:<svg width="14" height="14" viewBox="0 0 100 100"><rect width="100" height="100" rx="8" fill="#232F3E"/><text x="50" y="60" textAnchor="middle" fontSize="28" fontWeight="900" fill="#FF9900" fontFamily="sans-serif">aws</text><path d="M20 68 Q50 82 80 68" stroke="#FF9900" strokeWidth="7" fill="none"/></svg> },
+                    { label:"Azure",      bg:"#0078D4", tc:"#fff",     svg:<svg width="14" height="14" viewBox="0 0 100 100"><rect width="100" height="100" rx="8" fill="#0078D4"/><polygon points="50,10 85,85 15,85" fill="none" stroke="#fff" strokeWidth="12"/></svg> },
+                    { label:"OCI",        bg:"#F80000", tc:"#fff",     svg:<svg width="14" height="14" viewBox="0 0 100 100"><rect width="100" height="100" rx="8" fill="#F80000"/><text x="50" y="65" textAnchor="middle" fontSize="34" fontWeight="900" fill="#fff" fontFamily="sans-serif">OCI</text></svg> },
+                    { label:"Ansible",    bg:"#1A1A1A", tc:"#EE0000",  svg:<svg width="14" height="14" viewBox="0 0 100 100"><circle cx="50" cy="50" r="48" fill="#1A1A1A"/><text x="50" y="68" textAnchor="middle" fontSize="52" fontWeight="900" fill="#EE0000" fontFamily="sans-serif">A</text></svg> },
+                    { label:"Terraform",  bg:"#7B42BC", tc:"#fff",     svg:<svg width="14" height="14" viewBox="0 0 100 100"><rect width="100" height="100" rx="8" fill="#7B42BC"/><polygon points="55,12 55,48 82,32" fill="#fff"/><polygon points="18,32 18,68 45,52" fill="#fff" opacity="0.75"/><polygon points="55,52 55,88 82,72" fill="#fff" opacity="0.9"/></svg> },
+                    { label:"Linux",      bg:"#FCC624", tc:"#1a1a1a",  svg:<svg width="14" height="14" viewBox="0 0 100 100"><circle cx="50" cy="50" r="48" fill="#FCC624"/><text x="50" y="67" textAnchor="middle" fontSize="44" fontWeight="900" fill="#1a1a1a" fontFamily="sans-serif">Lx</text></svg> },
+                  ].map((tech) => (
+                    <span key={tech.label} style={{ display:"inline-flex", alignItems:"center", gap:"0.3rem", fontSize:"0.72rem", fontWeight:700, color:tech.tc, background:tech.bg, borderRadius:6, padding:"0.22rem 0.6rem", boxShadow:"0 1px 4px rgba(0,0,0,0.15)" }}>
+                      {tech.svg}{tech.label}
                     </span>
                   ))}
                 </div>
