@@ -1323,29 +1323,34 @@ export default function App() {
                     </div>
                    <div style={{ fontSize: "0.86rem", color: "#475569", lineHeight: 1.75, maxWidth: 580 }}>
   
+<div style={{ fontSize: "0.86rem", color: "#475569", lineHeight: 1.75, maxWidth: 580 }}>
+
   <div style={{ display: "flex", alignItems: "flex-start", gap: "0.5rem", marginBottom: "0.4rem" }}>
     <span>
       Helping enterprises build{" "}
-      <strong style={{ color: "#0F172A" }}>highly available</strong>,{" "}
-      <strong style={{ color: "#0F172A" }}>automation-driven</strong>, and{" "}
-      <strong style={{ color: "#0F172A" }}>performance-optimized</strong>{" "}
-      database platforms.
+      <strong style={{ color: "#0F172A" }}>resilient</strong>,{" "}
+      <strong style={{ color: "#0F172A" }}>scalable</strong>, and{" "}
+      <strong style={{ color: "#0F172A" }}>high-performance</strong>{" "}
+      data platforms that deliver{" "}
+      <strong style={{ color: "#0F172A" }}>measurable business impact</strong>{" "}
+      and{" "}
+      <strong style={{ color: "#0F172A" }}>operational excellence</strong>.
     </span>
   </div>
 
   <div style={{ display: "flex", alignItems: "flex-start", gap: "0.5rem" }}>
     <span>
-      Designing{" "}
-      <strong style={{ color: "#0F172A" }}>resilient architectures</strong>{" "}
-      with{" "}
-      <strong style={{ color: "#0F172A" }}>zero-downtime operations</strong>{" "}
+      Leading{" "}
+      <strong style={{ color: "#0F172A" }}>complex database modernization</strong>{" "}
+      initiatives,{" "}
+      <strong style={{ color: "#0F172A" }}>zero-downtime migrations</strong>,{" "}
+      <strong style={{ color: "#0F172A" }}>high-availability architecture design</strong>,{" "}
       and{" "}
-      <strong style={{ color: "#0F172A" }}>enterprise-grade security</strong>.
+      <strong style={{ color: "#0F172A" }}>performance engineering at scale</strong>.
     </span>
   </div>
 
-</div>
-					
+</div>			
 					
 					
                   </div>
