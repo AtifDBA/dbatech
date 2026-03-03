@@ -819,6 +819,51 @@ export default function App() {
   const [scriptDropdown, setScriptDropdown] = useState(null); // open dropdown cat id
   const [editingScript, setEditingScript]   = useState(null);
   const [editingScriptCat, setEditingScriptCat] = useState(null);
+  const [topicDocs, setTopicDocs]           = useState(() => {
+    try { return JSON.parse(localStorage.getItem("itlearn_docs") || "{}"); } catch { return {}; }
+  });
+  const [showDocUpload, setShowDocUpload]   = useState(false);
+  const [docUploadTopicId, setDocUploadTopicId] = useState(null);
+  const [docUploadProgress, setDocUploadProgress] = useState(null);
+
+  const saveDocs = (docs) => {
+    setTopicDocs(docs);
+    try { localStorage.setItem("itlearn_docs", JSON.stringify(docs)); } catch(e) { showToast("⚠️ Storage full — remove old documents first."); }
+  };
+
+  const handleDocUpload = (topicId, file) => {
+    const allowed = ["application/pdf","application/vnd.openxmlformats-officedocument.wordprocessingml.document","application/msword",
+      "application/vnd.openxmlformats-officedocument.presentationml.presentation","application/vnd.ms-powerpoint"];
+    const ext = file.name.split(".").pop().toLowerCase();
+    const allowedExt = ["pdf","docx","doc","pptx","ppt"];
+    if (!allowedExt.includes(ext)) { showToast("❌ Only PDF, DOCX, DOC, PPTX, PPT allowed."); return; }
+    if (file.size > 10 * 1024 * 1024) { showToast("❌ File too large. Max 10 MB."); return; }
+    setDocUploadProgress("Reading file…");
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      const doc = {
+        id: "doc_" + Date.now(),
+        name: file.name,
+        ext: ext,
+        size: (file.size / 1024).toFixed(0),
+        uploadedAt: new Date().toLocaleDateString("en-GB"),
+        data: e.target.result,
+      };
+      const updated = { ...topicDocs, [topicId]: [...(topicDocs[topicId] || []), doc] };
+      saveDocs(updated);
+      setDocUploadProgress(null);
+      setShowDocUpload(false);
+      showToast("✅ Document uploaded successfully!");
+    };
+    reader.onerror = () => { setDocUploadProgress(null); showToast("❌ Failed to read file."); };
+    reader.readAsDataURL(file);
+  };
+
+  const deleteDoc = (topicId, docId) => {
+    const updated = { ...topicDocs, [topicId]: (topicDocs[topicId] || []).filter(d => d.id !== docId) };
+    saveDocs(updated);
+    showToast("🗑️ Document removed.");
+  };
 
   useEffect(() => {
     loadData().then(setTopics);
@@ -943,6 +988,14 @@ export default function App() {
     showToast("🗑️ Page deleted");
   };
 
+  // ── DOC TYPE ICON & STYLE ──
+  const docIcon = (ext) => {
+    if (ext === "pdf")                return { icon: "📄", color: "#DC2626", bg: "#FEF2F2", label: "PDF"  };
+    if (["doc","docx"].includes(ext)) return { icon: "📝", color: "#2563EB", bg: "#EFF6FF", label: "WORD" };
+    if (["ppt","pptx"].includes(ext)) return { icon: "📊", color: "#D97706", bg: "#FFFBEB", label: "PPT"  };
+    return { icon: "📎", color: "#6B7280", bg: "#F3F4F6", label: ext.toUpperCase() };
+  };
+
   return (
     // ✅ KEY FIX: flex column + min-height 100vh pushes footer to bottom
     <div style={{ fontFamily: "'DM Sans', sans-serif", minHeight: "100vh", background: "#FAFAF7", color: "#1A1A2E", display: "flex", flexDirection: "column" }}>
@@ -976,6 +1029,52 @@ export default function App() {
       `}</style>
 
       {showLogin && <AdminLogin onSuccess={handleLoginSuccess} onCancel={() => setShowLogin(false)} />}
+
+      {/* ══ DOC UPLOAD MODAL ══ */}
+      {showDocUpload && docUploadTopicId && (() => {
+        const topic = topics.find(t => t.id === docUploadTopicId);
+        return (
+          <div style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.5)", zIndex: 9000, display: "flex", alignItems: "center", justifyContent: "center", padding: "1rem" }}>
+            <div style={{ background: "#fff", borderRadius: 16, padding: "2rem", width: "100%", maxWidth: 460, boxShadow: "0 20px 60px rgba(0,0,0,0.25)" }}>
+              <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "1.4rem" }}>
+                <div>
+                  <div style={{ fontWeight: 900, fontSize: "1.1rem", color: "#0F172A" }}>Upload Document</div>
+                  <div style={{ fontSize: "0.8rem", color: "#64748B", marginTop: "0.2rem" }}>Topic: <strong style={{ color: topic?.color }}>{topic?.title}</strong></div>
+                </div>
+                <button onClick={() => { setShowDocUpload(false); setDocUploadProgress(null); }}
+                  style={{ background: "#F1F5F9", border: "none", borderRadius: 8, width: 32, height: 32, cursor: "pointer", fontSize: "1rem" }}>✕</button>
+              </div>
+              <div style={{ display: "flex", gap: "0.5rem", marginBottom: "1.2rem", flexWrap: "wrap" }}>
+                {[["📄","PDF","#DC2626","#FEF2F2"],["📝","DOCX","#2563EB","#EFF6FF"],["📊","PPTX","#D97706","#FFFBEB"]].map(([icon,label,color,bg]) => (
+                  <span key={label} style={{ display:"inline-flex", alignItems:"center", gap:"0.3rem", background:bg, color, border:`1px solid ${color}30`, borderRadius:6, padding:"0.25rem 0.65rem", fontSize:"0.75rem", fontWeight:700 }}>
+                    {icon} {label}
+                  </span>
+                ))}
+                <span style={{ fontSize:"0.72rem", color:"#94A3B8", alignSelf:"center" }}>Max 10 MB</span>
+              </div>
+              <label style={{ display:"block", border:"2px dashed #BFDBFE", borderRadius:12, padding:"2rem 1rem", textAlign:"center", cursor:"pointer", background:"#F8FAFC" }}
+                onDragOver={e => e.preventDefault()}
+                onDrop={e => { e.preventDefault(); const f = e.dataTransfer.files[0]; if(f) handleDocUpload(docUploadTopicId, f); }}>
+                <input type="file" accept=".pdf,.doc,.docx,.ppt,.pptx" style={{ display:"none" }}
+                  onChange={e => { const f = e.target.files[0]; if(f) handleDocUpload(docUploadTopicId, f); }} />
+                <div style={{ fontSize:"2.5rem", marginBottom:"0.6rem" }}>📂</div>
+                {docUploadProgress ? (
+                  <div style={{ fontSize:"0.88rem", color:"#2563EB", fontWeight:600 }}>{docUploadProgress}</div>
+                ) : (
+                  <>
+                    <div style={{ fontWeight:700, fontSize:"0.9rem", color:"#334155", marginBottom:"0.3rem" }}>Click to browse or drag & drop</div>
+                    <div style={{ fontSize:"0.78rem", color:"#94A3B8" }}>PDF, DOC, DOCX, PPT, PPTX · Max 10 MB</div>
+                  </>
+                )}
+              </label>
+              <button onClick={() => { setShowDocUpload(false); setDocUploadProgress(null); }}
+                style={{ width:"100%", marginTop:"1rem", padding:"0.65rem", background:"#F1F5F9", border:"none", borderRadius:9, fontFamily:"inherit", fontSize:"0.88rem", fontWeight:600, color:"#475569", cursor:"pointer" }}>
+                Cancel
+              </button>
+            </div>
+          </div>
+        );
+      })()}
 
       {toast && (
         <div style={{ position: "fixed", bottom: "1.5rem", right: "1.5rem", zIndex: 9999, background: "#1A1A2E", color: "#fff", borderRadius: 12, padding: "0.85rem 1.5rem", fontSize: "0.88rem", fontWeight: 500, boxShadow: "0 8px 30px rgba(0,0,0,0.25)", animation: "fadeIn 0.3s ease" }}>
@@ -1068,23 +1167,18 @@ export default function App() {
           <div className="fade-in">
             <section style={{ background: "#fff", padding: "56px 6% 52px", borderBottom: "1px solid #E2E2EC" }}>
               <div style={{ maxWidth: 580 }}>
-                {/* Badge */}
-                <div style={{ display: "inline-flex", alignItems: "center", gap: 6, background: "#F0F7FF", color: "#2563EB", border: "1px solid #BFDBFE", borderRadius: 6, padding: "0.25rem 0.75rem", fontSize: "0.72rem", fontWeight: 700, letterSpacing: "0.08em", textTransform: "uppercase", marginBottom: "1.2rem" }}>
-                  🎯 Enterprise DBA Knowledge Hub
+                <div style={{ display: "inline-flex", alignItems: "center", gap: 6, background: "#F0F7FF", color: "#2563EB", border: "1px solid #BFDBFE", borderRadius: 6, padding: "0.25rem 0.75rem", fontSize: "0.72rem", fontWeight: 600, letterSpacing: "0.08em", textTransform: "uppercase", marginBottom: "1.4rem" }}>
+                  IT Knowledge Hub
                 </div>
-
-                {/* Headline — tight, single line, no wrap */}
-                <h1 style={{ fontFamily: "'Playfair Display', serif", fontSize: "clamp(1.4rem, 2.4vw, 2rem)", fontWeight: 900, lineHeight: 1.25, marginBottom: "0.9rem", color: "#0F172A", letterSpacing: "-0.4px", maxWidth: 520 }}>
-                  Real DBA Solutions,{" "}
-                  <span style={{ color: "#2563EB" }}>Production-Proven</span> Knowledge
+                <h1 style={{ fontFamily: "'DM Sans', sans-serif", fontSize: "clamp(1.3rem, 2.2vw, 1.9rem)", fontWeight: 700, lineHeight: 1.2, marginBottom: "1rem", color: "#1A1A2E", letterSpacing: "-0.3px", whiteSpace: "nowrap" }}>
+                  Master{" "}
+                  <span style={{ color: "#2563EB", fontWeight: 700 }}>Databases</span>,{" "}
+                  <span style={{ color: "#7C3AED", fontWeight: 700 }}>Automation</span>{" "}
+                  <span style={{ color: "#374151", fontWeight: 400 }}>&</span>{" "}
+                  <span style={{ color: "#0891B2", fontWeight: 700 }}>Cloud Technologies</span>
                 </h1>
-
-                {/* Pitch — one crisp sentence + bold payoff */}
-                <p style={{ fontSize: "0.97rem", color: "#475569", lineHeight: 1.85, marginBottom: "0.6rem", maxWidth: 470 }}>
-                  The exact Oracle fix, PostgreSQL tuning script, or Ansible playbook you need — written from <strong style={{ color: "#0F172A" }}>11+ years of live enterprise experience</strong>.
-                </p>
-                <p style={{ fontSize: "0.88rem", color: "#94A3B8", lineHeight: 1.7, marginBottom: "1.8rem", maxWidth: 460 }}>
-                  Covering Oracle · PostgreSQL · MySQL · SQL Server · MongoDB · Ansible · Terraform · AWS · Azure · OCI
+                <p style={{ fontSize: "0.95rem", color: "#6B7280", lineHeight: 1.8, marginBottom: "2rem", maxWidth: 480, fontWeight: 400 }}>
+                  A practical IT knowledge base covering Oracle, PostgreSQL, MySQL, MongoDB, SQL Server, Ansible, Terraform, AWS, Azure, and Kubernetes.
                 </p>
                 <div style={{ display: "flex", gap: "0.75rem", flexWrap: "wrap", alignItems: "center" }}>
                   <button onClick={() => goBrowse()} className="btn" style={{ padding: "0.7rem 1.4rem", background: "#2563EB", color: "#fff", fontSize: "0.88rem", fontWeight: 600 }}>Browse Topics →</button>
@@ -1241,37 +1335,130 @@ export default function App() {
               </div>
             </div>
             <div style={{ padding: "2.5rem 6%" }}>
-              {activeTopic.pages.length === 0 ? (
-                <div style={{ textAlign: "center", padding: "4rem", color: "#9CA3AF", border: "2px dashed #E2E2EC", borderRadius: 16 }}>
-                  <div style={{ fontSize: "2.5rem", marginBottom: "0.8rem" }}>📄</div>
-                  <div style={{ fontWeight: 600 }}>No pages yet — content coming soon!</div>
-                </div>
-              ) : (
-                <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(280px,1fr))", gap: "1rem" }}>
-                  {activeTopic.pages.map((page) => (
-                    <div key={page.id} style={{ background: "#fff", border: "1px solid #E2E2EC", borderRadius: 14, padding: "1.5rem" }}>
-                      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
-                        <div onClick={() => goPage(activeTopic, page)} style={{ flex: 1, cursor: "pointer" }}>
-                          <div style={{ fontWeight: 700, fontSize: "0.95rem", marginBottom: "0.3rem" }}>{page.title}</div>
-                          <div style={{ fontSize: "0.78rem", color: "#9CA3AF" }}>Updated: {page.lastUpdated}</div>
-                          <div style={{ fontSize: "0.82rem", color: "#6B7280", marginTop: "0.5rem", lineHeight: 1.5 }}>
-                            {page.content.replace(/```[\s\S]*?```/g,"[code]").replace(/\*\*/g,"").substring(0,100)}…
+
+              {/* ── TABS: Pages | Documents ── */}
+              {(() => {
+                const topicDocList = topicDocs[activeTopic.id] || [];
+                const [activeTab, setActiveTab] = React.useState("pages");
+                return (
+                  <>
+                    {/* Tab bar */}
+                    <div style={{ display: "flex", gap: "0.25rem", marginBottom: "1.5rem", borderBottom: "2px solid #E2E8F0", paddingBottom: "0" }}>
+                      {[
+                        { id: "pages", label: "📄 Knowledge Pages", count: activeTopic.pages.length },
+                        { id: "docs",  label: "📁 Documents",        count: topicDocList.length },
+                      ].map(tab => (
+                        <button key={tab.id} onClick={() => setActiveTab(tab.id)}
+                          style={{ padding: "0.55rem 1.1rem", border: "none", background: "none", cursor: "pointer", fontFamily: "inherit",
+                            fontSize: "0.85rem", fontWeight: 700, color: activeTab === tab.id ? activeTopic.color : "#94A3B8",
+                            borderBottom: activeTab === tab.id ? `2.5px solid ${activeTopic.color}` : "2.5px solid transparent",
+                            marginBottom: "-2px", transition: "color 0.15s" }}>
+                          {tab.label}
+                          <span style={{ marginLeft: "0.4rem", fontSize: "0.7rem", fontWeight: 700, background: activeTab === tab.id ? activeTopic.lightColor : "#F1F5F9",
+                            color: activeTab === tab.id ? activeTopic.color : "#94A3B8", borderRadius: 100, padding: "0.1rem 0.45rem" }}>
+                            {tab.count}
+                          </span>
+                        </button>
+                      ))}
+
+                      {/* Upload button — admin only, right-aligned */}
+                      {isAdmin && activeTab === "docs" && (
+                        <button onClick={() => { setDocUploadTopicId(activeTopic.id); setShowDocUpload(true); }}
+                          style={{ marginLeft: "auto", display: "inline-flex", alignItems: "center", gap: "0.4rem",
+                            padding: "0.45rem 1rem", background: activeTopic.color, color: "#fff", border: "none",
+                            borderRadius: 8, fontSize: "0.8rem", fontWeight: 700, cursor: "pointer", fontFamily: "inherit" }}>
+                          ⬆ Upload Document
+                        </button>
+                      )}
+                    </div>
+
+                    {/* ── PAGES TAB ── */}
+                    {activeTab === "pages" && (
+                      activeTopic.pages.length === 0 ? (
+                        <div style={{ textAlign: "center", padding: "4rem", color: "#9CA3AF", border: "2px dashed #E2E2EC", borderRadius: 16 }}>
+                          <div style={{ fontSize: "2.5rem", marginBottom: "0.8rem" }}>📄</div>
+                          <div style={{ fontWeight: 600 }}>No pages yet — content coming soon!</div>
+                        </div>
+                      ) : (
+                        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(280px,1fr))", gap: "1rem" }}>
+                          {activeTopic.pages.map((page) => (
+                            <div key={page.id} style={{ background: "#fff", border: "1px solid #E2E2EC", borderRadius: 14, padding: "1.5rem" }}>
+                              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
+                                <div onClick={() => goPage(activeTopic, page)} style={{ flex: 1, cursor: "pointer" }}>
+                                  <div style={{ fontWeight: 700, fontSize: "0.95rem", marginBottom: "0.3rem" }}>{page.title}</div>
+                                  <div style={{ fontSize: "0.78rem", color: "#9CA3AF" }}>Updated: {page.lastUpdated}</div>
+                                  <div style={{ fontSize: "0.82rem", color: "#6B7280", marginTop: "0.5rem", lineHeight: 1.5 }}>
+                                    {page.content.replace(/```[\s\S]*?```/g,"[code]").replace(/\*\*/g,"").substring(0,100)}…
+                                  </div>
+                                </div>
+                                {isAdmin && (
+                                  <div style={{ display: "flex", gap: "0.3rem", marginLeft: "0.5rem" }}>
+                                    <button onClick={() => { setEditingPage(page); setEditingPageTopicId(activeTopic.id); setView("admin"); setAdminView("edit-page"); }}
+                                      style={{ background: "#EFF6FF", color: "#2563EB", border: "none", borderRadius: 7, padding: "0.3rem 0.6rem", cursor: "pointer", fontSize: "0.78rem" }}>Edit</button>
+                                    <button onClick={() => deletePage(activeTopic.id, page.id)}
+                                      style={{ background: "#FEF2F2", color: "#EF4444", border: "none", borderRadius: 7, padding: "0.3rem 0.6rem", cursor: "pointer", fontSize: "0.78rem" }}>Del</button>
+                                  </div>
+                                )}
+                              </div>
+                              <div onClick={() => goPage(activeTopic, page)} style={{ marginTop: "1rem", fontSize: "0.78rem", color: "#2563EB", fontWeight: 600, cursor: "pointer" }}>Read more →</div>
+                            </div>
+                          ))}
+                        </div>
+                      )
+                    )}
+
+                    {/* ── DOCUMENTS TAB ── */}
+                    {activeTab === "docs" && (
+                      topicDocList.length === 0 ? (
+                        <div style={{ textAlign: "center", padding: "4rem 2rem", border: "2px dashed #E2E8F0", borderRadius: 16, color: "#94A3B8" }}>
+                          <div style={{ fontSize: "3rem", marginBottom: "0.8rem" }}>📁</div>
+                          <div style={{ fontWeight: 700, fontSize: "0.95rem", marginBottom: "0.4rem", color: "#475569" }}>No documents yet</div>
+                          <div style={{ fontSize: "0.82rem" }}>
+                            {isAdmin ? "Upload PDF, DOCX or PPTX files using the button above." : "No documents have been uploaded for this topic yet."}
                           </div>
                         </div>
-                        {isAdmin && (
-                          <div style={{ display: "flex", gap: "0.3rem", marginLeft: "0.5rem" }}>
-                            <button onClick={() => { setEditingPage(page); setEditingPageTopicId(activeTopic.id); setView("admin"); setAdminView("edit-page"); }}
-                              style={{ background: "#EFF6FF", color: "#2563EB", border: "none", borderRadius: 7, padding: "0.3rem 0.6rem", cursor: "pointer", fontSize: "0.78rem" }}>Edit</button>
-                            <button onClick={() => deletePage(activeTopic.id, page.id)}
-                              style={{ background: "#FEF2F2", color: "#EF4444", border: "none", borderRadius: 7, padding: "0.3rem 0.6rem", cursor: "pointer", fontSize: "0.78rem" }}>Del</button>
-                          </div>
-                        )}
-                      </div>
-                      <div onClick={() => goPage(activeTopic, page)} style={{ marginTop: "1rem", fontSize: "0.78rem", color: "#2563EB", fontWeight: 600, cursor: "pointer" }}>Read more →</div>
-                    </div>
-                  ))}
-                </div>
-              )}
+                      ) : (
+                        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(260px,1fr))", gap: "1rem" }}>
+                          {topicDocList.map((doc) => {
+                            const di = docIcon(doc.ext);
+                            return (
+                              <div key={doc.id} style={{ background: "#fff", border: "1px solid #E2E8F0", borderRadius: 12, padding: "1.2rem", display: "flex", flexDirection: "column", gap: "0.75rem", boxShadow: "0 1px 4px rgba(0,0,0,0.05)" }}>
+                                {/* Doc header */}
+                                <div style={{ display: "flex", alignItems: "flex-start", gap: "0.75rem" }}>
+                                  <div style={{ width: 42, height: 42, borderRadius: 10, background: di.bg, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
+                                    <span style={{ fontSize: "1.2rem", lineHeight: 1 }}>{di.icon}</span>
+                                    <span style={{ fontSize: "0.5rem", fontWeight: 800, color: di.color, letterSpacing: "0.05em", marginTop: "0.1rem" }}>{di.label}</span>
+                                  </div>
+                                  <div style={{ flex: 1, minWidth: 0 }}>
+                                    <div style={{ fontWeight: 700, fontSize: "0.88rem", color: "#0F172A", lineHeight: 1.3, marginBottom: "0.2rem", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{doc.name}</div>
+                                    <div style={{ fontSize: "0.72rem", color: "#94A3B8" }}>{doc.size} KB · Uploaded {doc.uploadedAt}</div>
+                                  </div>
+                                </div>
+                                {/* Actions */}
+                                <div style={{ display: "flex", gap: "0.5rem", marginTop: "auto" }}>
+                                  <a href={doc.data} download={doc.name}
+                                    style={{ flex: 1, display: "inline-flex", alignItems: "center", justifyContent: "center", gap: "0.35rem",
+                                      padding: "0.45rem 0", background: di.bg, color: di.color, border: `1px solid ${di.color}30`,
+                                      borderRadius: 7, fontSize: "0.78rem", fontWeight: 700, textDecoration: "none" }}>
+                                    ⬇ Download
+                                  </a>
+                                  {isAdmin && (
+                                    <button onClick={() => deleteDoc(activeTopic.id, doc.id)}
+                                      style={{ padding: "0.45rem 0.75rem", background: "#FEF2F2", color: "#EF4444", border: "none",
+                                        borderRadius: 7, fontSize: "0.78rem", fontWeight: 700, cursor: "pointer", fontFamily: "inherit" }}>
+                                      🗑
+                                    </button>
+                                  )}
+                                </div>
+                              </div>
+                            );
+                          })}
+                        </div>
+                      )
+                    )}
+                  </>
+                );
+              })()}
             </div>
           </div>
         )}
