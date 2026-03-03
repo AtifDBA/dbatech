@@ -1339,7 +1339,7 @@ export default function App() {
               {/* ── TABS: Pages | Documents ── */}
               {(() => {
                 const topicDocList = topicDocs[activeTopic.id] || [];
-                const [activeTab, setActiveTab] = React.useState("pages");
+                const [activeTab, setActiveTab] = React.useState("false");
                 return (
                   <>
                     {/* Tab bar */}
