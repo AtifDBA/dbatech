@@ -1321,14 +1321,33 @@ export default function App() {
                     <div style={{ display: "flex", alignItems: "center", gap: "0.75rem", flexWrap: "wrap", marginBottom: "0.3rem" }}>
                     <span style={{ fontSize: "0.7rem", fontWeight: 700, color: "#1D4ED8", letterSpacing: "0.09em", textTransform: "uppercase", background: "#EFF6FF", border: "1px solid #BFDBFE", borderRadius: 5, padding: "0.22rem 0.7rem" }}>Senior Oracle & PostgreSQL Database Consultant | Cloud Infrastructure Expert</span>
                     </div>
-                    <div style={{ fontSize: "0.86rem", color: "#475569", lineHeight: 1.75, maxWidth: 580 }}>
-                      <div style={{ display: "flex", alignItems: "flex-start", gap: "0.5rem", marginBottom: "0.4rem" }}>
-                       <span>Helping enterprises achieve <strong style={{ color: "#0F172A" }}>high-performance</strong>, <strong style={{ color: "#0F172A" }}>highly available</strong>, and <strong style={{ color: "#0F172A" }}>automation-driven</strong> database platforms.</span>
-                      </div>
-                      <div style={{ display: "flex", alignItems: "flex-start", gap: "0.5rem" }}>
-                       <span>Designing <strong style={{ color: "#0F172A" }}>resilient, high-performance</strong> architectures with <strong style={{ color: "#0F172A" }}>zero-downtime operations</strong> and <strong style={{ color: "#0F172A" }}>enterprise-grade security</strong>.</span>
-                      </div>
-                    </div>
+                   <div style={{ fontSize: "0.86rem", color: "#475569", lineHeight: 1.75, maxWidth: 580 }}>
+  
+  <div style={{ display: "flex", alignItems: "flex-start", gap: "0.5rem", marginBottom: "0.4rem" }}>
+    <span>
+      Helping enterprises build{" "}
+      <strong style={{ color: "#0F172A" }}>highly available</strong>,{" "}
+      <strong style={{ color: "#0F172A" }}>automation-driven</strong>, and{" "}
+      <strong style={{ color: "#0F172A" }}>performance-optimized</strong>{" "}
+      database platforms.
+    </span>
+  </div>
+
+  <div style={{ display: "flex", alignItems: "flex-start", gap: "0.5rem" }}>
+    <span>
+      Designing{" "}
+      <strong style={{ color: "#0F172A" }}>resilient architectures</strong>{" "}
+      with{" "}
+      <strong style={{ color: "#0F172A" }}>zero-downtime operations</strong>{" "}
+      and{" "}
+      <strong style={{ color: "#0F172A" }}>enterprise-grade security</strong>.
+    </span>
+  </div>
+
+</div>
+					
+					
+					
                   </div>
 
                   {/* CTAs — far right */}
@@ -1356,11 +1375,11 @@ export default function App() {
                 {/* ── ROW 3: 5 service cards ── */}
                 <div style={{ display: "grid", gridTemplateColumns: "repeat(5, 1fr)", gap: "0.75rem", marginBottom: "1.2rem" }}>
                   {[
-                    { icon: "🏗️", title: "Architecture & Deployment",color: "#1D4ED8", bg: "#F0F7FF", border: "#BFDBFE", items: ["DB Architecture", "Installation & Config", "Capacity Planning", "Migration Strategy"] },
-                    { icon: "🔄", title: "Upgrades & Migrations", color: "#B45309", bg: "#FFFBEB", border: "#FDE68A", items: ["Zero-Downtime Upgrade Strategy", "Cross-Platform & OS Migration", "Major Version Upgrade", "Secure Cutover & Rollback Planning"] },
-                    { icon: "⚡", title: "Performance Engineering", color: "#0891B2", bg: "#F0FDFF", border: "#BAE6FD", items: ["Query Optimisation", "AWR / ASH Analysis", "Indexing Strategy", "Bottleneck Analysis"] },
-                    { icon: "🔒", title: "Security, Compliance & Governance", color: "#7C3AED", bg: "#FAF5FF", border: "#DDD6FE", items: ["Security Auditing", "Access Control", "Compliance (SOX/GDPR)", "Vulnerability Review"] },
-                    { icon: "☁️", title: "Cloud Migration & Modernization", color: "#059669", bg: "#F0FDF7", border: "#A7F3D0", items: ["Infrastructure as Code (Ansible / Terraform)", "HA & Disaster Recovery Architecture", "CI/CD Database Pipelines"] },
+                    { icon: "🏗️", title: "Architecture & Deployment",color: "#1D4ED8", bg: "#F0F7FF", border: "#BFDBFE", items: ["Database Architecture Design", "Enterprise Installation & Configuration", "Capacity & Scalability Planning", "Migration & Modernization Strategy"] },
+                    { icon: "🔄", title: "Upgrades & Migrations", color: "#B45309", bg: "#FFFBEB", border: "#FDE68A", items: ["Zero-Downtime Upgrade Strategy", "Cross-Platform & Cross-OS Migration", "Major Version Upgrade", "Secure Cutover & Rollback Planning"] },
+                    { icon: "⚡", title: "Performance Engineering", color: "#0891B2", bg: "#F0FDFF", border: "#BAE6FD", items: ["Query Optimisation", "AWR / ASH Analysis", "Indexing Strategy", "System & Workload Bottleneck Analysis"] },
+                    { icon: "🔒", title: "Security, Compliance & Governance", color: "#7C3AED", bg: "#FAF5FF", border: "#DDD6FE", items: ["Security Auditing", "Access Control", "Regulatory Compliance (SOX, GDPR)", "Vulnerability Review"] },
+                    { icon: "☁️", title: "Cloud Migration & Modernization", color: "#059669", bg: "#F0FDF7", border: "#A7F3D0", items: ["Infrastructure as Code (Ansible / Terraform)", "High Availability & Disaster Recovery (HA/DR) Architecture", "CI/CD Database Pipelines"] },
                   ].map(card => (
                     <div key={card.title} className="service-card" style={{ background: card.bg, border: "1px solid " + card.border, borderRadius: 12, padding: "1.1rem 1.1rem 1rem", position: "relative", overflow: "hidden", boxShadow: "0 2px 8px rgba(0,0,0,0.06)" }}>
                       <div style={{ position: "absolute", top: 0, left: 0, right: 0, height: 3, background: card.color }} />
