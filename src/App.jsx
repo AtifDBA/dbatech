@@ -155,6 +155,70 @@ async function saveData(topics) {
   try { await window.storage.set("itplatform-topics", JSON.stringify(topics)); } catch {}
 }
 
+// ══════════════════════════════════════════════════════════════════════
+// 📜 SCRIPT LIBRARY DATA
+// ══════════════════════════════════════════════════════════════════════
+const SCRIPT_CATEGORIES = [
+  { id: "oracle",     label: "Oracle",      icon: "🔴", color: "#C74634", light: "#FEF2F0" },
+  { id: "sqlserver",  label: "SQL Server",  icon: "🪟", color: "#CC2927", light: "#FEF2F2" },
+  { id: "postgresql", label: "PostgreSQL",  icon: "🐘", color: "#336791", light: "#EFF6FF" },
+  { id: "mysql",      label: "MySQL",       icon: "🐬", color: "#E8960C", light: "#FFFBEB" },
+  { id: "mongodb",    label: "MongoDB",     icon: "🍃", color: "#3D8A40", light: "#F0FDF4" },
+  { id: "linux",      label: "Linux",       icon: "🐧", color: "#374151", light: "#F9FAFB" },
+];
+
+const DEFAULT_SCRIPTS = [
+  // ── ORACLE ──
+  { id: "ora-session-kill", category: "oracle", title: "Kill Blocking Sessions", description: "Find and kill all blocking sessions in Oracle.", lang: "sql",
+    code: `-- Find blocking sessions\nSELECT s.sid, s.serial#, s.username, s.status, s.blocking_session\nFROM v$session s\nWHERE s.blocking_session IS NOT NULL;\n\n-- Kill a specific session\nALTER SYSTEM KILL SESSION 'sid,serial#' IMMEDIATE;` },
+  { id: "ora-top-sql", category: "oracle", title: "Top SQL by CPU", description: "List top 10 SQL statements consuming the most CPU.", lang: "sql",
+    code: `SELECT * FROM (\n  SELECT sql_id, elapsed_time/executions AS avg_elapsed,\n         cpu_time/executions AS avg_cpu,\n         executions, substr(sql_text,1,80) AS sql_preview\n  FROM v$sqlstats\n  WHERE executions > 0\n  ORDER BY cpu_time DESC\n) WHERE ROWNUM <= 10;` },
+  { id: "ora-tablespace", category: "oracle", title: "Tablespace Usage", description: "Check free and used space across all tablespaces.", lang: "sql",
+    code: `SELECT df.tablespace_name,\n       ROUND(df.totalspace/1024/1024,2) AS total_mb,\n       ROUND(fs.freespace/1024/1024,2) AS free_mb,\n       ROUND((df.totalspace-fs.freespace)/df.totalspace*100,1) AS pct_used\nFROM\n  (SELECT tablespace_name, SUM(bytes) totalspace FROM dba_data_files GROUP BY tablespace_name) df,\n  (SELECT tablespace_name, SUM(bytes) freespace FROM dba_free_space GROUP BY tablespace_name) fs\nWHERE df.tablespace_name = fs.tablespace_name(+)\nORDER BY pct_used DESC NULLS LAST;` },
+  { id: "ora-rman-backup", category: "oracle", title: "RMAN Full Backup", description: "RMAN script for full database backup with compression.", lang: "bash",
+    code: `#!/bin/bash\nrman target / <<EOF\nRUN {\n  CONFIGURE COMPRESSION ALGORITHM 'MEDIUM';\n  CONFIGURE BACKUP OPTIMIZATION ON;\n  BACKUP AS COMPRESSED BACKUPSET\n    FULL DATABASE\n    FORMAT '/backup/oracle/%d_%T_%s.bkp'\n    TAG 'FULL_DB_BACKUP';\n  BACKUP ARCHIVELOG ALL\n    FORMAT '/backup/oracle/arch_%d_%T_%s.bkp'\n    DELETE INPUT;\n  DELETE NOPROMPT OBSOLETE;\n}\nEOF` },
+  { id: "ora-invalid-objects", category: "oracle", title: "Recompile Invalid Objects", description: "Find and recompile all invalid database objects.", lang: "sql",
+    code: `-- List all invalid objects\nSELECT owner, object_type, object_name, status\nFROM dba_objects\nWHERE status = 'INVALID'\nORDER BY owner, object_type, object_name;\n\n-- Recompile all invalid objects\nBEGIN\n  FOR obj IN (SELECT owner, object_name, object_type\n               FROM dba_objects WHERE status='INVALID') LOOP\n    BEGIN\n      EXECUTE IMMEDIATE 'ALTER ' || obj.object_type ||\n        ' ' || obj.owner || '.' || obj.object_name || ' COMPILE';\n    EXCEPTION WHEN OTHERS THEN NULL;\n    END;\n  END LOOP;\nEND;\n/` },
+
+  // ── SQL SERVER ──
+  { id: "mssql-blocking", category: "sqlserver", title: "Find Blocking Queries", description: "Identify blocking chains and long-running queries.", lang: "sql",
+    code: `SELECT\n  blocking.session_id AS blocker_id,\n  blocked.session_id  AS blocked_id,\n  blocked.wait_time/1000 AS wait_sec,\n  blocked.wait_type,\n  SUBSTRING(bt.text, 1, 200) AS blocker_sql,\n  SUBSTRING(bkt.text,1, 200) AS blocked_sql\nFROM sys.dm_exec_sessions AS blocking\nJOIN sys.dm_exec_requests AS blocked ON blocking.session_id = blocked.blocking_session_id\nCROSS APPLY sys.dm_exec_sql_text(blocking.most_recent_sql_handle) bt\nCROSS APPLY sys.dm_exec_sql_text(blocked.sql_handle) bkt\nORDER BY blocked.wait_time DESC;` },
+  { id: "mssql-index-missing", category: "sqlserver", title: "Missing Index Suggestions", description: "Show SQL Server's missing index recommendations with impact score.", lang: "sql",
+    code: `SELECT TOP 20\n  ROUND(migs.avg_total_user_cost * migs.avg_user_impact * (migs.user_seeks + migs.user_scans), 0) AS impact_score,\n  mid.statement AS table_name,\n  mid.equality_columns,\n  mid.inequality_columns,\n  mid.included_columns,\n  migs.user_seeks,\n  migs.user_scans\nFROM sys.dm_db_missing_index_group_stats migs\nJOIN sys.dm_db_missing_index_groups mig ON migs.group_handle = mig.index_group_handle\nJOIN sys.dm_db_missing_index_details mid ON mig.index_handle = mid.index_handle\nORDER BY impact_score DESC;` },
+  { id: "mssql-backup", category: "sqlserver", title: "Full + Log Backup Script", description: "Backup all user databases with timestamp in filename.", lang: "sql",
+    code: `-- Full backup all user databases\nDECLARE @db NVARCHAR(128), @path NVARCHAR(500);\nDECLARE db_cursor CURSOR FOR\n  SELECT name FROM sys.databases\n  WHERE database_id > 4 AND state_desc = 'ONLINE';\nOPEN db_cursor; FETCH NEXT FROM db_cursor INTO @db;\nWHILE @@FETCH_STATUS = 0 BEGIN\n  SET @path = 'D:\\Backups\\' + @db + '_' +\n    REPLACE(CONVERT(VARCHAR,GETDATE(),120),':','-') + '.bak';\n  EXEC('BACKUP DATABASE [' + @db + '] TO DISK=''' + @path +\n    ''' WITH COMPRESSION, STATS=10');\n  FETCH NEXT FROM db_cursor INTO @db;\nEND\nCLOSE db_cursor; DEALLOCATE db_cursor;` },
+
+  // ── POSTGRESQL ──
+  { id: "pg-bloat", category: "postgresql", title: "Table Bloat Check", description: "Find tables with excessive dead tuples needing VACUUM.", lang: "sql",
+    code: `SELECT\n  schemaname, relname AS table_name,\n  n_dead_tup AS dead_tuples,\n  n_live_tup AS live_tuples,\n  ROUND(n_dead_tup::numeric / NULLIF(n_live_tup + n_dead_tup,0)*100,1) AS dead_pct,\n  last_vacuum, last_autovacuum\nFROM pg_stat_user_tables\nWHERE n_dead_tup > 1000\nORDER BY dead_pct DESC NULLS LAST\nLIMIT 20;` },
+  { id: "pg-long-queries", category: "postgresql", title: "Long Running Queries", description: "Show queries running longer than 5 minutes.", lang: "sql",
+    code: `SELECT\n  pid, now() - pg_stat_activity.query_start AS duration,\n  query, state, wait_event_type, wait_event, usename, application_name\nFROM pg_stat_activity\nWHERE (now() - pg_stat_activity.query_start) > INTERVAL '5 minutes'\n  AND state != 'idle'\nORDER BY duration DESC;` },
+  { id: "pg-index-usage", category: "postgresql", title: "Unused Indexes", description: "Find indexes that are never or rarely used.", lang: "sql",
+    code: `SELECT\n  schemaname, relname AS table_name,\n  indexrelname AS index_name,\n  idx_scan AS times_used,\n  pg_size_pretty(pg_relation_size(indexrelid)) AS index_size\nFROM pg_stat_user_indexes\nJOIN pg_index USING (indexrelid)\nWHERE idx_scan < 10\n  AND NOT indisprimary\n  AND NOT indisunique\nORDER BY pg_relation_size(indexrelid) DESC\nLIMIT 20;` },
+
+  // ── MYSQL ──
+  { id: "mysql-slow", category: "mysql", title: "Enable Slow Query Log", description: "Enable and configure the MySQL slow query log.", lang: "sql",
+    code: `-- Enable slow query log\nSET GLOBAL slow_query_log = 'ON';\nSET GLOBAL slow_query_log_file = '/var/log/mysql/slow.log';\nSET GLOBAL long_query_time = 2;      -- seconds\nSET GLOBAL log_queries_not_using_indexes = 'ON';\n\n-- Check current status\nSHOW VARIABLES LIKE 'slow_query%';\nSHOW VARIABLES LIKE 'long_query_time';` },
+  { id: "mysql-replication", category: "mysql", title: "Replication Status Check", description: "Full replication health check including lag and errors.", lang: "sql",
+    code: `-- On replica server\nSHOW SLAVE STATUS\\G\n\n-- Key fields to check:\n-- Slave_IO_Running: Yes\n-- Slave_SQL_Running: Yes\n-- Seconds_Behind_Master: 0 (ideally)\n-- Last_Error: (should be empty)\n\n-- Check replication lag\nSELECT\n  SERVICE_STATE, LAST_ERROR_NUMBER, LAST_ERROR_MESSAGE,\n  LAST_HEARTBEAT_TIMESTAMP\nFROM performance_schema.replication_connection_status;` },
+
+  // ── MONGODB ──
+  { id: "mongo-stats", category: "mongodb", title: "Collection Stats & Size", description: "Get size, document count and index info for all collections.", lang: "javascript",
+    code: `// Run in mongosh\ndb.getCollectionNames().forEach(function(col) {\n  const stats = db[col].stats();\n  print(col + ':');\n  print('  Documents : ' + stats.count);\n  print('  Data Size : ' + (stats.size/1024/1024).toFixed(2) + ' MB');\n  print('  Index Size: ' + (stats.totalIndexSize/1024/1024).toFixed(2) + ' MB');\n  print('  Indexes   : ' + stats.nindexes);\n  print('---');\n});` },
+  { id: "mongo-slow-ops", category: "mongodb", title: "Find Slow Operations", description: "Profile and find slow queries in MongoDB.", lang: "javascript",
+    code: `// Enable profiling (level 1 = slow ops only)\nuse myDatabase\ndb.setProfilingLevel(1, { slowms: 100 })\n\n// Find slowest recent operations\ndb.system.profile.find(\n  { millis: { $gt: 100 } },\n  { op: 1, ns: 1, millis: 1, command: 1, ts: 1 }\n).sort({ millis: -1 }).limit(10).pretty()\n\n// Check replication lag\nrs.printSecondaryReplicationInfo()` },
+
+  // ── LINUX ──
+  { id: "linux-disk", category: "linux", title: "Disk & I/O Analysis", description: "Comprehensive disk usage, I/O wait and top consumers.", lang: "bash",
+    code: `#!/bin/bash\n# Disk usage overview\necho "=== Disk Usage ==="\ndf -hT | grep -v tmpfs\n\n# Top 10 largest directories\necho "\\n=== Top 10 Largest Dirs ==="\ndu -sh /* 2>/dev/null | sort -rh | head -10\n\n# I/O stats (requires sysstat)\necho "\\n=== I/O Stats (5 snapshots) ==="\niostat -xz 2 5\n\n# Processes with most I/O\necho "\\n=== Top I/O Processes ==="\niostat -p ALL | sort -k6 -rn | head -15` },
+  { id: "linux-memory", category: "linux", title: "Memory Usage & Leak Check", description: "Analyze memory usage, swap, and top consumers.", lang: "bash",
+    code: `#!/bin/bash\necho "=== Memory Overview ==="\nfree -h\n\necho "\\n=== Swap Usage ==="\nswapon --show\n\necho "\\n=== Top 15 Memory Consumers ==="\nps aux --sort=-%mem | awk 'NR<=16 {printf "%-10s %-6s %-6s %s\\n",$1,$3,$4,$11}'\n\necho "\\n=== OOM Kill History ==="\ndmesg | grep -i 'killed process' | tail -10\n\necho "\\n=== Huge Pages ==="\ngrep -i hugepages /proc/meminfo` },
+  { id: "linux-os-check", category: "linux", title: "OS Health Check Script", description: "Full system health snapshot — CPU, memory, disk, network.", lang: "bash",
+    code: `#!/bin/bash\nHOST=$(hostname)\nDATE=$(date '+%Y-%m-%d %H:%M:%S')\necho "============================"\necho " System Health: $HOST"\necho " $DATE"\necho "============================"\necho "\\n--- CPU Load ---"\nuptime\nmpstat 1 3 | tail -4\n\necho "\\n--- Memory ---"\nfree -h\n\necho "\\n--- Disk ---"\ndf -hT | grep -v 'tmpfs\\|udev'\n\necho "\\n--- Network ---"\nss -s\n\necho "\\n--- Last 5 Failed Logins ---"\nlastb | head -5\n\necho "\\n--- Top 5 CPU Processes ---"\nps aux --sort=-%cpu | head -6` },
+  { id: "linux-db-tune", category: "linux", title: "Kernel Tuning for Databases", description: "Recommended sysctl settings for Oracle / PostgreSQL servers.", lang: "bash",
+    code: `#!/bin/bash\n# Apply DB-optimized kernel parameters\n# Add to /etc/sysctl.conf or /etc/sysctl.d/99-db.conf\n\ntee /etc/sysctl.d/99-db.conf <<'EOF'\n# Shared Memory (Oracle/PostgreSQL)\nkernel.shmmax = 68719476736\nkernel.shmall = 4294967296\nkernel.shmmni = 4096\n\n# Semaphores\nkernel.sem = 250 32000 100 128\n\n# Network buffers\nnet.core.rmem_max = 4194304\nnet.core.wmem_max = 4194304\nnet.ipv4.tcp_rmem = 4096 87380 4194304\nnet.ipv4.tcp_wmem = 4096 65536 4194304\n\n# VM / Swappiness (keep low for DB servers)\nvm.swappiness = 10\nvm.dirty_background_ratio = 3\nvm.dirty_ratio = 15\nEOF\n\nsysctl -p /etc/sysctl.d/99-db.conf\necho "Kernel parameters applied."` },
+];
+
 // ── MARKDOWN RENDERER ─────────────────────────────────────────────────
 function inlineFormat(text) {
   return text
@@ -472,6 +536,58 @@ function AdminLogin({ onSuccess, onCancel }) {
 // ══════════════════════════════════════════════════════════════════════
 // MAIN APP
 // ══════════════════════════════════════════════════════════════════════
+// ══════════════════════════════════════════════════════════════════════
+// 📂 SCRIPTS DROPDOWN NAV COMPONENT
+// ══════════════════════════════════════════════════════════════════════
+function ScriptsDropdown({ goScripts }) {
+  const [open, setOpen] = useState(false);
+  return (
+    <div style={{ position: "relative" }}
+      onMouseEnter={() => setOpen(true)}
+      onMouseLeave={() => setOpen(false)}>
+      <button className="nav-link" style={{ display: "flex", alignItems: "center", gap: "0.3rem", color: open ? "#fff" : undefined, background: open ? "rgba(255,255,255,0.07)" : undefined }}>
+        📜 Scripts
+        <svg width="10" height="10" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24" style={{ transition: "transform 0.2s", transform: open ? "rotate(180deg)" : "none" }}><path d="M6 9l6 6 6-6"/></svg>
+      </button>
+      {open && (
+        <div style={{ position: "absolute", top: "100%", left: 0, background: "#111827", border: "1px solid rgba(255,255,255,0.1)", borderRadius: 10, overflow: "hidden", minWidth: 180, boxShadow: "0 16px 48px rgba(0,0,0,0.5)", zIndex: 200, paddingTop: 4, paddingBottom: 4 }}>
+          <div style={{ padding: "0.4rem 0.9rem 0.3rem", fontFamily: "'IBM Plex Mono', monospace", fontSize: "0.6rem", color: "#475569", letterSpacing: "0.1em", textTransform: "uppercase" }}>By Platform</div>
+          {SCRIPT_CATEGORIES.map(cat => (
+            <button key={cat.id} onClick={() => { goScripts(cat.id); setOpen(false); }}
+              style={{ display: "flex", alignItems: "center", gap: "0.65rem", width: "100%", padding: "0.55rem 0.9rem", background: "none", border: "none", color: "rgba(255,255,255,0.75)", fontSize: "0.82rem", cursor: "pointer", textAlign: "left", fontFamily: "inherit", transition: "all 0.12s" }}
+              onMouseEnter={e => { e.currentTarget.style.background = "rgba(255,255,255,0.06)"; e.currentTarget.style.color = "#fff"; }}
+              onMouseLeave={e => { e.currentTarget.style.background = "none"; e.currentTarget.style.color = "rgba(255,255,255,0.75)"; }}>
+              <span style={{ width: 22, height: 22, background: cat.light, borderRadius: 5, display: "flex", alignItems: "center", justifyContent: "center", fontSize: "0.85rem", flexShrink: 0 }}>{cat.icon}</span>
+              {cat.label}
+              <span style={{ marginLeft: "auto", fontFamily: "'IBM Plex Mono', monospace", fontSize: "0.65rem", color: "#475569" }}>
+                {DEFAULT_SCRIPTS.filter(s => s.category === cat.id).length}
+              </span>
+            </button>
+          ))}
+          <div style={{ borderTop: "1px solid rgba(255,255,255,0.07)", margin: "4px 0" }} />
+          <button onClick={() => { goScripts("oracle"); setOpen(false); }}
+            style={{ display: "flex", alignItems: "center", gap: "0.5rem", width: "100%", padding: "0.5rem 0.9rem", background: "none", border: "none", color: "#60A5FA", fontSize: "0.78rem", cursor: "pointer", fontFamily: "inherit", fontWeight: 600 }}
+            onMouseEnter={e => e.currentTarget.style.background = "rgba(96,165,250,0.08)"}
+            onMouseLeave={e => e.currentTarget.style.background = "none"}>
+            View All Scripts →
+          </button>
+        </div>
+      )}
+    </div>
+  );
+}
+
+// ══════════════════════════════════════════════════════════════════════
+// 📋 COPY TO CLIPBOARD HELPER
+// ══════════════════════════════════════════════════════════════════════
+function copyToClipboard(text) {
+  if (navigator.clipboard) return navigator.clipboard.writeText(text);
+  const el = document.createElement("textarea");
+  el.value = text; document.body.appendChild(el); el.select();
+  document.execCommand("copy"); document.body.removeChild(el);
+  return Promise.resolve();
+}
+
 export default function App() {
   const [topics, setTopics]           = useState([]);
   const [view, setView]               = useState("home");
@@ -487,9 +603,19 @@ export default function App() {
   const [editingTopic, setEditingTopic]             = useState(null);
   const [editingPage, setEditingPage]               = useState(null);
   const [editingPageTopicId, setEditingPageTopicId] = useState(null);
+  const [scriptCat, setScriptCat]     = useState("oracle");
+  const [activeScript, setActiveScript] = useState(null);
+  const [scriptCopied, setScriptCopied] = useState(null);
+  const [scriptSearch, setScriptSearch] = useState("");
+  const [editingScript, setEditingScript] = useState(null);
+  const [customScripts, setCustomScripts] = useState([]);
 
   useEffect(() => {
     loadData().then(setTopics);
+    // Load custom scripts from storage
+    window.storage?.get("itplatform-scripts").then(r => {
+      if (r) { try { setCustomScripts(JSON.parse(r.value)); } catch {} }
+    }).catch(() => {});
     const sec = getSecurityState();
     if (isSessionValid(sec)) setIsAdmin(true);
   }, []);
@@ -539,6 +665,7 @@ export default function App() {
   const goHome   = () => { setView("home");   setActiveTopic(null); setActivePage(null); };
   const goAbout  = () => { setView("about");  setActiveTopic(null); setActivePage(null); };
   const goBrowse = (cat = "all") => { setView("browse"); setFilterCat(cat); setActiveTopic(null); setBrowseSearch(""); };
+  const goScripts = (cat = "oracle") => { setView("scripts"); setScriptCat(cat); setActiveScript(null); setScriptSearch(""); };
   const goTopic  = (t) => { setActiveTopic(t); setView("topic"); setActivePage(null); };
   const goPage   = (topic, page) => { setActiveTopic(topic); setActivePage(page); setView("page"); };
 
@@ -576,6 +703,29 @@ export default function App() {
   const deletePage = (topicId, pageId) => {
     persist(topics.map((t) => t.id === topicId ? { ...t, pages: t.pages.filter((p) => p.id !== pageId) } : t));
     showToast("🗑️ Page deleted");
+  };
+
+  const allScripts = [...DEFAULT_SCRIPTS, ...customScripts];
+
+  const saveScript = (data) => {
+    let next;
+    if (data.id && customScripts.find(s => s.id === data.id)) {
+      next = customScripts.map(s => s.id === data.id ? { ...s, ...data } : s);
+    } else {
+      next = [...customScripts, { ...data, id: "script-" + Date.now() }];
+    }
+    setCustomScripts(next);
+    try { window.storage?.set("itplatform-scripts", JSON.stringify(next)); } catch {}
+    setAdminView("scripts"); setEditingScript(null);
+    showToast("✅ Script saved!");
+  };
+
+  const deleteScript = (id) => {
+    const next = customScripts.filter(s => s.id !== id);
+    setCustomScripts(next);
+    try { window.storage?.set("itplatform-scripts", JSON.stringify(next)); } catch {}
+    if (activeScript?.id === id) setActiveScript(null);
+    showToast("🗑️ Script deleted");
   };
 
   return (
@@ -644,8 +794,14 @@ export default function App() {
 
         {/* Nav Links */}
         <div style={{ display: "flex", gap: "0.1rem", alignItems: "center" }}>
-          {[["Home", goHome], ["About", goAbout], ["Browse All", () => goBrowse()], ...DEFAULT_CATEGORIES.map((c) => [c.label, () => goBrowse(c.id)])].map(([label, fn]) => (
+          {[["Home", goHome], ["About", goAbout], ["Browse All", () => goBrowse()]].map(([label, fn]) => (
             <button key={label} onClick={fn} className="nav-link">{label}</button>
+          ))}
+          {/* Scripts dropdown */}
+          <ScriptsDropdown goScripts={goScripts} />
+          {/* Category links */}
+          {DEFAULT_CATEGORIES.map((c) => (
+            <button key={c.id} onClick={() => goBrowse(c.id)} className="nav-link">{c.label}</button>
           ))}
         </div>
 
@@ -862,6 +1018,141 @@ export default function App() {
           </div>
         )}
 
+        {/* ══════════ SCRIPTS VIEW ══════════ */}
+        {view === "scripts" && (
+          <div className="fade-in" style={{ display: "flex", minHeight: "calc(100vh - 60px)" }}>
+
+            {/* ── Sidebar ── */}
+            <aside style={{ width: 220, flexShrink: 0, background: "#0B1220", borderRight: "1px solid rgba(255,255,255,0.07)", display: "flex", flexDirection: "column", position: "sticky", top: 60, height: "calc(100vh - 60px)", overflowY: "auto" }}>
+              <div style={{ padding: "1.25rem 1rem 0.75rem", fontFamily: "'IBM Plex Mono', monospace", fontSize: "0.6rem", color: "#475569", letterSpacing: "0.12em", textTransform: "uppercase" }}>Script Library</div>
+              {SCRIPT_CATEGORIES.map(cat => {
+                const count = allScripts.filter(s => s.category === cat.id).length;
+                const active = scriptCat === cat.id;
+                return (
+                  <button key={cat.id} onClick={() => { setScriptCat(cat.id); setActiveScript(null); setScriptSearch(""); }}
+                    style={{ display: "flex", alignItems: "center", gap: "0.65rem", padding: "0.7rem 1rem", background: active ? "rgba(29,78,216,0.15)" : "none", border: "none", borderLeft: active ? `3px solid #1D4ED8` : "3px solid transparent", color: active ? "#fff" : "rgba(255,255,255,0.5)", cursor: "pointer", textAlign: "left", fontFamily: "inherit", fontSize: "0.83rem", fontWeight: active ? 600 : 400, width: "100%", transition: "all 0.15s" }}
+                    onMouseEnter={e => { if (!active) { e.currentTarget.style.background = "rgba(255,255,255,0.05)"; e.currentTarget.style.color = "rgba(255,255,255,0.8)"; } }}
+                    onMouseLeave={e => { if (!active) { e.currentTarget.style.background = "none"; e.currentTarget.style.color = "rgba(255,255,255,0.5)"; } }}>
+                    <span style={{ width: 26, height: 26, background: active ? cat.light : "rgba(255,255,255,0.06)", borderRadius: 6, display: "flex", alignItems: "center", justifyContent: "center", fontSize: "0.9rem", flexShrink: 0, transition: "background 0.15s" }}>{cat.icon}</span>
+                    <span style={{ flex: 1 }}>{cat.label}</span>
+                    <span style={{ fontFamily: "'IBM Plex Mono', monospace", fontSize: "0.65rem", color: active ? "#60A5FA" : "#334155", background: active ? "rgba(96,165,250,0.1)" : "rgba(255,255,255,0.04)", padding: "0.1rem 0.4rem", borderRadius: 4 }}>{count}</span>
+                  </button>
+                );
+              })}
+              {/* Total count */}
+              <div style={{ marginTop: "auto", padding: "1rem", borderTop: "1px solid rgba(255,255,255,0.06)", fontFamily: "'IBM Plex Mono', monospace", fontSize: "0.65rem", color: "#334155" }}>
+                {allScripts.length} scripts total · {customScripts.length} custom
+              </div>
+            </aside>
+
+            {/* ── Main content ── */}
+            <div style={{ flex: 1, background: "#F4F6F9", display: "flex", flexDirection: "column" }}>
+              {(() => {
+                const cat = SCRIPT_CATEGORIES.find(c => c.id === scriptCat);
+                const filtered = allScripts.filter(s =>
+                  s.category === scriptCat &&
+                  (!scriptSearch || s.title.toLowerCase().includes(scriptSearch.toLowerCase()) || s.description.toLowerCase().includes(scriptSearch.toLowerCase()))
+                );
+                return (
+                  <>
+                    {/* Header */}
+                    <div style={{ background: "#fff", borderBottom: "1px solid #E1E7EF", padding: "1.4rem 2rem", display: "flex", alignItems: "center", justifyContent: "space-between", gap: "1rem", flexWrap: "wrap" }}>
+                      <div style={{ display: "flex", alignItems: "center", gap: "0.8rem" }}>
+                        <div style={{ width: 38, height: 38, background: cat.light, borderRadius: 9, display: "flex", alignItems: "center", justifyContent: "center", fontSize: "1.3rem", border: `1.5px solid ${cat.color}20` }}>{cat.icon}</div>
+                        <div>
+                          <h1 style={{ fontFamily: "'Syne', sans-serif", fontSize: "1.1rem", fontWeight: 800, color: "#0B1220" }}>{cat.label} Scripts</h1>
+                          <div style={{ fontFamily: "'IBM Plex Mono', monospace", fontSize: "0.65rem", color: "#64748B" }}>{filtered.length} script{filtered.length !== 1 ? "s" : ""} · Click to view & copy</div>
+                        </div>
+                      </div>
+                      <input value={scriptSearch} onChange={e => setScriptSearch(e.target.value)}
+                        placeholder="Search scripts…"
+                        style={{ padding: "0.5rem 1rem", border: "1.5px solid #E1E7EF", borderRadius: 8, fontSize: "0.83rem", background: "#F4F6F9", fontFamily: "inherit", outline: "none", width: 220 }} />
+                    </div>
+
+                    {/* Script list + viewer */}
+                    <div style={{ flex: 1, display: "flex", overflow: "hidden" }}>
+                      {/* Script cards list */}
+                      <div style={{ width: 300, flexShrink: 0, overflowY: "auto", borderRight: "1px solid #E1E7EF", padding: "1rem 0.75rem", display: "flex", flexDirection: "column", gap: "0.5rem" }}>
+                        {filtered.length === 0 && (
+                          <div style={{ textAlign: "center", padding: "3rem 1rem", color: "#94A3B8", fontSize: "0.83rem" }}>No scripts found</div>
+                        )}
+                        {filtered.map(script => {
+                          const isActive = activeScript?.id === script.id;
+                          const isCustom = customScripts.some(s => s.id === script.id);
+                          return (
+                            <div key={script.id} onClick={() => setActiveScript(script)}
+                              style={{ padding: "0.9rem 1rem", background: isActive ? "#EEF2FF" : "#fff", border: `1.5px solid ${isActive ? "#1D4ED8" : "#E1E7EF"}`, borderRadius: 10, cursor: "pointer", transition: "all 0.15s" }}
+                              onMouseEnter={e => { if (!isActive) e.currentTarget.style.borderColor = "#C7D7F5"; }}
+                              onMouseLeave={e => { if (!isActive) e.currentTarget.style.borderColor = "#E1E7EF"; }}>
+                              <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "0.3rem" }}>
+                                <span style={{ fontWeight: 700, fontSize: "0.85rem", color: isActive ? "#1D4ED8" : "#0B1220", flex: 1, marginRight: "0.4rem" }}>{script.title}</span>
+                                <div style={{ display: "flex", gap: "0.3rem", alignItems: "center" }}>
+                                  {isCustom && <span style={{ fontFamily: "'IBM Plex Mono', monospace", fontSize: "0.55rem", background: "#FEF3C7", color: "#92400E", padding: "0.1rem 0.35rem", borderRadius: 3 }}>custom</span>}
+                                  <span style={{ fontFamily: "'IBM Plex Mono', monospace", fontSize: "0.6rem", background: isActive ? "#1D4ED8" : "#F1F5F9", color: isActive ? "#fff" : "#64748B", padding: "0.15rem 0.45rem", borderRadius: 4 }}>{script.lang}</span>
+                                </div>
+                              </div>
+                              <div style={{ fontSize: "0.75rem", color: "#64748B", lineHeight: 1.5 }}>{script.description}</div>
+                            </div>
+                          );
+                        })}
+                      </div>
+
+                      {/* Code viewer */}
+                      <div style={{ flex: 1, overflowY: "auto", padding: "1.5rem 2rem" }}>
+                        {!activeScript ? (
+                          <div style={{ display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", height: "100%", color: "#94A3B8", textAlign: "center" }}>
+                            <div style={{ fontSize: "3rem", marginBottom: "1rem" }}>📜</div>
+                            <div style={{ fontWeight: 600, fontSize: "0.95rem", marginBottom: "0.4rem", color: "#64748B" }}>Select a script to view</div>
+                            <div style={{ fontSize: "0.82rem" }}>Choose from the {cat.label} scripts on the left</div>
+                          </div>
+                        ) : (
+                          <div className="fade-in">
+                            {/* Script title bar */}
+                            <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", marginBottom: "1.2rem", flexWrap: "wrap", gap: "0.8rem" }}>
+                              <div>
+                                <div style={{ display: "flex", alignItems: "center", gap: "0.6rem", marginBottom: "0.3rem" }}>
+                                  <h2 style={{ fontFamily: "'Syne', sans-serif", fontSize: "1.15rem", fontWeight: 800, color: "#0B1220" }}>{activeScript.title}</h2>
+                                  {customScripts.some(s => s.id === activeScript.id) && (
+                                    <span style={{ fontFamily: "'IBM Plex Mono', monospace", fontSize: "0.6rem", background: "#FEF3C7", color: "#92400E", border: "1px solid #FDE68A", padding: "0.15rem 0.5rem", borderRadius: 4 }}>custom</span>
+                                  )}
+                                </div>
+                                <p style={{ fontSize: "0.83rem", color: "#64748B", lineHeight: 1.6 }}>{activeScript.description}</p>
+                              </div>
+                              <div style={{ display: "flex", gap: "0.5rem", flexShrink: 0 }}>
+                                {isAdmin && customScripts.some(s => s.id === activeScript.id) && (
+                                  <>
+                                    <button onClick={() => { setEditingScript(activeScript); setView("admin"); setAdminView("edit-script"); }} className="btn" style={{ padding: "0.55rem 0.9rem", background: "#F0FDF4", color: "#16A34A", fontSize: "0.78rem", border: "1px solid #BBF7D0" }}>✏️ Edit</button>
+                                    <button onClick={() => deleteScript(activeScript.id)} className="btn" style={{ padding: "0.55rem 0.9rem", background: "#FEF2F2", color: "#DC2626", fontSize: "0.78rem", border: "1px solid #FECACA" }}>🗑️ Delete</button>
+                                  </>
+                                )}
+                                <button onClick={() => { copyToClipboard(activeScript.code); setScriptCopied(activeScript.id); setTimeout(() => setScriptCopied(null), 2000); }} className="btn" style={{ padding: "0.55rem 1.1rem", background: scriptCopied === activeScript.id ? "#059669" : "#1D4ED8", color: "#fff", fontSize: "0.8rem", display: "flex", alignItems: "center", gap: "0.4rem" }}>
+                                  {scriptCopied === activeScript.id ? "✅ Copied!" : "📋 Copy Code"}
+                                </button>
+                              </div>
+                            </div>
+                            {/* Code block */}
+                            <div style={{ background: "#0B1120", borderRadius: 12, overflow: "hidden", border: "1px solid rgba(255,255,255,0.06)", boxShadow: "0 8px 32px rgba(0,0,0,0.2)" }}>
+                              <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "0.65rem 1.2rem", background: "rgba(255,255,255,0.04)", borderBottom: "1px solid rgba(255,255,255,0.06)" }}>
+                                <div style={{ display: "flex", gap: "0.4rem" }}>
+                                  {["#FF5F57","#FEBC2E","#28C840"].map(c => <div key={c} style={{ width: 11, height: 11, borderRadius: "50%", background: c }} />)}
+                                </div>
+                                <span style={{ fontFamily: "'IBM Plex Mono', monospace", fontSize: "0.68rem", color: "#475569", letterSpacing: "0.06em" }}>{activeScript.lang.toUpperCase()}</span>
+                              </div>
+                              <pre style={{ margin: 0, padding: "1.4rem 1.5rem", overflowX: "auto", fontFamily: "'IBM Plex Mono', monospace", fontSize: "0.82rem", lineHeight: 1.8, color: "#CBD5E1" }}>
+                                <code style={{ color: "#CBD5E1" }}>{activeScript.code}</code>
+                              </pre>
+                            </div>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  </>
+                );
+              })()}
+            </div>
+          </div>
+        )}
+
         {/* ══════════ BROWSE VIEW ══════════ */}
         {view === "browse" && (
           <div className="fade-in">
@@ -982,6 +1273,14 @@ export default function App() {
                           <div style={{ fontSize: "0.82rem", color: "#6B7280", marginTop: "0.5rem", lineHeight: 1.5 }}>
                             {page.content.replace(/```[\s\S]*?```/g,"[code]").replace(/\*\*/g,"").substring(0,100)}…
                           </div>
+                          {page.attachments && page.attachments.length > 0 && (
+                            <div style={{ display: "flex", gap: "0.3rem", marginTop: "0.5rem", flexWrap: "wrap" }}>
+                              {page.attachments.map(att => {
+                                const icon = att.type?.includes("pdf") ? "📄" : att.type?.includes("presentation") || att.type?.includes("ppt") ? "📊" : "📝";
+                                return <span key={att.id} style={{ fontSize: "0.65rem", background: "#EEF2FF", color: "#4338CA", border: "1px solid #C7D2FE", padding: "0.1rem 0.4rem", borderRadius: 4 }}>{icon} {att.name.length > 18 ? att.name.slice(0,16)+"…" : att.name}</span>;
+                              })}
+                            </div>
+                          )}
                         </div>
                         {isAdmin && (
                           <div style={{ display: "flex", gap: "0.3rem", marginLeft: "0.5rem" }}>
@@ -1020,6 +1319,46 @@ export default function App() {
             <div style={{ maxWidth: 820, margin: "0 auto", padding: "2.5rem 6%" }}>
               <div style={{ background: "#fff", border: "1px solid #E2E2EC", borderRadius: 16, padding: "2.5rem", lineHeight: 1.8, fontSize: "0.93rem", color: "#2D2D44" }}
                 dangerouslySetInnerHTML={{ __html: renderContent(activePage.content) }} />
+
+              {/* ── ATTACHMENTS DOWNLOAD SECTION ── */}
+              {activePage.attachments && activePage.attachments.length > 0 && (
+                <div style={{ marginTop: "1.5rem", background: "#fff", border: "1px solid #E1E7EF", borderRadius: 14, overflow: "hidden" }}>
+                  <div style={{ padding: "1rem 1.5rem", background: "#F8FAFC", borderBottom: "1px solid #E1E7EF", display: "flex", alignItems: "center", gap: "0.6rem" }}>
+                    <span style={{ fontSize: "1rem" }}>📎</span>
+                    <span style={{ fontWeight: 700, fontSize: "0.88rem", color: "#0B1220" }}>Attachments</span>
+                    <span style={{ fontFamily: "'IBM Plex Mono', monospace", fontSize: "0.65rem", background: "#EEF2FF", color: "#4338CA", padding: "0.1rem 0.45rem", borderRadius: 4 }}>{activePage.attachments.length} file{activePage.attachments.length !== 1 ? "s" : ""}</span>
+                  </div>
+                  <div style={{ padding: "0.75rem 1rem", display: "flex", flexDirection: "column", gap: "0.5rem" }}>
+                    {activePage.attachments.map(att => {
+                      const EXT_META = {
+                        "application/pdf": { icon: "📄", label: "PDF", color: "#DC2626", light: "#FEF2F2" },
+                        "application/vnd.openxmlformats-officedocument.wordprocessingml.document": { icon: "📝", label: "DOCX", color: "#1D4ED8", light: "#EEF2FF" },
+                        "application/msword": { icon: "📝", label: "DOC", color: "#1D4ED8", light: "#EEF2FF" },
+                        "application/vnd.openxmlformats-officedocument.presentationml.presentation": { icon: "📊", label: "PPTX", color: "#D97706", light: "#FFFBEB" },
+                        "application/vnd.ms-powerpoint": { icon: "📊", label: "PPT", color: "#D97706", light: "#FFFBEB" },
+                      };
+                      const meta = EXT_META[att.type] || { icon: "📎", label: "FILE", color: "#64748B", light: "#F8FAFC" };
+                      const formatSize = (b) => b < 1024*1024 ? (b/1024).toFixed(0)+"KB" : (b/1024/1024).toFixed(1)+"MB";
+                      return (
+                        <a key={att.id} href={att.data} download={att.name}
+                          style={{ display: "flex", alignItems: "center", gap: "0.85rem", padding: "0.75rem 1rem", background: meta.light, border: `1px solid ${meta.color}20`, borderRadius: 10, textDecoration: "none", transition: "all 0.15s" }}
+                          onMouseEnter={e => e.currentTarget.style.transform = "translateY(-1px)"}
+                          onMouseLeave={e => e.currentTarget.style.transform = ""}>
+                          <div style={{ width: 40, height: 40, background: "#fff", borderRadius: 9, display: "flex", alignItems: "center", justifyContent: "center", fontSize: "1.3rem", flexShrink: 0, border: `1px solid ${meta.color}20` }}>{meta.icon}</div>
+                          <div style={{ flex: 1, minWidth: 0 }}>
+                            <div style={{ fontWeight: 600, fontSize: "0.88rem", color: "#0B1220", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{att.name}</div>
+                            <div style={{ fontSize: "0.7rem", color: "#64748B", marginTop: "0.1rem" }}>{meta.label} · {formatSize(att.size)} · Uploaded {att.uploadedAt}</div>
+                          </div>
+                          <div style={{ display: "flex", alignItems: "center", gap: "0.3rem", padding: "0.4rem 0.85rem", background: meta.color, color: "#fff", borderRadius: 7, fontSize: "0.78rem", fontWeight: 600, flexShrink: 0 }}>
+                            ⬇ Download
+                          </div>
+                        </a>
+                      );
+                    })}
+                  </div>
+                </div>
+              )}
+
               <CommentsSection
                 pageId={activeTopic.id + "-" + activePage.id}
                 pageTitle={activePage.title}
@@ -1166,30 +1505,20 @@ export default function App() {
 
             {/* CTA */}
             <section style={{ background: "#0B1220", padding: "52px 6%", borderTop: "1px solid rgba(255,255,255,0.06)" }}>
-              <div style={{ maxWidth: 800, margin: "0 auto", display: "grid", gridTemplateColumns: "1fr 1fr", gap: "2rem", flexWrap: "wrap", alignItems: "center" }}>
-
-                {/* Left: explore KB */}
-                <div style={{ background: "rgba(29,78,216,0.1)", border: "1px solid rgba(29,78,216,0.2)", borderRadius: 16, padding: "2rem" }}>
-                  <div style={{ fontSize: "1.6rem", marginBottom: "0.7rem" }}>📚</div>
-                  <h3 style={{ fontFamily: "'Syne', sans-serif", fontWeight: 700, fontSize: "1.05rem", color: "#F1F5F9", marginBottom: "0.5rem" }}>Explore the Knowledge Base</h3>
-                  <p style={{ fontSize: "0.82rem", color: "#64748B", lineHeight: 1.7, marginBottom: "1.2rem" }}>Browse technical guides, scripts, and architecture patterns built from enterprise production experience.</p>
-                  <button onClick={() => goBrowse()} className="btn" style={{ padding: "0.7rem 1.4rem", background: "#1D4ED8", color: "#fff", fontSize: "0.84rem", width: "100%" }}>
+              <div style={{ maxWidth: 560, margin: "0 auto", textAlign: "center" }}>
+                <div style={{ fontSize: "1.6rem", marginBottom: "0.7rem" }}>📚</div>
+                <h3 style={{ fontFamily: "'Syne', sans-serif", fontWeight: 700, fontSize: "1.15rem", color: "#F1F5F9", marginBottom: "0.5rem" }}>Explore the Knowledge Base</h3>
+                <p style={{ fontSize: "0.84rem", color: "#64748B", lineHeight: 1.75, marginBottom: "1.5rem" }}>Browse technical guides, scripts, and architecture patterns built from real enterprise production experience.</p>
+                <div style={{ display: "flex", gap: "0.85rem", justifyContent: "center", flexWrap: "wrap" }}>
+                  <button onClick={() => goBrowse()} className="btn" style={{ padding: "0.75rem 1.6rem", background: "#1D4ED8", color: "#fff", fontSize: "0.87rem", boxShadow: "0 4px 20px rgba(29,78,216,0.35)" }}>
                     Browse All Topics →
                   </button>
-                </div>
-
-                {/* Right: LinkedIn / hiring */}
-                <div style={{ background: "rgba(10,102,194,0.1)", border: "1px solid rgba(10,102,194,0.25)", borderRadius: 16, padding: "2rem" }}>
-                  <div style={{ fontSize: "1.6rem", marginBottom: "0.7rem" }}>🤝</div>
-                  <h3 style={{ fontFamily: "'Syne', sans-serif", fontWeight: 700, fontSize: "1.05rem", color: "#F1F5F9", marginBottom: "0.5rem" }}>Open to Opportunities</h3>
-                  <p style={{ fontSize: "0.82rem", color: "#64748B", lineHeight: 1.7, marginBottom: "1.2rem" }}>Actively exploring senior DBA and cloud infrastructure roles. Let's connect if you're hiring or want to collaborate.</p>
                   <a href="https://www.linkedin.com/in/mokhtar-atif-dba" target="_blank" rel="noreferrer"
-                    style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: "0.5rem", padding: "0.7rem 1.4rem", background: "#0A66C2", color: "#fff", borderRadius: 8, fontSize: "0.84rem", fontWeight: 600, textDecoration: "none" }}>
+                    style={{ display: "inline-flex", alignItems: "center", gap: "0.45rem", padding: "0.75rem 1.4rem", background: "#0A66C2", color: "#fff", borderRadius: 8, fontSize: "0.87rem", fontWeight: 600, textDecoration: "none" }}>
                     <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433a2.062 2.062 0 0 1-2.063-2.065 2.064 2.064 0 1 1 2.063 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.222 0h.003z"/></svg>
-                    Connect on LinkedIn
+                    LinkedIn Profile
                   </a>
                 </div>
-
               </div>
             </section>
 
@@ -1199,14 +1528,23 @@ export default function App() {
         {/* ══════════ ADMIN VIEW ══════════ */}
         {view === "admin" && isAdmin && (
           <div className="fade-in">
-            <div style={{ background: "#1A1A2E", padding: "35px 6% 28px" }}>
-              <Breadcrumb dark items={[{ label: "Home", fn: goHome }, { label: "Admin Panel" }]} />
-              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginTop: "0.8rem", flexWrap: "wrap", gap: "1rem" }}>
+            <div style={{ background: "#0B1220", padding: "28px 6% 0", borderBottom: "1px solid rgba(255,255,255,0.07)" }}>
+              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "1.2rem", flexWrap: "wrap", gap: "1rem" }}>
                 <div>
-                  <h1 style={{ fontFamily: "'Playfair Display', serif", fontSize: "1.8rem", fontWeight: 900, color: "#fff" }}>🔐 Admin Panel</h1>
-                  <p style={{ color: "#9CA3AF", fontSize: "0.83rem", marginTop: "0.2rem" }}>🛡️ Secure session · Auto-expires in {SESSION_HOURS}h</p>
+                  <div style={{ fontFamily: "'IBM Plex Mono', monospace", fontSize: "0.65rem", color: "#60A5FA", letterSpacing: "0.1em", textTransform: "uppercase", marginBottom: "0.3rem" }}>🔐 Admin Panel</div>
+                  <h1 style={{ fontFamily: "'Syne', sans-serif", fontSize: "1.4rem", fontWeight: 800, color: "#F1F5F9" }}>Content Management</h1>
+                  <p style={{ color: "#475569", fontSize: "0.78rem", marginTop: "0.2rem" }}>Secure session · Auto-expires in {SESSION_HOURS}h</p>
                 </div>
-                <button onClick={handleLogout} className="btn" style={{ padding: "0.5rem 1.1rem", background: "#DC2626", color: "#fff", fontSize: "0.82rem" }}>🚪 Logout</button>
+                <button onClick={handleLogout} className="btn" style={{ padding: "0.5rem 1.1rem", background: "rgba(239,68,68,0.15)", color: "#FCA5A5", fontSize: "0.82rem", border: "1px solid rgba(239,68,68,0.2)" }}>🚪 Logout</button>
+              </div>
+              {/* Tabs */}
+              <div style={{ display: "flex", gap: 0 }}>
+                {[["topics", "📚 Topics & Pages"], ["scripts", "📜 Script Library"]].map(([tab, label]) => (
+                  <button key={tab} onClick={() => setAdminView(tab)}
+                    style={{ padding: "0.65rem 1.4rem", background: "none", border: "none", borderBottom: adminView === tab || (tab === "topics" && ["edit-topic","edit-page"].includes(adminView)) || (tab === "scripts" && adminView === "edit-script") ? "2px solid #1D4ED8" : "2px solid transparent", color: adminView === tab || (tab === "topics" && ["edit-topic","edit-page"].includes(adminView)) || (tab === "scripts" && adminView === "edit-script") ? "#60A5FA" : "rgba(255,255,255,0.4)", fontFamily: "inherit", fontSize: "0.84rem", fontWeight: 600, cursor: "pointer", transition: "all 0.15s" }}>
+                    {label}
+                  </button>
+                ))}
               </div>
             </div>
             {adminView === "topics" && (
@@ -1252,6 +1590,87 @@ export default function App() {
             {adminView === "edit-page" && editingPage !== null && (
               <PageEditor page={editingPage} topicId={editingPageTopicId} topics={topics} onSave={savePage} onCancel={() => { setAdminView("topics"); setEditingPage(null); setEditingPageTopicId(null); }} />
             )}
+
+            {/* ── SCRIPTS TAB ── */}
+            {adminView === "scripts" && (
+              <div style={{ padding: "2rem 6%" }}>
+                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "1.8rem" }}>
+                  <div>
+                    <h2 style={{ fontWeight: 700, fontSize: "1.05rem", color: "#0B1220" }}>Script Library — Custom Scripts</h2>
+                    <p style={{ fontSize: "0.8rem", color: "#64748B", marginTop: "0.2rem" }}>Add your own scripts. Built-in scripts cannot be edited but custom scripts can be managed here.</p>
+                  </div>
+                  <button onClick={() => { setEditingScript({ title: "", description: "", category: "oracle", lang: "sql", code: "" }); setAdminView("edit-script"); }} className="btn"
+                    style={{ padding: "0.6rem 1.3rem", background: "#1D4ED8", color: "#fff", fontSize: "0.85rem", display: "flex", alignItems: "center", gap: "0.4rem" }}>
+                    ＋ New Script
+                  </button>
+                </div>
+
+                {/* Group custom scripts by category */}
+                {customScripts.length === 0 ? (
+                  <div style={{ textAlign: "center", padding: "4rem 2rem", border: "2px dashed #E1E7EF", borderRadius: 16, color: "#94A3B8" }}>
+                    <div style={{ fontSize: "2.5rem", marginBottom: "0.8rem" }}>📜</div>
+                    <div style={{ fontWeight: 600, fontSize: "0.95rem", marginBottom: "0.4rem", color: "#64748B" }}>No custom scripts yet</div>
+                    <div style={{ fontSize: "0.82rem", marginBottom: "1.5rem" }}>Click "＋ New Script" to add your first custom script</div>
+                    <button onClick={() => { setEditingScript({ title: "", description: "", category: "oracle", lang: "sql", code: "" }); setAdminView("edit-script"); }} className="btn"
+                      style={{ padding: "0.65rem 1.4rem", background: "#1D4ED8", color: "#fff", fontSize: "0.85rem" }}>
+                      ＋ Add First Script
+                    </button>
+                  </div>
+                ) : (
+                  SCRIPT_CATEGORIES.map(cat => {
+                    const catScripts = customScripts.filter(s => s.category === cat.id);
+                    if (catScripts.length === 0) return null;
+                    return (
+                      <div key={cat.id} style={{ marginBottom: "2rem" }}>
+                        <div style={{ display: "flex", alignItems: "center", gap: "0.5rem", fontSize: "0.75rem", fontWeight: 700, color: cat.color, letterSpacing: "0.08em", textTransform: "uppercase", marginBottom: "0.8rem" }}>
+                          <span style={{ background: cat.light, padding: "0.15rem 0.4rem", borderRadius: 4 }}>{cat.icon} {cat.label}</span>
+                          <span style={{ color: "#94A3B8", fontWeight: 400 }}>({catScripts.length} custom)</span>
+                        </div>
+                        <div style={{ display: "flex", flexDirection: "column", gap: "0.6rem" }}>
+                          {catScripts.map(script => (
+                            <div key={script.id} style={{ background: "#fff", border: "1px solid #E1E7EF", borderRadius: 12, padding: "1rem 1.3rem", display: "flex", alignItems: "center", justifyContent: "space-between", gap: "1rem" }}>
+                              <div style={{ flex: 1 }}>
+                                <div style={{ display: "flex", alignItems: "center", gap: "0.6rem", marginBottom: "0.2rem" }}>
+                                  <span style={{ fontWeight: 700, fontSize: "0.92rem", color: "#0B1220" }}>{script.title}</span>
+                                  <span style={{ fontFamily: "'IBM Plex Mono', monospace", fontSize: "0.6rem", background: "#F1F5F9", color: "#64748B", padding: "0.1rem 0.4rem", borderRadius: 4 }}>{script.lang}</span>
+                                  <span style={{ fontFamily: "'IBM Plex Mono', monospace", fontSize: "0.55rem", background: "#FEF3C7", color: "#92400E", padding: "0.1rem 0.35rem", borderRadius: 3 }}>custom</span>
+                                </div>
+                                <div style={{ fontSize: "0.77rem", color: "#64748B" }}>{script.description}</div>
+                              </div>
+                              <div style={{ display: "flex", gap: "0.5rem", flexShrink: 0 }}>
+                                <button onClick={() => { goScripts(script.category); setTimeout(() => setActiveScript(script), 100); }}
+                                  style={{ padding: "0.35rem 0.8rem", background: "#F4F6F9", color: "#374151", border: "none", borderRadius: 7, cursor: "pointer", fontSize: "0.78rem", fontWeight: 600 }}>View</button>
+                                <button onClick={() => { setEditingScript(script); setAdminView("edit-script"); }}
+                                  style={{ padding: "0.35rem 0.8rem", background: "#F0FDF4", color: "#16A34A", border: "none", borderRadius: 7, cursor: "pointer", fontSize: "0.78rem", fontWeight: 600 }}>Edit</button>
+                                <button onClick={() => deleteScript(script.id)}
+                                  style={{ padding: "0.35rem 0.8rem", background: "#FEF2F2", color: "#EF4444", border: "none", borderRadius: 7, cursor: "pointer", fontSize: "0.78rem", fontWeight: 600 }}>Delete</button>
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    );
+                  })
+                )}
+
+                {/* Built-in scripts info */}
+                <div style={{ marginTop: "2.5rem", padding: "1.2rem 1.5rem", background: "#F8FAFC", border: "1px solid #E1E7EF", borderRadius: 12, display: "flex", alignItems: "flex-start", gap: "0.8rem" }}>
+                  <span style={{ fontSize: "1.1rem", flexShrink: 0 }}>ℹ️</span>
+                  <div>
+                    <div style={{ fontWeight: 600, fontSize: "0.85rem", color: "#0B1220", marginBottom: "0.2rem" }}>Built-in Scripts ({DEFAULT_SCRIPTS.length} total)</div>
+                    <div style={{ fontSize: "0.78rem", color: "#64748B", lineHeight: 1.6 }}>
+                      The {DEFAULT_SCRIPTS.length} built-in scripts across Oracle, SQL Server, PostgreSQL, MySQL, MongoDB, and Linux are read-only. Use "＋ New Script" to add your own scripts alongside them.
+                    </div>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* ── SCRIPT EDITOR ── */}
+            {adminView === "edit-script" && editingScript !== null && (
+              <ScriptEditor script={editingScript} onSave={saveScript} onCancel={() => { setAdminView("scripts"); setEditingScript(null); }} />
+            )}
+
           </div>
         )}
 
@@ -1279,6 +1698,86 @@ function Breadcrumb({ items, dark }) {
             : <span style={{ color: dark ? "#E5E7EB" : "#374151", fontWeight: 600 }}>{item.label}</span>}
         </span>
       ))}
+    </div>
+  );
+}
+
+function ScriptEditor({ script, onSave, onCancel }) {
+  const [form, setForm] = useState({ ...script });
+  const set = (k, v) => setForm(f => ({ ...f, [k]: v }));
+  const valid = form.title.trim() && form.code.trim() && form.category && form.lang;
+
+  return (
+    <div style={{ padding: "2rem 6%", maxWidth: 860, margin: "0 auto" }}>
+      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "1.8rem", flexWrap: "wrap", gap: "1rem" }}>
+        <div>
+          <h2 style={{ fontFamily: "'Syne', sans-serif", fontWeight: 800, fontSize: "1.2rem", color: "#0B1220" }}>{script.id ? "Edit Script" : "New Script"}</h2>
+          <p style={{ fontSize: "0.8rem", color: "#64748B", marginTop: "0.2rem" }}>Fill in the details and paste your script code below.</p>
+        </div>
+        <button onClick={onCancel} style={{ background: "#F4F6F9", border: "1px solid #E1E7EF", borderRadius: 8, padding: "0.5rem 1rem", cursor: "pointer", fontSize: "0.82rem", color: "#64748B", fontFamily: "inherit" }}>← Back</button>
+      </div>
+
+      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "1rem", marginBottom: "1rem" }}>
+        {/* Title */}
+        <div style={{ gridColumn: "1/-1" }}>
+          <label style={{ display: "block", fontSize: "0.75rem", fontWeight: 600, color: "#374151", marginBottom: "0.4rem", letterSpacing: "0.04em", textTransform: "uppercase" }}>Script Title *</label>
+          <input value={form.title} onChange={e => set("title", e.target.value)}
+            placeholder="e.g. Kill Blocking Sessions"
+            style={{ width: "100%", padding: "0.75rem 1rem", border: "1.5px solid #E1E7EF", borderRadius: 9, fontSize: "0.9rem", fontFamily: "inherit", outline: "none", background: "#fff" }} />
+        </div>
+
+        {/* Category */}
+        <div>
+          <label style={{ display: "block", fontSize: "0.75rem", fontWeight: 600, color: "#374151", marginBottom: "0.4rem", letterSpacing: "0.04em", textTransform: "uppercase" }}>Platform / Category *</label>
+          <select value={form.category} onChange={e => set("category", e.target.value)}
+            style={{ width: "100%", padding: "0.75rem 1rem", border: "1.5px solid #E1E7EF", borderRadius: 9, fontSize: "0.88rem", fontFamily: "inherit", outline: "none", background: "#fff", cursor: "pointer" }}>
+            {SCRIPT_CATEGORIES.map(c => <option key={c.id} value={c.id}>{c.icon} {c.label}</option>)}
+          </select>
+        </div>
+
+        {/* Language */}
+        <div>
+          <label style={{ display: "block", fontSize: "0.75rem", fontWeight: 600, color: "#374151", marginBottom: "0.4rem", letterSpacing: "0.04em", textTransform: "uppercase" }}>Language *</label>
+          <select value={form.lang} onChange={e => set("lang", e.target.value)}
+            style={{ width: "100%", padding: "0.75rem 1rem", border: "1.5px solid #E1E7EF", borderRadius: 9, fontSize: "0.88rem", fontFamily: "inherit", outline: "none", background: "#fff", cursor: "pointer" }}>
+            {["sql", "bash", "python", "javascript", "powershell", "hcl", "yaml"].map(l => <option key={l} value={l}>{l}</option>)}
+          </select>
+        </div>
+
+        {/* Description */}
+        <div style={{ gridColumn: "1/-1" }}>
+          <label style={{ display: "block", fontSize: "0.75rem", fontWeight: 600, color: "#374151", marginBottom: "0.4rem", letterSpacing: "0.04em", textTransform: "uppercase" }}>Description</label>
+          <input value={form.description} onChange={e => set("description", e.target.value)}
+            placeholder="Brief description of what this script does"
+            style={{ width: "100%", padding: "0.75rem 1rem", border: "1.5px solid #E1E7EF", borderRadius: 9, fontSize: "0.88rem", fontFamily: "inherit", outline: "none", background: "#fff" }} />
+        </div>
+      </div>
+
+      {/* Code editor */}
+      <div style={{ marginBottom: "1.5rem" }}>
+        <label style={{ display: "block", fontSize: "0.75rem", fontWeight: 600, color: "#374151", marginBottom: "0.4rem", letterSpacing: "0.04em", textTransform: "uppercase" }}>Script Code *</label>
+        <div style={{ background: "#0B1120", borderRadius: 12, overflow: "hidden", border: "1.5px solid #1E293B" }}>
+          <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "0.6rem 1.1rem", background: "rgba(255,255,255,0.04)", borderBottom: "1px solid rgba(255,255,255,0.06)" }}>
+            <div style={{ display: "flex", gap: "0.4rem" }}>
+              {["#FF5F57","#FEBC2E","#28C840"].map(c => <div key={c} style={{ width: 10, height: 10, borderRadius: "50%", background: c }} />)}
+            </div>
+            <span style={{ fontFamily: "'IBM Plex Mono', monospace", fontSize: "0.65rem", color: "#475569", letterSpacing: "0.06em" }}>{form.lang?.toUpperCase() || "CODE"}</span>
+          </div>
+          <textarea value={form.code} onChange={e => set("code", e.target.value)}
+            placeholder={`-- Paste your ${form.lang || "script"} code here...`}
+            rows={18}
+            style={{ width: "100%", padding: "1.2rem 1.4rem", background: "transparent", border: "none", outline: "none", fontFamily: "'IBM Plex Mono', monospace", fontSize: "0.83rem", lineHeight: 1.8, color: "#CBD5E1", resize: "vertical", boxSizing: "border-box" }} />
+        </div>
+      </div>
+
+      {/* Actions */}
+      <div style={{ display: "flex", gap: "0.75rem", justifyContent: "flex-end" }}>
+        <button onClick={onCancel} className="btn" style={{ padding: "0.7rem 1.4rem", background: "#F4F6F9", color: "#374151", border: "1px solid #E1E7EF", fontSize: "0.88rem" }}>Cancel</button>
+        <button onClick={() => valid && onSave(form)} className="btn"
+          style={{ padding: "0.7rem 1.6rem", background: valid ? "#1D4ED8" : "#94A3B8", color: "#fff", fontSize: "0.88rem", cursor: valid ? "pointer" : "not-allowed", boxShadow: valid ? "0 4px 16px rgba(29,78,216,0.3)" : "none" }}>
+          {script.id ? "💾 Save Changes" : "✅ Create Script"}
+        </button>
+      </div>
     </div>
   );
 }
@@ -1318,28 +1817,130 @@ function TopicEditor({ topic, onSave, onCancel, categories }) {
 function PageEditor({ page, topicId, topics, onSave, onCancel }) {
   const [form, setForm] = useState({ ...page });
   const [tid, setTid]   = useState(topicId || topics[0]?.id || "");
+  const [attachments, setAttachments] = useState(page.attachments || []);
+  const [uploading, setUploading] = useState(false);
   const set = (k, v) => setForm((p) => ({ ...p, [k]: v }));
+
+  const ALLOWED = {
+    "application/pdf": { ext: "pdf", icon: "📄", label: "PDF" },
+    "application/vnd.openxmlformats-officedocument.wordprocessingml.document": { ext: "docx", icon: "📝", label: "DOCX" },
+    "application/msword": { ext: "doc", icon: "📝", label: "DOC" },
+    "application/vnd.openxmlformats-officedocument.presentationml.presentation": { ext: "pptx", icon: "📊", label: "PPTX" },
+    "application/vnd.ms-powerpoint": { ext: "ppt", icon: "📊", label: "PPT" },
+  };
+
+  const handleFileUpload = (e) => {
+    const files = Array.from(e.target.files);
+    if (!files.length) return;
+    setUploading(true);
+    Promise.all(files.map(file => {
+      if (!ALLOWED[file.type]) return Promise.resolve(null);
+      return new Promise((resolve) => {
+        const reader = new FileReader();
+        reader.onload = (ev) => resolve({
+          id: "att-" + Date.now() + "-" + Math.random().toString(36).slice(2),
+          name: file.name,
+          type: file.type,
+          size: file.size,
+          data: ev.target.result, // base64 data URL
+          uploadedAt: new Date().toISOString().split("T")[0],
+        });
+        reader.readAsDataURL(file);
+      });
+    })).then(results => {
+      const valid = results.filter(Boolean);
+      setAttachments(prev => [...prev, ...valid]);
+      setUploading(false);
+    });
+    e.target.value = "";
+  };
+
+  const removeAttachment = (id) => setAttachments(prev => prev.filter(a => a.id !== id));
+
+  const formatSize = (bytes) => bytes < 1024*1024 ? (bytes/1024).toFixed(0)+"KB" : (bytes/1024/1024).toFixed(1)+"MB";
+
   return (
-    <div style={{ maxWidth: 780, margin: "0 auto", padding: "2.5rem 6%" }}>
-      <h2 style={{ fontWeight: 700, fontSize: "1.2rem", marginBottom: "0.4rem" }}>{form.id ? "Edit Knowledge Page" : "New Knowledge Page"}</h2>
-      <p style={{ fontSize: "0.83rem", color: "#6B7280", marginBottom: "1.5rem" }}>Supports <strong>**bold**</strong>, code blocks (```lang), and bullet lists (- item)</p>
-      <div style={{ background: "#fff", border: "1px solid #E2E2EC", borderRadius: 16, padding: "2rem", display: "flex", flexDirection: "column", gap: "1rem" }}>
+    <div style={{ maxWidth: 860, margin: "0 auto", padding: "2rem 6%" }}>
+      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "1.5rem", flexWrap: "wrap", gap: "1rem" }}>
         <div>
-          <label style={{ display: "block", fontSize: "0.82rem", fontWeight: 600, marginBottom: 4 }}>Topic</label>
-          <select value={tid} onChange={(e) => setTid(e.target.value)} style={{ width: "100%", padding: "0.65rem 0.9rem", border: "1.5px solid #E2E2EC", borderRadius: 9, fontSize: "0.88rem", background: "#FAFAF7" }}>
+          <h2 style={{ fontFamily: "'Syne', sans-serif", fontWeight: 800, fontSize: "1.2rem", color: "#0B1220" }}>{form.id ? "Edit Page" : "New Knowledge Page"}</h2>
+          <p style={{ fontSize: "0.8rem", color: "#64748B", marginTop: "0.2rem" }}>Supports **bold**, code blocks (```lang), bullet lists. Attach DOCX, PPTX or PDF files.</p>
+        </div>
+        <button onClick={onCancel} style={{ background: "#F4F6F9", border: "1px solid #E1E7EF", borderRadius: 8, padding: "0.5rem 1rem", cursor: "pointer", fontSize: "0.82rem", color: "#64748B", fontFamily: "inherit" }}>← Back</button>
+      </div>
+
+      <div style={{ background: "#fff", border: "1px solid #E1E7EF", borderRadius: 16, padding: "2rem", display: "flex", flexDirection: "column", gap: "1.2rem" }}>
+        {/* Topic selector */}
+        <div>
+          <label style={{ display: "block", fontSize: "0.75rem", fontWeight: 600, color: "#374151", marginBottom: "0.4rem", letterSpacing: "0.04em", textTransform: "uppercase" }}>Topic</label>
+          <select value={tid} onChange={(e) => setTid(e.target.value)} style={{ width: "100%", padding: "0.7rem 1rem", border: "1.5px solid #E1E7EF", borderRadius: 9, fontSize: "0.88rem", background: "#F8FAFC", fontFamily: "inherit", outline: "none" }}>
             {topics.map((t) => <option key={t.id} value={t.id}>{t.icon} {t.title}</option>)}
           </select>
         </div>
-        <Field label="Page Title" value={form.title} onChange={(v) => set("title", v)} placeholder="e.g. Advanced Indexing Strategies" />
+
+        {/* Title */}
         <div>
-          <label style={{ display: "block", fontSize: "0.82rem", fontWeight: 600, marginBottom: 4 }}>Content</label>
-          <textarea value={form.content} onChange={(e) => set("content", e.target.value)}
-            placeholder={"Write your knowledge here...\n\nSupports:\n**bold text**\n- bullet lists\n```sql\nSELECT * FROM table;\n```"}
-            style={{ width: "100%", minHeight: 340, padding: "0.85rem 1rem", border: "1.5px solid #E2E2EC", borderRadius: 9, fontSize: "0.87rem", background: "#FAFAF7", lineHeight: 1.7, fontFamily: "'DM Mono', monospace" }} />
+          <label style={{ display: "block", fontSize: "0.75rem", fontWeight: 600, color: "#374151", marginBottom: "0.4rem", letterSpacing: "0.04em", textTransform: "uppercase" }}>Page Title *</label>
+          <input value={form.title} onChange={e => set("title", e.target.value)}
+            placeholder="e.g. Advanced Indexing Strategies"
+            style={{ width: "100%", padding: "0.75rem 1rem", border: "1.5px solid #E1E7EF", borderRadius: 9, fontSize: "0.92rem", fontFamily: "inherit", outline: "none", background: "#F8FAFC", boxSizing: "border-box" }} />
         </div>
-        <div style={{ display: "flex", gap: "0.8rem" }}>
-          <button onClick={() => onSave(tid, form)} className="btn" style={{ flex: 1, padding: "0.75rem", background: "#2563EB", color: "#fff", fontSize: "0.92rem" }}>💾 Save Page</button>
-          <button onClick={onCancel} className="btn" style={{ flex: 1, padding: "0.75rem", background: "#F3F4F6", color: "#374151", fontSize: "0.92rem" }}>Cancel</button>
+
+        {/* Content */}
+        <div>
+          <label style={{ display: "block", fontSize: "0.75rem", fontWeight: 600, color: "#374151", marginBottom: "0.4rem", letterSpacing: "0.04em", textTransform: "uppercase" }}>Content</label>
+          <textarea value={form.content} onChange={(e) => set("content", e.target.value)}
+            placeholder={"Write your knowledge here...\n\nUse:\n**bold text**\n- bullet lists\n```sql\nSELECT * FROM table;\n```"}
+            style={{ width: "100%", minHeight: 300, padding: "0.85rem 1rem", border: "1.5px solid #E1E7EF", borderRadius: 9, fontSize: "0.87rem", background: "#F8FAFC", lineHeight: 1.75, fontFamily: "'IBM Plex Mono', monospace", resize: "vertical", boxSizing: "border-box" }} />
+        </div>
+
+        {/* ── FILE ATTACHMENTS ── */}
+        <div style={{ border: "1.5px dashed #CBD5E1", borderRadius: 12, padding: "1.4rem", background: "#F8FAFC" }}>
+          <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "0.9rem", flexWrap: "wrap", gap: "0.5rem" }}>
+            <div>
+              <div style={{ fontWeight: 700, fontSize: "0.88rem", color: "#0B1220", marginBottom: "0.15rem" }}>📎 Attachments</div>
+              <div style={{ fontSize: "0.73rem", color: "#64748B" }}>Upload PDF, DOCX, or PPTX files. Visitors can download them from this page.</div>
+            </div>
+            <label style={{ display: "inline-flex", alignItems: "center", gap: "0.4rem", padding: "0.55rem 1.1rem", background: "#1D4ED8", color: "#fff", borderRadius: 8, fontSize: "0.82rem", fontWeight: 600, cursor: uploading ? "not-allowed" : "pointer", opacity: uploading ? 0.7 : 1, flexShrink: 0 }}>
+              {uploading ? "⏳ Uploading…" : "＋ Add Files"}
+              <input type="file" multiple accept=".pdf,.doc,.docx,.ppt,.pptx" onChange={handleFileUpload} style={{ display: "none" }} disabled={uploading} />
+            </label>
+          </div>
+
+          {/* File type pills */}
+          <div style={{ display: "flex", gap: "0.4rem", flexWrap: "wrap", marginBottom: attachments.length ? "1rem" : 0 }}>
+            {[["📄","PDF"],["📝","DOCX"],["📊","PPTX"]].map(([icon, label]) => (
+              <span key={label} style={{ background: "#EEF2FF", color: "#4338CA", border: "1px solid #C7D2FE", padding: "0.2rem 0.6rem", borderRadius: 100, fontSize: "0.7rem", fontWeight: 600 }}>{icon} {label}</span>
+            ))}
+          </div>
+
+          {/* Attachment list */}
+          {attachments.length === 0 && !uploading && (
+            <div style={{ textAlign: "center", padding: "1.2rem", color: "#94A3B8", fontSize: "0.8rem" }}>No files attached yet</div>
+          )}
+          {attachments.map(att => {
+            const meta = ALLOWED[att.type] || { icon: "📎", label: att.name.split(".").pop().toUpperCase() };
+            return (
+              <div key={att.id} style={{ display: "flex", alignItems: "center", gap: "0.8rem", padding: "0.75rem 1rem", background: "#fff", border: "1px solid #E1E7EF", borderRadius: 9, marginBottom: "0.5rem" }}>
+                <span style={{ fontSize: "1.4rem", flexShrink: 0 }}>{meta.icon}</span>
+                <div style={{ flex: 1, minWidth: 0 }}>
+                  <div style={{ fontWeight: 600, fontSize: "0.85rem", color: "#0B1220", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{att.name}</div>
+                  <div style={{ fontSize: "0.7rem", color: "#94A3B8", marginTop: "0.1rem" }}>{meta.label} · {formatSize(att.size)} · {att.uploadedAt}</div>
+                </div>
+                <button onClick={() => removeAttachment(att.id)}
+                  style={{ background: "#FEF2F2", border: "1px solid #FECACA", color: "#DC2626", borderRadius: 6, padding: "0.3rem 0.65rem", cursor: "pointer", fontSize: "0.75rem", fontWeight: 600, flexShrink: 0 }}>✕ Remove</button>
+              </div>
+            );
+          })}
+        </div>
+
+        {/* Actions */}
+        <div style={{ display: "flex", gap: "0.75rem" }}>
+          <button onClick={() => onSave(tid, { ...form, attachments })} className="btn"
+            style={{ flex: 1, padding: "0.8rem", background: "#1D4ED8", color: "#fff", fontSize: "0.92rem", boxShadow: "0 4px 16px rgba(29,78,216,0.25)" }}>
+            💾 Save Page
+          </button>
+          <button onClick={onCancel} className="btn" style={{ flex: 1, padding: "0.8rem", background: "#F4F6F9", color: "#374151", fontSize: "0.92rem", border: "1px solid #E1E7EF" }}>Cancel</button>
         </div>
       </div>
     </div>
