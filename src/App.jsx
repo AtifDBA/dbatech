@@ -3,7 +3,7 @@ import { useState, useEffect, useCallback } from "react";
 // ══════════════════════════════════════════════════════════════════════
 // 🔐 SECURITY CONFIG — CHANGE THIS PASSWORD BEFORE DEPLOYING!
 // ══════════════════════════════════════════════════════════════════════
-const ADMIN_PASSWORD = "cafBT@DBATECH123";
+const ADMIN_PASSWORD = "";
 const MAX_LOGIN_ATTEMPTS = 5;
 const LOCKOUT_MINUTES = 15;
 const SESSION_HOURS = 8;
@@ -246,9 +246,9 @@ function renderContent(raw) {
       const idx = parseInt(line.match(/%%CODE_(\d+)%%/)[1]);
       out.push(codeBlocks[idx]); i++; continue;
     }
-    if (/^### (.+)/.test(line)) { out.push(`<h4 style="font-size:0.95rem;font-weight:700;color:#1A1A2E;margin:1.4rem 0 0.5rem">${inlineFormat(line.replace(/^### /,""))}</h4>`); i++; continue; }
-    if (/^## (.+)/.test(line))  { out.push(`<h3 style="font-size:1.1rem;font-weight:800;color:#1A1A2E;margin:1.8rem 0 0.6rem;padding-bottom:0.4rem;border-bottom:2px solid #E2E2EC">${inlineFormat(line.replace(/^## /,""))}</h3>`); i++; continue; }
-    if (/^# (.+)/.test(line))   { out.push(`<h2 style="font-size:1.3rem;font-weight:900;color:#1A1A2E;margin:2rem 0 0.7rem;font-family:'Playfair Display',serif">${inlineFormat(line.replace(/^# /,""))}</h2>`); i++; continue; }
+    if (/^### (.+)/.test(line)) { out.push(`<h4 style="font-family:'Syne',sans-serif;font-size:0.97rem;font-weight:700;color:#0B1220;margin:1.4rem 0 0.5rem;letter-spacing:-0.01em">${inlineFormat(line.replace(/^### /,""))}</h4>`); i++; continue; }
+    if (/^## (.+)/.test(line))  { out.push(`<h3 style="font-family:'Syne',sans-serif;font-size:1.1rem;font-weight:800;color:#0B1220;margin:1.8rem 0 0.6rem;padding-bottom:0.4rem;border-bottom:2px solid #E1E7EF;letter-spacing:-0.015em">${inlineFormat(line.replace(/^## /,""))}</h3>`); i++; continue; }
+    if (/^# (.+)/.test(line))   { out.push(`<h2 style="font-family:'Syne',sans-serif;font-size:1.3rem;font-weight:800;color:#0B1220;margin:2rem 0 0.7rem;letter-spacing:-0.02em">${inlineFormat(line.replace(/^# /,""))}</h2>`); i++; continue; }
     if (/^[-•*] (.+)/.test(line)) {
       const items = [];
       while (i < lines.length && /^[-•*] (.+)/.test(lines[i])) {
@@ -273,7 +273,7 @@ function renderContent(raw) {
       out.push(`<p style="font-weight:700;font-size:0.95rem;color:#1A1A2E;margin:1.4rem 0 0.3rem">${heading}:</p>`); i++; continue;
     }
     if (line.trim() === "") { out.push(`<div style="height:0.5rem"></div>`); i++; continue; }
-    out.push(`<p style="margin:0 0 0.5rem;line-height:1.85;color:#374151">${inlineFormat(line)}</p>`);
+    out.push(`<p style="margin:0 0 0.6rem;line-height:1.75;color:#374151;font-size:0.9rem">${inlineFormat(line)}</p>`);
     i++;
   }
   return out.join("\n");
@@ -732,7 +732,7 @@ export default function App() {
     // ✅ KEY FIX: flex column + min-height 100vh pushes footer to bottom
     <div style={{ fontFamily: "'IBM Plex Sans', sans-serif", minHeight: "100vh", background: "#F4F6F9", color: "#0B1220", display: "flex", flexDirection: "column" }}>
       <style>{`
-        @import url('https://fonts.googleapis.com/css2?family=Syne:wght@600;700;800&family=IBM+Plex+Sans:wght@300;400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap');
+        @import url('https://fonts.googleapis.com/css2?family=Syne:wght@600;700;800&family=IBM+Plex+Sans:wght@300;400;500;600&family=IBM+Plex+Mono:wght@400;500&family=Playfair+Display:wght@700;900&display=swap');
         html, body, #root { height: 100%; margin: 0; padding: 0; }
         * { box-sizing: border-box; margin: 0; padding: 0; }
         :root {
@@ -740,16 +740,23 @@ export default function App() {
           --surface: #FFFFFF;
           --ink: #0B1220;
           --ink2: #1E293B;
-          --muted: #64748B;
-          --dim: #94A3B8;
+          --body: #374151;
+          --muted: #4B5563;
+          --dim: #6B7280;
+          --meta: #9CA3AF;
           --border: #E1E7EF;
           --accent: #1D4ED8;
           --accent-light: #EEF2FF;
           --accent-glow: rgba(29,78,216,0.15);
           --nav-bg: #0B1220;
           --nav-border: rgba(255,255,255,0.07);
+          --body-size: 0.88rem;
+          --small-size: 0.82rem;
+          --meta-size: 0.74rem;
+          --line-height: 1.7;
         }
-        body { font-family: 'IBM Plex Sans', sans-serif; background: var(--bg); color: var(--ink); }
+        body { font-family: 'IBM Plex Sans', sans-serif; background: var(--bg); color: var(--ink); font-size: var(--body-size); line-height: var(--line-height); }
+        p { color: var(--body); line-height: var(--line-height); }
         .hover-lift { transition: transform 0.2s, box-shadow 0.2s; cursor: pointer; }
         .hover-lift:hover { transform: translateY(-3px); box-shadow: 0 12px 40px rgba(11,18,32,0.12); }
         .btn { border: none; cursor: pointer; font-family: 'IBM Plex Sans', sans-serif; font-weight: 600; transition: all 0.2s; border-radius: 8px; }
@@ -769,9 +776,19 @@ export default function App() {
         .nav-link:hover { color: #fff; background: rgba(255,255,255,0.07); }
         .card { background: var(--surface); border: 1px solid var(--border); border-radius: 14px; transition: all 0.2s; }
         .card:hover { border-color: #C7D7F5; box-shadow: 0 8px 32px rgba(29,78,216,0.07); }
-        .section-eyebrow { font-family: 'IBM Plex Mono', monospace; font-size: 0.67rem; font-weight: 500; color: var(--accent); letter-spacing: 0.12em; text-transform: uppercase; display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.55rem; }
-        .section-eyebrow::before { content: ''; width: 20px; height: 2px; background: var(--accent); border-radius: 1px; }
+        /* Standardised eyebrow label — use className="section-eyebrow" everywhere */
+        .section-eyebrow { font-family: 'IBM Plex Mono', monospace; font-size: 0.67rem; font-weight: 600; letter-spacing: 0.12em; text-transform: uppercase; display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.5rem; }
+        .section-eyebrow::before { content: ''; width: 18px; height: 2px; border-radius: 1px; background: currentColor; flex-shrink: 0; }
+        .section-eyebrow.light { color: #60A5FA; }
+        .section-eyebrow.dark  { color: var(--accent); }
         .section-title { font-family: 'Syne', sans-serif; font-weight: 800; color: var(--ink); line-height: 1.15; letter-spacing: -0.02em; }
+        /* Card body text — consistent size and contrast */
+        .card-body { font-size: var(--small-size); color: var(--muted); line-height: var(--line-height); text-align: left; }
+        .card-body-dark { font-size: var(--small-size); color: #94A3B8; line-height: var(--line-height); text-align: left; }
+        .card-title { font-weight: 700; font-size: 0.9rem; color: var(--ink); line-height: 1.3; margin-bottom: 0.4rem; }
+        /* Clamp text to 2 lines cleanly */
+        .clamp-2 { display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+        .clamp-3 { display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; }
       `}</style>
 
       {showLogin && <AdminLogin onSuccess={handleLoginSuccess} onCancel={() => setShowLogin(false)} />}
@@ -845,7 +862,7 @@ export default function App() {
                     <span style={{ color: "#60A5FA" }}>Enterprise Databases</span>,<br />
                     Cloud & Automation
                   </h1>
-                  <p style={{ fontSize: "0.93rem", color: "#64748B", lineHeight: 1.8, marginBottom: "1.8rem", maxWidth: 480 }}>
+                  <p style={{ fontSize: "0.95rem", color: "#9CAABD", lineHeight: 1.8, marginBottom: "1.8rem", maxWidth: 480 }}>
                     11+ years of enterprise experience distilled into practical guides — covering Oracle, SQL Server, PostgreSQL, MongoDB, AWS, Azure, and Kubernetes at production scale.
                   </p>
                   <div style={{ display: "flex", gap: "0.75rem", flexWrap: "wrap", alignItems: "center" }}>
@@ -858,18 +875,18 @@ export default function App() {
                   </div>
                 </div>
 
-                {/* Right: stat cards — compact 2x2 */}
+                {/* Right: stat cards */}
                 <div style={{ flex: "0 0 auto", display: "grid", gridTemplateColumns: "1fr 1fr", gap: "0.75rem" }}>
                   {[
-                    { n: "11+", l: "Years Enterprise\nExperience", icon: "📅", c: "#3B82F6" },
-                    { n: "5+",  l: "Database\nPlatforms",          icon: "🗄️", c: "#8B5CF6" },
-                    { n: "1K+", l: "Issues\nResolved",             icon: "✅", c: "#10B981" },
-                    { n: "∞",   l: "Pages of\nKnowledge",          icon: "📚", c: "#F59E0B" },
+                    { n: "11+", l: "Years Enterprise\nExperience", icon: "📅" },
+                    { n: "5+",  l: "Database\nPlatforms",          icon: "🗄️" },
+                    { n: "1K+", l: "Issues\nResolved",             icon: "✅" },
+                    { n: "∞",   l: "Pages of\nKnowledge",          icon: "📚" },
                   ].map((s, i) => (
                     <div key={i} style={{ background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.09)", borderRadius: 12, padding: "1rem 1.15rem", minWidth: 118, maxWidth: 148 }}>
                       <div style={{ fontSize: "1.2rem", marginBottom: "0.35rem" }}>{s.icon}</div>
-                      <div style={{ fontFamily: "'Syne', sans-serif", fontSize: "1.65rem", fontWeight: 800, color: "#F0F4FF", lineHeight: 1, marginBottom: "0.28rem" }}>{s.n}</div>
-                      <div style={{ fontSize: "0.67rem", color: "#475569", lineHeight: 1.45, whiteSpace: "pre-line" }}>{s.l}</div>
+                      <div style={{ fontFamily: "'Syne', sans-serif", fontSize: "1.65rem", fontWeight: 800, color: "#F0F4FF", lineHeight: 1, marginBottom: "0.3rem" }}>{s.n}</div>
+                      <div style={{ fontSize: "0.72rem", color: "#7A8FA6", lineHeight: 1.5, whiteSpace: "pre-line" }}>{s.l}</div>
                     </div>
                   ))}
                 </div>
@@ -880,23 +897,23 @@ export default function App() {
             <section style={{ background: "#fff", padding: "48px 0 44px", borderBottom: "1px solid #E1E7EF" }}>
               <div style={{ maxWidth: 1200, margin: "0 auto", padding: "0 5%" }}>
                 <div style={{ display: "flex", gap: "3rem", alignItems: "flex-start", flexWrap: "wrap" }}>
-                  {/* Left label column */}
-                  <div style={{ flex: "0 0 240px" }}>
-                    <div style={{ fontFamily: "'IBM Plex Mono', monospace", fontSize: "0.63rem", color: "#1D4ED8", letterSpacing: "0.12em", textTransform: "uppercase", marginBottom: "0.5rem" }}>Why This Knowledge Base</div>
-                    <h2 style={{ fontFamily: "'Syne', sans-serif", fontSize: "clamp(1.2rem, 1.8vw, 1.6rem)", fontWeight: 800, color: "#0B1220", lineHeight: 1.15, letterSpacing: "-0.02em", marginBottom: "0.65rem" }}>
+                  {/* Left label — with accent border anchor */}
+                  <div style={{ flex: "0 0 230px", borderLeft: "3px solid #1D4ED8", paddingLeft: "1rem" }}>
+                    <div className="section-eyebrow dark">Why This Knowledge Base</div>
+                    <h2 style={{ fontFamily: "'Syne', sans-serif", fontSize: "clamp(1.15rem, 1.8vw, 1.5rem)", fontWeight: 800, color: "#0B1220", lineHeight: 1.2, letterSpacing: "-0.02em", marginBottom: "0.65rem" }}>
                       Core Attributes of Exceptional Database Knowledge
                     </h2>
-                    <p style={{ fontSize: "0.8rem", color: "#64748B", lineHeight: 1.75 }}>
+                    <p style={{ fontSize: "0.82rem", color: "#4B5563", lineHeight: 1.7, textAlign: "left" }}>
                       What separates deep enterprise database expertise from generic IT content — and what you'll find here.
                     </p>
                   </div>
-                  {/* Right cards grid */}
+                  {/* Cards grid */}
                   <div style={{ flex: 1, display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(210px, 1fr))", gap: "0.85rem" }}>
                     {[
                       { icon: "🎯", title: "Deep, Specialized Focus", color: "#1D4ED8", light: "#EEF2FF",
                         desc: "Expertise from professionals who specialize only in database technologies — enabling deeper insight into architecture, performance, and optimization across complex systems." },
                       { icon: "🔀", title: "Multi-Platform Mastery", color: "#7C3AED", light: "#F5F3FF",
-                        desc: "Covers SQL Server, Oracle, MySQL, PostgreSQL, and cloud services (AWS, Azure, GCP). Not just one system — full heterogeneous environment architecture and optimization." },
+                        desc: "Covers SQL Server, Oracle, MySQL, PostgreSQL, and cloud services (AWS, Azure, GCP). Full heterogeneous environment architecture and optimization — not just one system." },
                       { icon: "⚡", title: "Strategic & Tactical Capability", color: "#0891B2", light: "#ECFEFF",
                         desc: "Beyond solving immediate problems — includes strategic architecture design, proactive planning, migrations, performance tuning, and long-term optimization." },
                       { icon: "🏥", title: "Industry-Specific Understanding", color: "#059669", light: "#ECFDF5",
@@ -904,11 +921,11 @@ export default function App() {
                       { icon: "📊", title: "Proven, Measurable Results", color: "#D97706", light: "#FFFBEB",
                         desc: "Quantifiable improvements: performance gains, reduced costs, minimized downtime, and more efficient operations — backed by real outcomes and a strong track record." },
                     ].map((f, i) => (
-                      <div key={i} className="hover-lift card" style={{ padding: "1.2rem", position: "relative", overflow: "hidden" }}>
+                      <div key={i} className="hover-lift card" style={{ padding: "1.25rem", position: "relative", overflow: "hidden" }}>
                         <div style={{ position: "absolute", top: 0, left: 0, right: 0, height: 3, background: f.color }} />
-                        <div style={{ width: 36, height: 36, background: f.light, borderRadius: 8, display: "flex", alignItems: "center", justifyContent: "center", fontSize: "1.05rem", marginBottom: "0.75rem" }}>{f.icon}</div>
-                        <div style={{ fontWeight: 700, fontSize: "0.85rem", color: "#0B1220", marginBottom: "0.4rem" }}>{f.title}</div>
-                        <div style={{ fontSize: "0.76rem", color: "#64748B", lineHeight: 1.65 }}>{f.desc}</div>
+                        <div style={{ width: 38, height: 38, background: f.light, borderRadius: 8, display: "flex", alignItems: "center", justifyContent: "center", fontSize: "1.1rem", marginBottom: "0.8rem" }}>{f.icon}</div>
+                        <div className="card-title">{f.title}</div>
+                        <div className="card-body">{f.desc}</div>
                       </div>
                     ))}
                   </div>
@@ -922,11 +939,11 @@ export default function App() {
                 <div style={{ maxWidth: 1200, margin: "0 auto", padding: "0 5%" }}>
                   <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "1.4rem", flexWrap: "wrap", gap: "0.8rem" }}>
                     <div>
-                      <div style={{ fontFamily: "'IBM Plex Mono', monospace", fontSize: "0.63rem", fontWeight: 600, color: cat.color, letterSpacing: "0.1em", textTransform: "uppercase", marginBottom: "0.3rem" }}>{cat.icon} {cat.label}</div>
+                      <div className="section-eyebrow dark" style={{ color: cat.color }}>{cat.icon} {cat.label}</div>
                       <h2 style={{ fontFamily: "'Syne', sans-serif", fontSize: "1.35rem", fontWeight: 800, color: "#0B1220", lineHeight: 1.15, letterSpacing: "-0.02em" }}>
                         {cat.id === "databases" ? "Database Platforms" : cat.id === "automation" ? "Automation & DevOps" : "Cloud Infrastructure"}
                       </h2>
-                      <p style={{ fontSize: "0.78rem", color: "#64748B", marginTop: "0.2rem" }}>
+                      <p style={{ fontSize: "0.82rem", color: "#4B5563", marginTop: "0.25rem", lineHeight: 1.6 }}>
                         {cat.id === "databases" ? "Enterprise RDBMS, NoSQL, and cloud-native guides." : cat.id === "automation" ? "IaC, configuration management, and CI/CD references." : "Multi-cloud architecture, managed services, and orchestration."}
                       </p>
                     </div>
@@ -941,14 +958,14 @@ export default function App() {
                         <div style={{ display: "flex", alignItems: "center", gap: "0.6rem", marginBottom: "0.75rem" }}>
                           <div style={{ width: 36, height: 36, background: t.lightColor, borderRadius: 8, display: "flex", alignItems: "center", justifyContent: "center", fontSize: "1.15rem", flexShrink: 0 }}>{t.icon}</div>
                           <div>
-                            <div style={{ fontWeight: 700, fontSize: "0.88rem", color: "#0B1220", lineHeight: 1.2 }}>{t.title}</div>
-                            <div style={{ fontSize: "0.65rem", color: t.color, fontWeight: 600, marginTop: 2 }}>{t.tagline}</div>
+                            <div style={{ fontWeight: 700, fontSize: "0.9rem", color: "#0B1220", lineHeight: 1.25 }}>{t.title}</div>
+                            <div style={{ fontSize: "0.7rem", color: t.color, fontWeight: 600, marginTop: 2 }}>{t.tagline}</div>
                           </div>
                         </div>
-                        <div style={{ fontSize: "0.76rem", color: "#64748B", lineHeight: 1.6, marginBottom: "0.85rem" }}>{t.description.substring(0, 80)}…</div>
+                        <div className="card-body clamp-3" style={{ marginBottom: "0.85rem" }}>{t.description}</div>
                         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-                          <span style={{ background: t.lightColor, color: t.color, padding: "0.18rem 0.55rem", borderRadius: 100, fontSize: "0.65rem", fontWeight: 700 }}>{t.pages.length} page{t.pages.length !== 1 ? "s" : ""}</span>
-                          <span style={{ fontSize: "0.7rem", color: "#94A3B8", fontWeight: 500 }}>Read →</span>
+                          <span style={{ background: t.lightColor, color: t.color, padding: "0.2rem 0.6rem", borderRadius: 6, fontSize: "0.7rem", fontWeight: 700 }}>{t.pages.length} page{t.pages.length !== 1 ? "s" : ""}</span>
+                          <span style={{ fontSize: "0.72rem", color: "#6B7280", fontWeight: 500 }}>Read →</span>
                         </div>
                       </div>
                     ))}
@@ -961,18 +978,18 @@ export default function App() {
             <section style={{ background: "linear-gradient(135deg, #0b1220 0%, #112240 100%)", padding: "48px 0" }}>
               <div style={{ maxWidth: 1200, margin: "0 auto", padding: "0 5%" }}>
                 <div style={{ display: "flex", gap: "3rem", alignItems: "flex-start", flexWrap: "wrap" }}>
-                  {/* Left label */}
-                  <div style={{ flex: "0 0 240px" }}>
-                    <div style={{ fontFamily: "'IBM Plex Mono', monospace", fontSize: "0.63rem", color: "#60A5FA", letterSpacing: "0.12em", textTransform: "uppercase", marginBottom: "0.5rem" }}>Knowledge Standards</div>
-                    <h2 style={{ fontFamily: "'Syne', sans-serif", fontSize: "clamp(1.2rem, 1.8vw, 1.5rem)", fontWeight: 800, color: "#F0F4FF", lineHeight: 1.2, letterSpacing: "-0.02em" }}>
+                  {/* Left label — with accent border */}
+                  <div style={{ flex: "0 0 230px", borderLeft: "3px solid #3B82F6", paddingLeft: "1rem" }}>
+                    <div className="section-eyebrow light">Knowledge Standards</div>
+                    <h2 style={{ fontFamily: "'Syne', sans-serif", fontSize: "clamp(1.15rem, 1.8vw, 1.45rem)", fontWeight: 800, color: "#F0F4FF", lineHeight: 1.2, letterSpacing: "-0.02em" }}>
                       ⭐ What to Expect from This Platform
                     </h2>
-                    <p style={{ fontSize: "0.78rem", color: "#475569", lineHeight: 1.75, marginTop: "0.5rem" }}>
-                      Every guide and resource is built to a consistent professional standard — grounded in real enterprise outcomes.
+                    <p style={{ fontSize: "0.82rem", color: "#7A8FA6", lineHeight: 1.7, marginTop: "0.5rem", textAlign: "left" }}>
+                      Every guide and resource built to a consistent professional standard — grounded in real enterprise outcomes.
                     </p>
                   </div>
-                  {/* Right grid — 7 items */}
-                  <div style={{ flex: 1, display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(200px, 1fr))", gap: "0.75rem" }}>
+                  {/* Right grid — 7 items, minmax(220px) avoids orphans */}
+                  <div style={{ flex: 1, display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(220px, 1fr))", gap: "0.75rem" }}>
                     {[
                       { icon: "🗄️", title: "Comprehensive Database Expertise",
                         desc: "Deep, specialized experience across SQL Server, Oracle, MySQL, PostgreSQL, and cloud platforms. Multi-platform, not single-vendor." },
@@ -983,18 +1000,18 @@ export default function App() {
                       { icon: "📈", title: "Performance Improvements with Business Impact",
                         desc: "Faster queries, better scalability, increased reliability, and reduced costs — including optimized licensing and infrastructure." },
                       { icon: "☁️", title: "Cloud Adoption & Modernization",
-                        desc: "Planning and executing migrations safely and efficiently — minimizing downtime and risk when moving to the cloud or modernizing legacy systems." },
+                        desc: "Planning and executing migrations safely and efficiently — minimizing downtime and risk when moving to cloud or modernizing legacy systems." },
                       { icon: "🎯", title: "Tailored Consulting, Not One-Size-Fits-All",
                         desc: "Tailored roadmaps and recommendations specific to your environment and business context — mid-market to large enterprise." },
                       { icon: "⚡", title: "Faster Problem Resolution",
                         desc: "Specialists focused solely on databases respond faster and with deeper insight, informed by patterns from many real-world engagements." },
                     ].map((item, i) => (
-                      <div key={i} style={{ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.07)", borderRadius: 10, padding: "1.1rem", transition: "background 0.2s" }}
-                        onMouseEnter={(e) => e.currentTarget.style.background = "rgba(255,255,255,0.08)"}
-                        onMouseLeave={(e) => e.currentTarget.style.background = "rgba(255,255,255,0.04)"}>
-                        <div style={{ fontSize: "1.2rem", marginBottom: "0.45rem" }}>{item.icon}</div>
-                        <div style={{ fontWeight: 700, fontSize: "0.82rem", color: "#E2E8F0", marginBottom: "0.3rem" }}>{item.title}</div>
-                        <div style={{ fontSize: "0.73rem", color: "#475569", lineHeight: 1.65 }}>{item.desc}</div>
+                      <div key={i} style={{ background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.08)", borderRadius: 10, padding: "1.15rem", transition: "background 0.2s" }}
+                        onMouseEnter={(e) => e.currentTarget.style.background = "rgba(255,255,255,0.09)"}
+                        onMouseLeave={(e) => e.currentTarget.style.background = "rgba(255,255,255,0.05)"}>
+                        <div style={{ fontSize: "1.25rem", marginBottom: "0.5rem" }}>{item.icon}</div>
+                        <div style={{ fontWeight: 700, fontSize: "0.88rem", color: "#E2E8F0", marginBottom: "0.35rem", lineHeight: 1.3 }}>{item.title}</div>
+                        <div className="card-body-dark">{item.desc}</div>
                       </div>
                     ))}
                   </div>
@@ -1007,14 +1024,14 @@ export default function App() {
               <div style={{ maxWidth: 1200, margin: "0 auto", padding: "0 5%" }}>
                 <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "1rem", flexWrap: "wrap", gap: "0.8rem" }}>
                   <div>
-                    <div style={{ fontFamily: "'IBM Plex Mono', monospace", fontSize: "0.63rem", color: "#1D4ED8", letterSpacing: "0.1em", textTransform: "uppercase", marginBottom: "0.2rem" }}>Platform Coverage</div>
+                    <div className="section-eyebrow dark">Platform Coverage</div>
                     <h3 style={{ fontFamily: "'Syne', sans-serif", fontSize: "1.05rem", fontWeight: 800, color: "#0B1220", letterSpacing: "-0.01em" }}>Multi-Platform Expertise Across Your Entire Stack</h3>
                   </div>
                   <button onClick={() => goBrowse()} className="btn" style={{ padding: "0.52rem 1.1rem", background: "#1D4ED8", color: "#fff", fontSize: "0.8rem" }}>
                     Explore All →
                   </button>
                 </div>
-                <div style={{ display: "flex", flexWrap: "wrap", gap: "0.45rem" }}>
+                <div style={{ display: "flex", flexWrap: "wrap", gap: "0.5rem" }}>
                   {[
                     { label: "Oracle 19c", color: "#C74634", light: "#FEF2F0" },
                     { label: "SQL Server", color: "#CC2927", light: "#FEF2F2" },
@@ -1031,7 +1048,7 @@ export default function App() {
                     { label: "HA & DR", color: "#7C3AED", light: "#F5F3FF" },
                     { label: "Security & TDE", color: "#0891B2", light: "#ECFEFF" },
                   ].map((tag, i) => (
-                    <span key={i} onClick={() => goBrowse()} style={{ background: tag.light, color: tag.color, border: `1px solid ${tag.color}20`, padding: "0.25rem 0.75rem", borderRadius: 100, fontSize: "0.72rem", fontWeight: 600, cursor: "pointer", transition: "all 0.15s" }}
+                    <span key={i} onClick={() => goBrowse()} style={{ background: tag.light, color: tag.color, border: `1px solid ${tag.color}25`, padding: "0.28rem 0.8rem", borderRadius: 6, fontSize: "0.76rem", fontWeight: 600, cursor: "pointer", transition: "all 0.15s" }}
                       onMouseEnter={(e) => { e.currentTarget.style.transform = "translateY(-1px)"; e.currentTarget.style.boxShadow = `0 3px 10px ${tag.color}25`; }}
                       onMouseLeave={(e) => { e.currentTarget.style.transform = ""; e.currentTarget.style.boxShadow = ""; }}>
                       {tag.label}
@@ -1182,9 +1199,9 @@ export default function App() {
         {/* ══════════ BROWSE VIEW ══════════ */}
         {view === "browse" && (
           <div className="fade-in">
-            <div style={{ background: "#fff", padding: "40px 6% 30px", borderBottom: "1px solid #E2E2EC" }}>
+            <div style={{ background: "#fff", padding: "36px 6% 28px", borderBottom: "1px solid #E1E7EF" }}>
               <Breadcrumb items={[{ label: "Home", fn: goHome }, { label: "Browse" }]} />
-              <h1 style={{ fontFamily: "'Playfair Display', serif", fontSize: "2rem", fontWeight: 900, marginTop: "0.8rem", marginBottom: "1rem" }}>Browse Topics</h1>
+              <h1 style={{ fontFamily: "'Syne', sans-serif", fontSize: "1.8rem", fontWeight: 800, marginTop: "0.75rem", marginBottom: "1rem", color: "#0B1220", letterSpacing: "-0.02em" }}>Browse Topics</h1>
               <div style={{ display: "flex", gap: "0.6rem", flexWrap: "wrap", marginBottom: "1rem" }}>
                 {[{ id: "all", label: "All", icon: "📚", color: "#2563EB" }, ...DEFAULT_CATEGORIES].map((c) => (
                   <button key={c.id} onClick={() => setFilterCat(c.id)} className="btn" style={{ padding: "0.4rem 1rem", background: filterCat === c.id ? (c.color || "#2563EB") : "#F3F4F6", color: filterCat === c.id ? "#fff" : "#374151", fontSize: "0.82rem" }}>
@@ -1263,16 +1280,16 @@ export default function App() {
         {/* ══════════ TOPIC VIEW ══════════ */}
         {view === "topic" && activeTopic && (
           <div className="fade-in">
-            <div style={{ background: "#fff", padding: "40px 6% 35px", borderBottom: "1px solid #E2E2EC" }}>
+            <div style={{ background: "#fff", padding: "36px 6% 30px", borderBottom: "1px solid #E1E7EF" }}>
               <Breadcrumb items={[{ label: "Home", fn: goHome }, { label: "Browse", fn: () => goBrowse() }, { label: activeTopic.title }]} />
-              <div style={{ display: "flex", gap: "1rem", alignItems: "flex-start", marginTop: "1.2rem", flexWrap: "wrap" }}>
-                <div style={{ fontSize: "3rem" }}>{activeTopic.icon}</div>
+              <div style={{ display: "flex", gap: "1rem", alignItems: "flex-start", marginTop: "1.1rem", flexWrap: "wrap" }}>
+                <div style={{ fontSize: "2.6rem", lineHeight: 1 }}>{activeTopic.icon}</div>
                 <div style={{ flex: 1 }}>
-                  <div style={{ fontSize: "0.72rem", fontWeight: 600, color: activeTopic.color, letterSpacing: "0.08em", textTransform: "uppercase", marginBottom: 4 }}>
-                    {CATEGORY_ICONS[activeTopic.category]} {activeTopic.category.toUpperCase()}
+                  <div style={{ fontFamily: "'IBM Plex Mono', monospace", fontSize: "0.68rem", fontWeight: 600, color: activeTopic.color, letterSpacing: "0.1em", textTransform: "uppercase", marginBottom: "0.3rem" }}>
+                    {CATEGORY_ICONS[activeTopic.category]} {activeTopic.category}
                   </div>
-                  <h1 style={{ fontFamily: "'Playfair Display', serif", fontSize: "2rem", fontWeight: 900, marginBottom: "0.5rem" }}>{activeTopic.title}</h1>
-                  <p style={{ color: "#6B7280", lineHeight: 1.7, maxWidth: 640 }}>{activeTopic.description}</p>
+                  <h1 style={{ fontFamily: "'Syne', sans-serif", fontSize: "1.9rem", fontWeight: 800, marginBottom: "0.5rem", color: "#0B1220", letterSpacing: "-0.025em" }}>{activeTopic.title}</h1>
+                  <p style={{ fontSize: "0.9rem", color: "#4B5563", lineHeight: 1.7, maxWidth: 640 }}>{activeTopic.description}</p>
                 </div>
                 {isAdmin && (
                   <button onClick={() => { setEditingPage({ title: "", content: "" }); setEditingPageTopicId(activeTopic.id); setView("admin"); setAdminView("edit-page"); }} className="btn"
@@ -1291,33 +1308,35 @@ export default function App() {
               ) : (
                 <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(280px,1fr))", gap: "1rem" }}>
                   {activeTopic.pages.map((page) => (
-                    <div key={page.id} style={{ background: "#fff", border: "1px solid #E2E2EC", borderRadius: 14, padding: "1.5rem" }}>
+                    <div key={page.id} style={{ background: "#fff", border: "1px solid #E1E7EF", borderRadius: 14, padding: "1.4rem", transition: "all 0.2s" }}
+                      onMouseEnter={e => { e.currentTarget.style.borderColor = "#C7D7F5"; e.currentTarget.style.boxShadow = "0 4px 20px rgba(29,78,216,0.07)"; }}
+                      onMouseLeave={e => { e.currentTarget.style.borderColor = "#E1E7EF"; e.currentTarget.style.boxShadow = ""; }}>
                       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
                         <div onClick={() => goPage(activeTopic, page)} style={{ flex: 1, cursor: "pointer" }}>
-                          <div style={{ fontWeight: 700, fontSize: "0.95rem", marginBottom: "0.3rem" }}>{page.title}</div>
-                          <div style={{ fontSize: "0.78rem", color: "#9CA3AF" }}>Updated: {page.lastUpdated}</div>
-                          <div style={{ fontSize: "0.82rem", color: "#6B7280", marginTop: "0.5rem", lineHeight: 1.5 }}>
-                            {page.content.replace(/```[\s\S]*?```/g,"[code]").replace(/\*\*/g,"").substring(0,100)}…
+                          <div style={{ fontWeight: 700, fontSize: "0.95rem", color: "#0B1220", marginBottom: "0.25rem", lineHeight: 1.3 }}>{page.title}</div>
+                          <div style={{ fontSize: "0.72rem", color: "#9CA3AF", marginBottom: "0.5rem" }}>Updated {page.lastUpdated}</div>
+                          <div className="clamp-3" style={{ fontSize: "0.84rem", color: "#4B5563", lineHeight: 1.65 }}>
+                            {page.content.replace(/```[\s\S]*?```/g,"[code block]").replace(/\*\*/g,"").replace(/^#+\s/gm,"").trim()}
                           </div>
                           {page.attachments && page.attachments.length > 0 && (
-                            <div style={{ display: "flex", gap: "0.3rem", marginTop: "0.5rem", flexWrap: "wrap" }}>
+                            <div style={{ display: "flex", gap: "0.3rem", marginTop: "0.55rem", flexWrap: "wrap" }}>
                               {page.attachments.map(att => {
                                 const icon = att.type?.includes("pdf") ? "📄" : att.type?.includes("presentation") || att.type?.includes("ppt") ? "📊" : "📝";
-                                return <span key={att.id} style={{ fontSize: "0.65rem", background: "#EEF2FF", color: "#4338CA", border: "1px solid #C7D2FE", padding: "0.1rem 0.4rem", borderRadius: 4 }}>{icon} {att.name.length > 18 ? att.name.slice(0,16)+"…" : att.name}</span>;
+                                return <span key={att.id} style={{ fontSize: "0.68rem", background: "#EEF2FF", color: "#3730A3", border: "1px solid #C7D2FE", padding: "0.12rem 0.45rem", borderRadius: 5 }}>{icon} {att.name.length > 20 ? att.name.slice(0,18)+"…" : att.name}</span>;
                               })}
                             </div>
                           )}
                         </div>
                         {isAdmin && (
-                          <div style={{ display: "flex", gap: "0.3rem", marginLeft: "0.5rem" }}>
+                          <div style={{ display: "flex", gap: "0.3rem", marginLeft: "0.5rem", flexShrink: 0 }}>
                             <button onClick={() => { setEditingPage(page); setEditingPageTopicId(activeTopic.id); setView("admin"); setAdminView("edit-page"); }}
-                              style={{ background: "#EFF6FF", color: "#2563EB", border: "none", borderRadius: 7, padding: "0.3rem 0.6rem", cursor: "pointer", fontSize: "0.78rem" }}>Edit</button>
+                              style={{ background: "#EFF6FF", color: "#1D4ED8", border: "none", borderRadius: 7, padding: "0.3rem 0.6rem", cursor: "pointer", fontSize: "0.75rem", fontWeight: 600 }}>Edit</button>
                             <button onClick={() => deletePage(activeTopic.id, page.id)}
-                              style={{ background: "#FEF2F2", color: "#EF4444", border: "none", borderRadius: 7, padding: "0.3rem 0.6rem", cursor: "pointer", fontSize: "0.78rem" }}>Del</button>
+                              style={{ background: "#FEF2F2", color: "#DC2626", border: "none", borderRadius: 7, padding: "0.3rem 0.6rem", cursor: "pointer", fontSize: "0.75rem", fontWeight: 600 }}>Del</button>
                           </div>
                         )}
                       </div>
-                      <div onClick={() => goPage(activeTopic, page)} style={{ marginTop: "1rem", fontSize: "0.78rem", color: "#2563EB", fontWeight: 600, cursor: "pointer" }}>Read more →</div>
+                      <div onClick={() => goPage(activeTopic, page)} style={{ marginTop: "0.9rem", fontSize: "0.8rem", color: "#1D4ED8", fontWeight: 600, cursor: "pointer" }}>Read more →</div>
                     </div>
                   ))}
                 </div>
@@ -1329,22 +1348,25 @@ export default function App() {
         {/* ══════════ PAGE VIEW ══════════ */}
         {view === "page" && activeTopic && activePage && (
           <div className="fade-in">
-            <div style={{ background: "#fff", padding: "35px 6% 28px", borderBottom: "1px solid #E2E2EC" }}>
+            <div style={{ background: "#fff", padding: "32px 6% 26px", borderBottom: "1px solid #E1E7EF" }}>
               <Breadcrumb items={[{ label: "Home", fn: goHome }, { label: "Browse", fn: () => goBrowse() }, { label: activeTopic.title, fn: () => goTopic(activeTopic) }, { label: activePage.title }]} />
-              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginTop: "1rem", flexWrap: "wrap", gap: "0.8rem" }}>
-                <div>
-                  <h1 style={{ fontFamily: "'Playfair Display', serif", fontSize: "1.8rem", fontWeight: 900 }}>{activePage.title}</h1>
-                  <div style={{ fontSize: "0.78rem", color: "#9CA3AF", marginTop: "0.3rem" }}>From <strong>{activeTopic.title}</strong> · Updated {activePage.lastUpdated}</div>
+              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginTop: "0.9rem", flexWrap: "wrap", gap: "0.8rem" }}>
+                <div style={{ flex: 1, minWidth: 0 }}>
+                  <div style={{ fontFamily: "'IBM Plex Mono', monospace", fontSize: "0.68rem", fontWeight: 600, color: activeTopic.color, letterSpacing: "0.1em", textTransform: "uppercase", marginBottom: "0.3rem" }}>{activeTopic.title}</div>
+                  <h1 style={{ fontFamily: "'Syne', sans-serif", fontSize: "1.75rem", fontWeight: 800, color: "#0B1220", letterSpacing: "-0.025em", lineHeight: 1.15 }}>{activePage.title}</h1>
+                  <div style={{ fontSize: "0.74rem", color: "#9CA3AF", marginTop: "0.35rem" }}>Last updated <strong style={{ color: "#6B7280" }}>{activePage.lastUpdated}</strong></div>
                 </div>
                 {isAdmin && (
                   <button onClick={() => { setEditingPage(activePage); setEditingPageTopicId(activeTopic.id); setView("admin"); setAdminView("edit-page"); }} className="btn"
-                    style={{ padding: "0.5rem 1.1rem", background: "#EFF6FF", color: "#2563EB", fontSize: "0.82rem" }}>✏️ Edit Page</button>
+                    style={{ padding: "0.5rem 1.1rem", background: "#EEF2FF", color: "#1D4ED8", border: "1px solid #C7D2FE", fontSize: "0.82rem" }}>✏️ Edit Page</button>
                 )}
               </div>
             </div>
             <div style={{ maxWidth: 820, margin: "0 auto", padding: "2.5rem 6%" }}>
-              <div style={{ background: "#fff", border: "1px solid #E2E2EC", borderRadius: 16, padding: "2.5rem", lineHeight: 1.8, fontSize: "0.93rem", color: "#2D2D44" }}
-                dangerouslySetInnerHTML={{ __html: renderContent(activePage.content) }} />
+              <div style={{ background: "#fff", border: "1px solid #E1E7EF", borderRadius: 16, padding: "2.5rem 3rem" }}>
+                <div style={{ maxWidth: "72ch", lineHeight: 1.75, fontSize: "0.92rem", color: "#374151" }}
+                  dangerouslySetInnerHTML={{ __html: renderContent(activePage.content) }} />
+              </div>
 
               {/* ── ATTACHMENTS DOWNLOAD SECTION ── */}
               {activePage.attachments && activePage.attachments.length > 0 && (
