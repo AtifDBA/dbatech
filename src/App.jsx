@@ -829,189 +829,215 @@ export default function App() {
           <div className="fade-in">
 
             {/* ── HERO ── */}
-            <section style={{ background: "linear-gradient(135deg, #0d1b2e 0%, #0f2a47 60%, #0a1f3a 100%)", padding: "72px 6% 64px", position: "relative", overflow: "hidden" }}>
-              {/* Background grid pattern */}
-              <div style={{ position: "absolute", inset: 0, backgroundImage: "linear-gradient(rgba(255,255,255,0.025) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.025) 1px, transparent 1px)", backgroundSize: "44px 44px", pointerEvents: "none" }} />
-              {/* Glow orb */}
-              <div style={{ position: "absolute", top: "-80px", right: "8%", width: 420, height: 420, background: "radial-gradient(circle, rgba(37,99,235,0.18) 0%, transparent 65%)", pointerEvents: "none" }} />
+            <section style={{ background: "linear-gradient(135deg, #0b1220 0%, #0f2544 60%, #0a1f3a 100%)", padding: "52px 0 48px", position: "relative", overflow: "hidden" }}>
+              <div style={{ position: "absolute", inset: 0, backgroundImage: "linear-gradient(rgba(255,255,255,0.022) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.022) 1px, transparent 1px)", backgroundSize: "44px 44px", pointerEvents: "none" }} />
+              <div style={{ position: "absolute", top: "-60px", right: "6%", width: 380, height: 380, background: "radial-gradient(circle, rgba(37,99,235,0.16) 0%, transparent 65%)", pointerEvents: "none" }} />
 
-              <div style={{ position: "relative", display: "flex", gap: "4rem", alignItems: "center", flexWrap: "wrap" }}>
-                {/* Left: headline */}
-                <div style={{ flex: "1 1 480px", minWidth: 0 }}>
-                  <div style={{ display: "inline-flex", alignItems: "center", gap: 8, background: "rgba(37,99,235,0.15)", color: "#60A5FA", border: "1px solid rgba(96,165,250,0.3)", borderRadius: 6, padding: "0.3rem 0.85rem", fontSize: "0.7rem", fontWeight: 700, letterSpacing: "0.12em", textTransform: "uppercase", marginBottom: "1.6rem" }}>
-                    <span style={{ width: 6, height: 6, background: "#22C55E", borderRadius: "50%", animation: "pulse 2s infinite" }} />
+              <div style={{ maxWidth: 1200, margin: "0 auto", padding: "0 5%", position: "relative", display: "flex", gap: "3rem", alignItems: "center", flexWrap: "wrap" }}>
+                {/* Left */}
+                <div style={{ flex: "1 1 420px", minWidth: 0 }}>
+                  <div style={{ display: "inline-flex", alignItems: "center", gap: 7, background: "rgba(37,99,235,0.15)", color: "#60A5FA", border: "1px solid rgba(96,165,250,0.3)", borderRadius: 6, padding: "0.28rem 0.8rem", fontSize: "0.65rem", fontWeight: 700, letterSpacing: "0.12em", textTransform: "uppercase", marginBottom: "1.3rem" }}>
+                    <span style={{ width: 6, height: 6, background: "#22C55E", borderRadius: "50%", animation: "pulse 2s infinite", flexShrink: 0 }} />
                     Enterprise Database Knowledge Platform
                   </div>
-                  <h1 style={{ fontFamily: "'Playfair Display', serif", fontSize: "clamp(2rem, 3.5vw, 3.1rem)", fontWeight: 900, lineHeight: 1.1, marginBottom: "1.25rem", color: "#F0F4FF", letterSpacing: "-0.02em" }}>
+                  <h1 style={{ fontFamily: "'Syne', sans-serif", fontSize: "clamp(1.8rem, 3vw, 2.75rem)", fontWeight: 800, lineHeight: 1.1, marginBottom: "1rem", color: "#F0F4FF", letterSpacing: "-0.03em" }}>
                     Deep-Dive Guides on<br />
                     <span style={{ color: "#60A5FA" }}>Enterprise Databases</span>,<br />
                     Cloud & Automation
                   </h1>
-                  <p style={{ fontSize: "1rem", color: "#94A3B8", lineHeight: 1.8, marginBottom: "2.2rem", maxWidth: 520, fontWeight: 300 }}>
-                    11+ years of enterprise experience distilled into practical technical guides — covering Oracle, SQL Server, PostgreSQL, MongoDB, AWS, Azure, and Kubernetes at production scale.
+                  <p style={{ fontSize: "0.93rem", color: "#64748B", lineHeight: 1.8, marginBottom: "1.8rem", maxWidth: 480 }}>
+                    11+ years of enterprise experience distilled into practical guides — covering Oracle, SQL Server, PostgreSQL, MongoDB, AWS, Azure, and Kubernetes at production scale.
                   </p>
-                  <div style={{ display: "flex", gap: "0.85rem", flexWrap: "wrap", alignItems: "center" }}>
-                    <button onClick={() => goBrowse()} className="btn" style={{ padding: "0.8rem 1.7rem", background: "#2563EB", color: "#fff", fontSize: "0.9rem", fontWeight: 600, borderRadius: 8, boxShadow: "0 4px 20px rgba(37,99,235,0.4)" }}>
+                  <div style={{ display: "flex", gap: "0.75rem", flexWrap: "wrap", alignItems: "center" }}>
+                    <button onClick={() => goBrowse()} className="btn" style={{ padding: "0.72rem 1.5rem", background: "#1D4ED8", color: "#fff", fontSize: "0.87rem", fontWeight: 600, boxShadow: "0 4px 18px rgba(29,78,216,0.4)" }}>
                       Explore Knowledge Base →
                     </button>
-                    <button onClick={() => goBrowse("databases")} className="btn" style={{ padding: "0.8rem 1.4rem", background: "rgba(255,255,255,0.07)", color: "#CBD5E1", border: "1px solid rgba(255,255,255,0.15)", fontSize: "0.88rem", fontWeight: 500, borderRadius: 8 }}>
+                    <button onClick={() => goBrowse("databases")} className="btn" style={{ padding: "0.72rem 1.25rem", background: "rgba(255,255,255,0.07)", color: "#CBD5E1", border: "1px solid rgba(255,255,255,0.13)", fontSize: "0.85rem" }}>
                       🗄️ Database Guides
                     </button>
                   </div>
                 </div>
 
-                {/* Right: stat cards */}
-                <div style={{ flex: "0 0 auto", display: "grid", gridTemplateColumns: "1fr 1fr", gap: "0.9rem" }}>
+                {/* Right: stat cards — compact 2x2 */}
+                <div style={{ flex: "0 0 auto", display: "grid", gridTemplateColumns: "1fr 1fr", gap: "0.75rem" }}>
                   {[
-                    { n: "11+", l: "Years Enterprise\nExperience",   icon: "📅", c: "#3B82F6" },
-                    { n: "5+",  l: "Database\nPlatforms",            icon: "🗄️", c: "#8B5CF6" },
-                    { n: "1K+", l: "Issues\nDiagnosed & Resolved",   icon: "✅", c: "#10B981" },
-                    { n: "∞",   l: "Pages of\nKnowledge",            icon: "📚", c: "#F59E0B" },
+                    { n: "11+", l: "Years Enterprise\nExperience", icon: "📅", c: "#3B82F6" },
+                    { n: "5+",  l: "Database\nPlatforms",          icon: "🗄️", c: "#8B5CF6" },
+                    { n: "1K+", l: "Issues\nResolved",             icon: "✅", c: "#10B981" },
+                    { n: "∞",   l: "Pages of\nKnowledge",          icon: "📚", c: "#F59E0B" },
                   ].map((s, i) => (
-                    <div key={i} style={{ background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.1)", borderRadius: 14, padding: "1.25rem 1.4rem", backdropFilter: "blur(8px)", minWidth: 130 }}>
-                      <div style={{ fontSize: "1.4rem", marginBottom: "0.4rem" }}>{s.icon}</div>
-                      <div style={{ fontFamily: "'Playfair Display', serif", fontSize: "1.9rem", fontWeight: 700, color: "#F0F4FF", lineHeight: 1, marginBottom: "0.35rem" }}>{s.n}</div>
-                      <div style={{ fontSize: "0.72rem", color: "#64748B", lineHeight: 1.4, whiteSpace: "pre-line" }}>{s.l}</div>
+                    <div key={i} style={{ background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.09)", borderRadius: 12, padding: "1rem 1.15rem", minWidth: 118, maxWidth: 148 }}>
+                      <div style={{ fontSize: "1.2rem", marginBottom: "0.35rem" }}>{s.icon}</div>
+                      <div style={{ fontFamily: "'Syne', sans-serif", fontSize: "1.65rem", fontWeight: 800, color: "#F0F4FF", lineHeight: 1, marginBottom: "0.28rem" }}>{s.n}</div>
+                      <div style={{ fontSize: "0.67rem", color: "#475569", lineHeight: 1.45, whiteSpace: "pre-line" }}>{s.l}</div>
                     </div>
                   ))}
                 </div>
               </div>
             </section>
 
-            {/* ── WHAT MAKES THIS PLATFORM EXCEPTIONAL ── */}
-            <section style={{ background: "#fff", padding: "56px 6%", borderBottom: "1px solid #E2E2EC" }}>
-              <div style={{ textAlign: "center", maxWidth: 600, margin: "0 auto 2.8rem" }}>
-                <div style={{ fontSize: "0.7rem", fontWeight: 700, color: "#2563EB", letterSpacing: "0.12em", textTransform: "uppercase", marginBottom: "0.6rem" }}>Why This Knowledge Base</div>
-                <h2 style={{ fontFamily: "'Playfair Display', serif", fontSize: "clamp(1.5rem, 2.5vw, 2.1rem)", fontWeight: 900, color: "#0D1B2E", lineHeight: 1.2, marginBottom: "0.8rem" }}>
-                  What Makes Exceptional Database Knowledge?
-                </h2>
-                <p style={{ fontSize: "0.9rem", color: "#6B7280", lineHeight: 1.8 }}>
-                  Before diving in, understand what separates deep enterprise database expertise from generic IT content.
-                </p>
-              </div>
-              <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(240px, 1fr))", gap: "1.5rem" }}>
-                {[
-                  { icon: "🎯", title: "Specialized Database Focus", color: "#2563EB", light: "#EFF6FF", desc: "Every guide focuses exclusively on database technologies — not generic IT overviews. This translates to deeper expertise and faster problem resolution grounded in real enterprise incidents." },
-                  { icon: "🔀", title: "Multi-Platform Expertise", color: "#7C3AED", light: "#F5F3FF", desc: "Enterprise environments rarely standardize on a single database. Guides cover SQL Server, Oracle, MySQL, PostgreSQL, and cloud-native databases — your entire ecosystem." },
-                  { icon: "⚡", title: "Strategic & Tactical Coverage", color: "#0891B2", light: "#ECFEFF", desc: "Both strategic architecture design and tactical troubleshooting. From high-level HA/DR patterns to low-level query plan analysis and index tuning scripts." },
-                  { icon: "🏭", title: "Production-Grade Context", color: "#059669", light: "#ECFDF5", desc: "All content is informed by real MNC-scale production environments — not lab setups. Includes compliance considerations, performance benchmarks, and failure scenarios." },
-                ].map((f, i) => (
-                  <div key={i} className="hover-lift" style={{ background: "#FAFAFA", border: "1px solid #E2E2EC", borderRadius: 16, padding: "1.75rem", position: "relative", overflow: "hidden" }}>
-                    <div style={{ position: "absolute", top: 0, left: 0, right: 0, height: 3, background: f.color }} />
-                    <div style={{ width: 44, height: 44, background: f.light, borderRadius: 10, display: "flex", alignItems: "center", justifyContent: "center", fontSize: "1.3rem", marginBottom: "1rem" }}>{f.icon}</div>
-                    <div style={{ fontWeight: 700, fontSize: "0.97rem", color: "#0D1B2E", marginBottom: "0.6rem" }}>{f.title}</div>
-                    <div style={{ fontSize: "0.83rem", color: "#6B7280", lineHeight: 1.7 }}>{f.desc}</div>
+            {/* ── CORE ATTRIBUTES OF EXCEPTIONAL DATABASE KNOWLEDGE ── */}
+            <section style={{ background: "#fff", padding: "48px 0 44px", borderBottom: "1px solid #E1E7EF" }}>
+              <div style={{ maxWidth: 1200, margin: "0 auto", padding: "0 5%" }}>
+                <div style={{ display: "flex", gap: "3rem", alignItems: "flex-start", flexWrap: "wrap" }}>
+                  {/* Left label column */}
+                  <div style={{ flex: "0 0 240px" }}>
+                    <div style={{ fontFamily: "'IBM Plex Mono', monospace", fontSize: "0.63rem", color: "#1D4ED8", letterSpacing: "0.12em", textTransform: "uppercase", marginBottom: "0.5rem" }}>Why This Knowledge Base</div>
+                    <h2 style={{ fontFamily: "'Syne', sans-serif", fontSize: "clamp(1.2rem, 1.8vw, 1.6rem)", fontWeight: 800, color: "#0B1220", lineHeight: 1.15, letterSpacing: "-0.02em", marginBottom: "0.65rem" }}>
+                      Core Attributes of Exceptional Database Knowledge
+                    </h2>
+                    <p style={{ fontSize: "0.8rem", color: "#64748B", lineHeight: 1.75 }}>
+                      What separates deep enterprise database expertise from generic IT content — and what you'll find here.
+                    </p>
                   </div>
-                ))}
+                  {/* Right cards grid */}
+                  <div style={{ flex: 1, display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(210px, 1fr))", gap: "0.85rem" }}>
+                    {[
+                      { icon: "🎯", title: "Deep, Specialized Focus", color: "#1D4ED8", light: "#EEF2FF",
+                        desc: "Expertise from professionals who specialize only in database technologies — enabling deeper insight into architecture, performance, and optimization across complex systems." },
+                      { icon: "🔀", title: "Multi-Platform Mastery", color: "#7C3AED", light: "#F5F3FF",
+                        desc: "Covers SQL Server, Oracle, MySQL, PostgreSQL, and cloud services (AWS, Azure, GCP). Not just one system — full heterogeneous environment architecture and optimization." },
+                      { icon: "⚡", title: "Strategic & Tactical Capability", color: "#0891B2", light: "#ECFEFF",
+                        desc: "Beyond solving immediate problems — includes strategic architecture design, proactive planning, migrations, performance tuning, and long-term optimization." },
+                      { icon: "🏥", title: "Industry-Specific Understanding", color: "#059669", light: "#ECFDF5",
+                        desc: "Real mastery includes healthcare compliance, financial services performance, and e-commerce scaling — with awareness of the regulatory challenges of each industry." },
+                      { icon: "📊", title: "Proven, Measurable Results", color: "#D97706", light: "#FFFBEB",
+                        desc: "Quantifiable improvements: performance gains, reduced costs, minimized downtime, and more efficient operations — backed by real outcomes and a strong track record." },
+                    ].map((f, i) => (
+                      <div key={i} className="hover-lift card" style={{ padding: "1.2rem", position: "relative", overflow: "hidden" }}>
+                        <div style={{ position: "absolute", top: 0, left: 0, right: 0, height: 3, background: f.color }} />
+                        <div style={{ width: 36, height: 36, background: f.light, borderRadius: 8, display: "flex", alignItems: "center", justifyContent: "center", fontSize: "1.05rem", marginBottom: "0.75rem" }}>{f.icon}</div>
+                        <div style={{ fontWeight: 700, fontSize: "0.85rem", color: "#0B1220", marginBottom: "0.4rem" }}>{f.title}</div>
+                        <div style={{ fontSize: "0.76rem", color: "#64748B", lineHeight: 1.65 }}>{f.desc}</div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
               </div>
             </section>
 
             {/* ── TOPIC SECTIONS BY CATEGORY ── */}
-            {byCategory.map((cat) => (
-              <section key={cat.id} style={{ padding: "52px 6% 44px", borderBottom: "1px solid #E2E2EC", background: cat.id === "automation" ? "#FAFAFA" : "#fff" }}>
-                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-end", marginBottom: "2rem", flexWrap: "wrap", gap: "1rem" }}>
-                  <div>
-                    <div style={{ fontSize: "0.7rem", fontWeight: 700, color: cat.color, letterSpacing: "0.12em", textTransform: "uppercase", marginBottom: "0.4rem" }}>{cat.icon} {cat.label}</div>
-                    <h2 style={{ fontFamily: "'Playfair Display', serif", fontSize: "1.7rem", fontWeight: 900, color: "#0D1B2E", lineHeight: 1.15 }}>
-                      {cat.id === "databases" ? "Database Platforms" : cat.id === "automation" ? "Automation & DevOps Tools" : "Cloud Infrastructure"}
-                    </h2>
-                    <p style={{ fontSize: "0.83rem", color: "#6B7280", marginTop: "0.35rem" }}>
-                      {cat.id === "databases" ? "Enterprise RDBMS, NoSQL, and cloud-native database guides." : cat.id === "automation" ? "IaC, configuration management, and CI/CD pipeline references." : "Multi-cloud architecture, managed services, and container orchestration."}
-                    </p>
+            {byCategory.map((cat, ci) => (
+              <section key={cat.id} style={{ padding: "40px 0 36px", borderBottom: "1px solid #E1E7EF", background: ci % 2 === 1 ? "#F8FAFC" : "#fff" }}>
+                <div style={{ maxWidth: 1200, margin: "0 auto", padding: "0 5%" }}>
+                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "1.4rem", flexWrap: "wrap", gap: "0.8rem" }}>
+                    <div>
+                      <div style={{ fontFamily: "'IBM Plex Mono', monospace", fontSize: "0.63rem", fontWeight: 600, color: cat.color, letterSpacing: "0.1em", textTransform: "uppercase", marginBottom: "0.3rem" }}>{cat.icon} {cat.label}</div>
+                      <h2 style={{ fontFamily: "'Syne', sans-serif", fontSize: "1.35rem", fontWeight: 800, color: "#0B1220", lineHeight: 1.15, letterSpacing: "-0.02em" }}>
+                        {cat.id === "databases" ? "Database Platforms" : cat.id === "automation" ? "Automation & DevOps" : "Cloud Infrastructure"}
+                      </h2>
+                      <p style={{ fontSize: "0.78rem", color: "#64748B", marginTop: "0.2rem" }}>
+                        {cat.id === "databases" ? "Enterprise RDBMS, NoSQL, and cloud-native guides." : cat.id === "automation" ? "IaC, configuration management, and CI/CD references." : "Multi-cloud architecture, managed services, and orchestration."}
+                      </p>
+                    </div>
+                    <button onClick={() => goBrowse(cat.id)} className="btn" style={{ padding: "0.48rem 1.1rem", background: cat.lightColor, color: cat.color, border: `1px solid ${cat.color}30`, fontSize: "0.8rem", fontWeight: 600, flexShrink: 0 }}>
+                      View All {cat.items.length} →
+                    </button>
                   </div>
-                  <button onClick={() => goBrowse(cat.id)} className="btn" style={{ padding: "0.55rem 1.2rem", background: cat.lightColor, color: cat.color, border: `1.5px solid ${cat.color}25`, fontSize: "0.83rem", flexShrink: 0 }}>
-                    View All {cat.items.length} →
-                  </button>
-                </div>
-                <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(240px, 1fr))", gap: "1.1rem" }}>
-                  {cat.items.map((t) => (
-                    <div key={t.id} onClick={() => goTopic(t)} className="hover-lift" style={{ background: "#fff", border: "1px solid #E2E2EC", borderRadius: 14, padding: "1.6rem", position: "relative", overflow: "hidden", cursor: "pointer" }}>
-                      <div style={{ position: "absolute", top: 0, left: 0, right: 0, height: 3, background: t.color }} />
-                      <div style={{ display: "flex", alignItems: "center", gap: "0.65rem", marginBottom: "0.9rem" }}>
-                        <div style={{ width: 40, height: 40, background: t.lightColor, borderRadius: 9, display: "flex", alignItems: "center", justifyContent: "center", fontSize: "1.3rem", flexShrink: 0 }}>{t.icon}</div>
-                        <div>
-                          <div style={{ fontWeight: 700, fontSize: "0.95rem", color: "#0D1B2E", lineHeight: 1.2 }}>{t.title}</div>
-                          <div style={{ fontSize: "0.7rem", color: t.color, fontWeight: 600, marginTop: 2 }}>{t.tagline}</div>
+                  <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(220px, 1fr))", gap: "0.9rem" }}>
+                    {cat.items.map((t) => (
+                      <div key={t.id} onClick={() => goTopic(t)} className="hover-lift card" style={{ padding: "1.25rem", position: "relative", overflow: "hidden", cursor: "pointer" }}>
+                        <div style={{ position: "absolute", top: 0, left: 0, right: 0, height: 3, background: t.color }} />
+                        <div style={{ display: "flex", alignItems: "center", gap: "0.6rem", marginBottom: "0.75rem" }}>
+                          <div style={{ width: 36, height: 36, background: t.lightColor, borderRadius: 8, display: "flex", alignItems: "center", justifyContent: "center", fontSize: "1.15rem", flexShrink: 0 }}>{t.icon}</div>
+                          <div>
+                            <div style={{ fontWeight: 700, fontSize: "0.88rem", color: "#0B1220", lineHeight: 1.2 }}>{t.title}</div>
+                            <div style={{ fontSize: "0.65rem", color: t.color, fontWeight: 600, marginTop: 2 }}>{t.tagline}</div>
+                          </div>
+                        </div>
+                        <div style={{ fontSize: "0.76rem", color: "#64748B", lineHeight: 1.6, marginBottom: "0.85rem" }}>{t.description.substring(0, 80)}…</div>
+                        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                          <span style={{ background: t.lightColor, color: t.color, padding: "0.18rem 0.55rem", borderRadius: 100, fontSize: "0.65rem", fontWeight: 700 }}>{t.pages.length} page{t.pages.length !== 1 ? "s" : ""}</span>
+                          <span style={{ fontSize: "0.7rem", color: "#94A3B8", fontWeight: 500 }}>Read →</span>
                         </div>
                       </div>
-                      <div style={{ fontSize: "0.8rem", color: "#6B7280", lineHeight: 1.65, marginBottom: "1rem" }}>{t.description.substring(0, 88)}…</div>
-                      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-                        <span style={{ background: t.lightColor, color: t.color, padding: "0.22rem 0.65rem", borderRadius: 100, fontSize: "0.7rem", fontWeight: 700 }}>{t.pages.length} page{t.pages.length !== 1 ? "s" : ""}</span>
-                        <span style={{ fontSize: "0.75rem", color: "#9CA3AF" }}>Read →</span>
-                      </div>
-                    </div>
-                  ))}
+                    ))}
+                  </div>
                 </div>
               </section>
             ))}
 
-            {/* ── WHAT TO EXPECT SECTION ── */}
-            <section style={{ background: "linear-gradient(135deg, #0d1b2e 0%, #112240 100%)", padding: "60px 6%" }}>
-              <div style={{ maxWidth: 860, margin: "0 auto" }}>
-                <div style={{ textAlign: "center", marginBottom: "2.8rem" }}>
-                  <div style={{ fontSize: "0.7rem", fontWeight: 700, color: "#60A5FA", letterSpacing: "0.12em", textTransform: "uppercase", marginBottom: "0.6rem" }}>Knowledge Standards</div>
-                  <h2 style={{ fontFamily: "'Playfair Display', serif", fontSize: "clamp(1.4rem, 2.2vw, 1.9rem)", fontWeight: 900, color: "#F0F4FF", lineHeight: 1.2, marginBottom: "0.8rem" }}>
-                    What to Expect from This Platform
-                  </h2>
-                  <p style={{ fontSize: "0.88rem", color: "#64748B", lineHeight: 1.8 }}>
-                    When you explore this knowledge base, every guide is built to a consistent professional standard.
-                  </p>
-                </div>
-                <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(240px, 1fr))", gap: "1rem" }}>
-                  {[
-                    { icon: "🔍", title: "Faster Problem Diagnosis", desc: "Patterns recognized from hundreds of real production incidents — not textbook scenarios." },
-                    { icon: "📈", title: "Proactive Recommendations", desc: "Optimization opportunities identified before they become problems, with measurable benchmarks." },
-                    { icon: "🎓", title: "Knowledge Transfer", desc: "Learn best practices and the reasoning behind them — not just prescriptive steps to follow blindly." },
-                    { icon: "⏱️", title: "Realistic Complexity", desc: "Honest about tradeoffs, edge cases, and failure modes at enterprise scale." },
-                    { icon: "📐", title: "Measurable Improvements", desc: "Performance gains, cost reductions, and security enhancements quantified with real data." },
-                    { icon: "🏢", title: "Enterprise Context", desc: "HIPAA, PCI-DSS, and SOC 2 compliance considerations woven into relevant guides." },
-                  ].map((item, i) => (
-                    <div key={i} style={{ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.08)", borderRadius: 12, padding: "1.4rem", transition: "background 0.2s" }}
-                      onMouseEnter={(e) => e.currentTarget.style.background = "rgba(255,255,255,0.07)"}
-                      onMouseLeave={(e) => e.currentTarget.style.background = "rgba(255,255,255,0.04)"}>
-                      <div style={{ fontSize: "1.4rem", marginBottom: "0.6rem" }}>{item.icon}</div>
-                      <div style={{ fontWeight: 700, fontSize: "0.88rem", color: "#E2E8F0", marginBottom: "0.4rem" }}>{item.title}</div>
-                      <div style={{ fontSize: "0.78rem", color: "#64748B", lineHeight: 1.65 }}>{item.desc}</div>
-                    </div>
-                  ))}
+            {/* ── WHAT TO EXPECT ── */}
+            <section style={{ background: "linear-gradient(135deg, #0b1220 0%, #112240 100%)", padding: "48px 0" }}>
+              <div style={{ maxWidth: 1200, margin: "0 auto", padding: "0 5%" }}>
+                <div style={{ display: "flex", gap: "3rem", alignItems: "flex-start", flexWrap: "wrap" }}>
+                  {/* Left label */}
+                  <div style={{ flex: "0 0 240px" }}>
+                    <div style={{ fontFamily: "'IBM Plex Mono', monospace", fontSize: "0.63rem", color: "#60A5FA", letterSpacing: "0.12em", textTransform: "uppercase", marginBottom: "0.5rem" }}>Knowledge Standards</div>
+                    <h2 style={{ fontFamily: "'Syne', sans-serif", fontSize: "clamp(1.2rem, 1.8vw, 1.5rem)", fontWeight: 800, color: "#F0F4FF", lineHeight: 1.2, letterSpacing: "-0.02em" }}>
+                      ⭐ What to Expect from This Platform
+                    </h2>
+                    <p style={{ fontSize: "0.78rem", color: "#475569", lineHeight: 1.75, marginTop: "0.5rem" }}>
+                      Every guide and resource is built to a consistent professional standard — grounded in real enterprise outcomes.
+                    </p>
+                  </div>
+                  {/* Right grid — 7 items */}
+                  <div style={{ flex: 1, display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(200px, 1fr))", gap: "0.75rem" }}>
+                    {[
+                      { icon: "🗄️", title: "Comprehensive Database Expertise",
+                        desc: "Deep, specialized experience across SQL Server, Oracle, MySQL, PostgreSQL, and cloud platforms. Multi-platform, not single-vendor." },
+                      { icon: "🏗️", title: "Strategic & Operational Support",
+                        desc: "Performance optimization, architecture design, migrations, upgrades, and consulting aligned with your business goals." },
+                      { icon: "📡", title: "24/7 Monitoring & Proactive Management",
+                        desc: "Continuous monitoring catches issues before they impact performance — expert support when problems arise, not just reactive help." },
+                      { icon: "📈", title: "Performance Improvements with Business Impact",
+                        desc: "Faster queries, better scalability, increased reliability, and reduced costs — including optimized licensing and infrastructure." },
+                      { icon: "☁️", title: "Cloud Adoption & Modernization",
+                        desc: "Planning and executing migrations safely and efficiently — minimizing downtime and risk when moving to the cloud or modernizing legacy systems." },
+                      { icon: "🎯", title: "Tailored Consulting, Not One-Size-Fits-All",
+                        desc: "Tailored roadmaps and recommendations specific to your environment and business context — mid-market to large enterprise." },
+                      { icon: "⚡", title: "Faster Problem Resolution",
+                        desc: "Specialists focused solely on databases respond faster and with deeper insight, informed by patterns from many real-world engagements." },
+                    ].map((item, i) => (
+                      <div key={i} style={{ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.07)", borderRadius: 10, padding: "1.1rem", transition: "background 0.2s" }}
+                        onMouseEnter={(e) => e.currentTarget.style.background = "rgba(255,255,255,0.08)"}
+                        onMouseLeave={(e) => e.currentTarget.style.background = "rgba(255,255,255,0.04)"}>
+                        <div style={{ fontSize: "1.2rem", marginBottom: "0.45rem" }}>{item.icon}</div>
+                        <div style={{ fontWeight: 700, fontSize: "0.82rem", color: "#E2E8F0", marginBottom: "0.3rem" }}>{item.title}</div>
+                        <div style={{ fontSize: "0.73rem", color: "#475569", lineHeight: 1.65 }}>{item.desc}</div>
+                      </div>
+                    ))}
+                  </div>
                 </div>
               </div>
             </section>
 
             {/* ── PLATFORM COVERAGE STRIP ── */}
-            <section style={{ background: "#fff", padding: "40px 6%", borderBottom: "1px solid #E2E2EC" }}>
-              <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: "1.5rem" }}>
-                <div>
-                  <div style={{ fontSize: "0.7rem", fontWeight: 700, color: "#2563EB", letterSpacing: "0.12em", textTransform: "uppercase", marginBottom: "0.3rem" }}>Platform Coverage</div>
-                  <h3 style={{ fontFamily: "'Playfair Display', serif", fontSize: "1.3rem", fontWeight: 900, color: "#0D1B2E" }}>Multi-Platform Expertise Across Your Entire Stack</h3>
+            <section style={{ background: "#fff", padding: "32px 0", borderTop: "1px solid #E1E7EF" }}>
+              <div style={{ maxWidth: 1200, margin: "0 auto", padding: "0 5%" }}>
+                <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "1rem", flexWrap: "wrap", gap: "0.8rem" }}>
+                  <div>
+                    <div style={{ fontFamily: "'IBM Plex Mono', monospace", fontSize: "0.63rem", color: "#1D4ED8", letterSpacing: "0.1em", textTransform: "uppercase", marginBottom: "0.2rem" }}>Platform Coverage</div>
+                    <h3 style={{ fontFamily: "'Syne', sans-serif", fontSize: "1.05rem", fontWeight: 800, color: "#0B1220", letterSpacing: "-0.01em" }}>Multi-Platform Expertise Across Your Entire Stack</h3>
+                  </div>
+                  <button onClick={() => goBrowse()} className="btn" style={{ padding: "0.52rem 1.1rem", background: "#1D4ED8", color: "#fff", fontSize: "0.8rem" }}>
+                    Explore All →
+                  </button>
                 </div>
-                <button onClick={() => goBrowse()} className="btn" style={{ padding: "0.65rem 1.4rem", background: "#2563EB", color: "#fff", fontSize: "0.85rem", fontWeight: 600 }}>
-                  Explore All Topics →
-                </button>
-              </div>
-              <div style={{ display: "flex", flexWrap: "wrap", gap: "0.6rem", marginTop: "1.5rem" }}>
-                {[
-                  { label: "Oracle 19c", color: "#C74634", light: "#FEF2F0" },
-                  { label: "SQL Server", color: "#CC2927", light: "#FEF2F2" },
-                  { label: "PostgreSQL", color: "#336791", light: "#EFF6FF" },
-                  { label: "MySQL", color: "#F29111", light: "#FFFBEB" },
-                  { label: "MongoDB", color: "#4CAF50", light: "#F0FDF4" },
-                  { label: "Azure SQL", color: "#0078D4", light: "#EFF6FF" },
-                  { label: "AWS RDS", color: "#FF9900", light: "#FFFBEB" },
-                  { label: "Kubernetes", color: "#326CE5", light: "#EFF6FF" },
-                  { label: "Terraform", color: "#7B42BC", light: "#F5F3FF" },
-                  { label: "Ansible", color: "#EE0000", light: "#FFF1F1" },
-                  { label: "CI/CD", color: "#0EA5E9", light: "#F0F9FF" },
-                  { label: "Performance Tuning", color: "#059669", light: "#ECFDF5" },
-                  { label: "HA & DR", color: "#7C3AED", light: "#F5F3FF" },
-                  { label: "Security & TDE", color: "#0891B2", light: "#ECFEFF" },
-                ].map((tag, i) => (
-                  <span key={i} onClick={() => goBrowse()} style={{ background: tag.light, color: tag.color, border: `1px solid ${tag.color}20`, padding: "0.3rem 0.85rem", borderRadius: 100, fontSize: "0.75rem", fontWeight: 600, cursor: "pointer", transition: "all 0.15s" }}
-                    onMouseEnter={(e) => { e.currentTarget.style.transform = "translateY(-1px)"; e.currentTarget.style.boxShadow = `0 4px 12px ${tag.color}20`; }}
-                    onMouseLeave={(e) => { e.currentTarget.style.transform = ""; e.currentTarget.style.boxShadow = ""; }}>
-                    {tag.label}
-                  </span>
-                ))}
+                <div style={{ display: "flex", flexWrap: "wrap", gap: "0.45rem" }}>
+                  {[
+                    { label: "Oracle 19c", color: "#C74634", light: "#FEF2F0" },
+                    { label: "SQL Server", color: "#CC2927", light: "#FEF2F2" },
+                    { label: "PostgreSQL", color: "#336791", light: "#EFF6FF" },
+                    { label: "MySQL", color: "#F29111", light: "#FFFBEB" },
+                    { label: "MongoDB", color: "#4CAF50", light: "#F0FDF4" },
+                    { label: "Azure SQL", color: "#0078D4", light: "#EFF6FF" },
+                    { label: "AWS RDS", color: "#FF9900", light: "#FFFBEB" },
+                    { label: "Kubernetes", color: "#326CE5", light: "#EFF6FF" },
+                    { label: "Terraform", color: "#7B42BC", light: "#F5F3FF" },
+                    { label: "Ansible", color: "#EE0000", light: "#FFF1F1" },
+                    { label: "CI/CD", color: "#0EA5E9", light: "#F0F9FF" },
+                    { label: "Performance Tuning", color: "#059669", light: "#ECFDF5" },
+                    { label: "HA & DR", color: "#7C3AED", light: "#F5F3FF" },
+                    { label: "Security & TDE", color: "#0891B2", light: "#ECFEFF" },
+                  ].map((tag, i) => (
+                    <span key={i} onClick={() => goBrowse()} style={{ background: tag.light, color: tag.color, border: `1px solid ${tag.color}20`, padding: "0.25rem 0.75rem", borderRadius: 100, fontSize: "0.72rem", fontWeight: 600, cursor: "pointer", transition: "all 0.15s" }}
+                      onMouseEnter={(e) => { e.currentTarget.style.transform = "translateY(-1px)"; e.currentTarget.style.boxShadow = `0 3px 10px ${tag.color}25`; }}
+                      onMouseLeave={(e) => { e.currentTarget.style.transform = ""; e.currentTarget.style.boxShadow = ""; }}>
+                      {tag.label}
+                    </span>
+                  ))}
+                </div>
               </div>
             </section>
 
