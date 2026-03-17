@@ -1,0 +1,12 @@
+[
+  {
+    "id": "doc-001",
+    "title": "SELECT Without FROM Clause in Oracle Database 23ai / 26ai",
+    "description": "Explores the new Oracle 23ai feature that allows SELECT statements without a FROM clause, similar to other SQL dialects.",
+    "category": "oracle",
+    "filename": "SELECTWithoutFROMClauseinOracleDatabase23ai_26ai.pdf",
+    "type": "application/pdf",
+    "url": "https://cdn.jsdelivr.net/gh/AtifDBA/AtifDBA@main/SELECTWithoutFROMClauseinOracleDatabase23ai_26ai.pdf",
+    "uploadedAt": "2026-03-17"
+  }
+]
