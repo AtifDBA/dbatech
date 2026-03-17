@@ -2266,45 +2266,35 @@ function PageEditor({ page, topicId, topics, onSave, onCancel }) {
 // Read-only: text is selectable/copyable, no download exposed
 // ══════════════════════════════════════════════════════════════════════
 function DocxViewer({ data, name }) {
-  const [html, setHtml]     = useState("");
+  const [html, setHtml]       = useState("");
   const [loading, setLoading] = useState(true);
-  const [error, setError]   = useState("");
+  const [error, setError]     = useState("");
 
   useEffect(() => {
     if (!data) return;
     setLoading(true); setError(""); setHtml("");
 
-    // data is a base64 data URL — convert to ArrayBuffer for mammoth
-    const base64 = data.split(",")[1];
-    if (!base64) { setError("Could not read file data."); setLoading(false); return; }
+    const convert = () => {
+      const base64 = data.split(",")[1];
+      if (!base64) { setError("Could not read file data."); setLoading(false); return; }
+      const binary = atob(base64);
+      const bytes  = new Uint8Array(binary.length);
+      for (let i = 0; i < binary.length; i++) bytes[i] = binary.charCodeAt(i);
+      window.mammoth
+        .convertToHtml({ arrayBuffer: bytes.buffer })
+        .then(result => { setHtml(result.value); setLoading(false); })
+        .catch(err  => { setError("Could not render document. " + (err?.message || "")); setLoading(false); });
+    };
 
-    const binary = atob(base64);
-    const bytes  = new Uint8Array(binary.length);
-    for (let i = 0; i < binary.length; i++) bytes[i] = binary.charCodeAt(i);
-
-    import("https://cdn.jsdelivr.net/npm/mammoth@1.8.0/mammoth.browser.min.js")
-      .catch(() => {
-        // fallback: load via script tag
-        return new Promise((resolve, reject) => {
-          if (window.mammoth) { resolve(); return; }
-          const s = document.createElement("script");
-          s.src = "https://cdn.jsdelivr.net/npm/mammoth@1.8.0/mammoth.browser.min.js";
-          s.onload = resolve; s.onerror = reject;
-          document.head.appendChild(s);
-        });
-      })
-      .then(() => {
-        const mammoth = window.mammoth;
-        return mammoth.convertToHtml({ arrayBuffer: bytes.buffer });
-      })
-      .then(result => {
-        setHtml(result.value);
-        setLoading(false);
-      })
-      .catch(err => {
-        setError("Could not render this document. " + (err?.message || ""));
-        setLoading(false);
-      });
+    if (window.mammoth) {
+      convert();
+    } else {
+      const s = document.createElement("script");
+      s.src = "https://cdn.jsdelivr.net/npm/mammoth@1.8.0/mammoth.browser.min.js";
+      s.onload  = convert;
+      s.onerror = () => { setError("Could not load document renderer."); setLoading(false); };
+      document.head.appendChild(s);
+    }
   }, [data]);
 
   if (loading) return (
