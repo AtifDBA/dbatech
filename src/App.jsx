@@ -1801,9 +1801,8 @@ export default function App() {
                           </div>
                           <div style={{ display: "flex", gap: "0.5rem", flexShrink: 0 }}>
                             {doc.type === "application/pdf" && (
-                              <button onClick={() => { goDocs(); setDocsViewFile(doc); }} style={{ padding: "0.35rem 0.8rem", background: "#EFF6FF", color: "#2563EB", border: "none", borderRadius: 7, cursor: "pointer", fontSize: "0.78rem", fontWeight: 600 }}>View</button>
+                              <button onClick={() => { goDocs(); setDocsViewFile(doc); }} style={{ padding: "0.35rem 0.8rem", background: "#EFF6FF", color: "#2563EB", border: "none", borderRadius: 7, cursor: "pointer", fontSize: "0.78rem", fontWeight: 600 }}>Preview</button>
                             )}
-                            <a href={doc.data} download={doc.name} style={{ padding: "0.35rem 0.8rem", background: "#F4F6F9", color: "#374151", border: "none", borderRadius: 7, cursor: "pointer", fontSize: "0.78rem", fontWeight: 600, textDecoration: "none", display: "inline-flex", alignItems: "center" }}>⬇ DL</a>
                             <button onClick={() => deleteDoc(doc.id)} style={{ padding: "0.35rem 0.8rem", background: "#FEF2F2", color: "#EF4444", border: "none", borderRadius: 7, cursor: "pointer", fontSize: "0.78rem", fontWeight: 600 }}>Delete</button>
                           </div>
                         </div>
@@ -1837,7 +1836,7 @@ export default function App() {
                   📎 Documents & Resources
                 </h1>
                 <p style={{ fontSize: "0.9rem", color: "#9CAABD", maxWidth: 540, lineHeight: 1.7 }}>
-                  PDF guides, PPTX presentations, and DOCX documents — all free to download.
+                  PDF guides, PPTX presentations, and DOCX documents — read and copy content freely. 📖
                 </p>
                 <div style={{ display: "flex", alignItems: "center", gap: "0.6rem", marginTop: "1.2rem", flexWrap: "wrap" }}>
                   {[
@@ -1911,16 +1910,17 @@ export default function App() {
                           {doc.description && <p style={{ fontSize: "0.78rem", color: "#64748B", lineHeight: 1.6, margin: 0 }}>{doc.description}</p>}
                           <div style={{ fontSize: "0.7rem", color: "#94A3B8" }}>Uploaded {doc.uploadedAt}</div>
                           <div style={{ display: "flex", gap: "0.5rem", marginTop: "auto" }}>
-                            {doc.type === "application/pdf" && (
-                              <button onClick={() => setDocsViewFile(doc)}
-                                style={{ flex: 1, padding: "0.55rem 0", borderRadius: 8, border: "1.5px solid #1D4ED8", background: "#fff", color: "#1D4ED8", cursor: "pointer", fontSize: "0.8rem", fontWeight: 600, fontFamily: "inherit" }}>
-                                👁 View
-                              </button>
+                            <button onClick={() => setDocsViewFile(doc)}
+                              style={{ flex: 1, padding: "0.55rem 0", borderRadius: 8, border: "1.5px solid #1D4ED8", background: "#EEF2FF", color: "#1D4ED8", cursor: "pointer", fontSize: "0.8rem", fontWeight: 600, fontFamily: "inherit" }}>
+                              👁 Read
+                            </button>
+                            {isAdmin && (
+                              <a href={doc.data} download={doc.name}
+                                style={{ padding: "0.55rem 0.9rem", borderRadius: 8, border: "1.5px solid #64748B", background: "#F8FAFC", color: "#374151", cursor: "pointer", fontSize: "0.75rem", fontWeight: 600, textDecoration: "none", display: "inline-flex", alignItems: "center", gap: "0.3rem" }}
+                                title="Admin only — download">
+                                ⬇
+                              </a>
                             )}
-                            <a href={doc.data} download={doc.name}
-                              style={{ flex: 1, padding: "0.55rem 0", borderRadius: 8, border: "none", background: "#1D4ED8", color: "#fff", cursor: "pointer", fontSize: "0.8rem", fontWeight: 600, textDecoration: "none", textAlign: "center", display: "inline-flex", alignItems: "center", justifyContent: "center", gap: "0.3rem" }}>
-                              ⬇ Download
-                            </a>
                           </div>
                           {isAdmin && (
                             <button onClick={() => deleteDoc(doc.id)}
@@ -1936,21 +1936,55 @@ export default function App() {
               })()}
             </div>
 
-            {/* PDF Viewer Modal */}
+            {/* ── READ-ONLY DOCUMENT VIEWER MODAL ── */}
             {docsViewFile && (
-              <div onClick={() => setDocsViewFile(null)} style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.7)", backdropFilter: "blur(4px)", display: "flex", alignItems: "center", justifyContent: "center", zIndex: 9999, padding: "1rem" }}>
-                <div onClick={e => e.stopPropagation()} style={{ background: "#fff", borderRadius: 16, overflow: "hidden", width: "92vw", maxWidth: 1000, height: "90vh", display: "flex", flexDirection: "column", boxShadow: "0 25px 80px rgba(0,0,0,0.4)" }}>
-                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "1rem 1.4rem", borderBottom: "1px solid #E1E7EF", flexShrink: 0, background: "#F8FAFC" }}>
-                    <div>
-                      <div style={{ fontWeight: 700, fontSize: "0.95rem", color: "#0B1220" }}>{docsViewFile.title || docsViewFile.name}</div>
-                      <div style={{ fontSize: "0.72rem", color: "#94A3B8", marginTop: "0.1rem" }}>{docsViewFile.name}</div>
+              <div onClick={() => setDocsViewFile(null)} style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.75)", backdropFilter: "blur(4px)", display: "flex", alignItems: "center", justifyContent: "center", zIndex: 9999, padding: "1rem" }}>
+                <div onClick={e => e.stopPropagation()} style={{ background: "#fff", borderRadius: 16, overflow: "hidden", width: "92vw", maxWidth: 1060, height: "92vh", display: "flex", flexDirection: "column", boxShadow: "0 25px 80px rgba(0,0,0,0.45)" }}>
+
+                  {/* Modal header */}
+                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "0.9rem 1.4rem", borderBottom: "1px solid #E1E7EF", flexShrink: 0, background: "#F8FAFC" }}>
+                    <div style={{ display: "flex", alignItems: "center", gap: "0.75rem" }}>
+                      <span style={{ fontSize: "1.4rem" }}>
+                        {docsViewFile.type === "application/pdf" ? "📄" : docsViewFile.type?.includes("word") ? "📝" : "📎"}
+                      </span>
+                      <div>
+                        <div style={{ fontWeight: 700, fontSize: "0.95rem", color: "#0B1220" }}>{docsViewFile.title || docsViewFile.name}</div>
+                        <div style={{ fontSize: "0.7rem", color: "#94A3B8", marginTop: "0.1rem", display: "flex", alignItems: "center", gap: "0.4rem" }}>
+                          <span style={{ background: "#FEF3C7", color: "#92400E", padding: "0.1rem 0.45rem", borderRadius: 4, fontWeight: 600, fontSize: "0.65rem" }}>👁 READ ONLY</span>
+                          <span>{docsViewFile.name}</span>
+                        </div>
+                      </div>
                     </div>
-                    <div style={{ display: "flex", gap: "0.6rem" }}>
-                      <a href={docsViewFile.data} download={docsViewFile.name} style={{ padding: "0.55rem 1.1rem", background: "#1D4ED8", color: "#fff", borderRadius: 8, fontSize: "0.82rem", fontWeight: 600, textDecoration: "none", display: "inline-flex", alignItems: "center", gap: "0.3rem" }}>⬇ Download</a>
-                      <button onClick={() => setDocsViewFile(null)} style={{ padding: "0.55rem 1rem", background: "#F1F5F9", border: "1px solid #E1E7EF", borderRadius: 8, cursor: "pointer", fontSize: "0.82rem", color: "#64748B", fontFamily: "inherit" }}>✕ Close</button>
+                    <div style={{ display: "flex", gap: "0.6rem", alignItems: "center" }}>
+                      {isAdmin && (
+                        <a href={docsViewFile.data} download={docsViewFile.name}
+                          style={{ padding: "0.5rem 1rem", background: "#1D4ED8", color: "#fff", borderRadius: 8, fontSize: "0.78rem", fontWeight: 600, textDecoration: "none", display: "inline-flex", alignItems: "center", gap: "0.3rem" }}>
+                          ⬇ Admin Download
+                        </a>
+                      )}
+                      <button onClick={() => setDocsViewFile(null)}
+                        style={{ padding: "0.5rem 1rem", background: "#F1F5F9", border: "1px solid #E1E7EF", borderRadius: 8, cursor: "pointer", fontSize: "0.82rem", color: "#64748B", fontFamily: "inherit" }}>
+                        ✕ Close
+                      </button>
                     </div>
                   </div>
-                  <iframe src={docsViewFile.data} style={{ flex: 1, border: "none", width: "100%" }} title={docsViewFile.name} />
+
+                  {/* Viewer body */}
+                  <div style={{ flex: 1, overflow: "hidden", position: "relative" }}>
+                    {docsViewFile.type === "application/pdf" ? (
+                      // PDF — hide toolbar with #toolbar=0&navpanes=0, no download exposed
+                      <iframe
+                        src={docsViewFile.data + "#toolbar=0&navpanes=0&scrollbar=1&view=FitH"}
+                        style={{ width: "100%", height: "100%", border: "none" }}
+                        title={docsViewFile.name}
+                        sandbox="allow-scripts allow-same-origin"
+                      />
+                    ) : (
+                      // DOCX / DOC — render inline with mammoth.js
+                      <DocxViewer data={docsViewFile.data} name={docsViewFile.name} />
+                    )}
+                  </div>
+
                 </div>
               </div>
             )}
@@ -2223,6 +2257,91 @@ function PageEditor({ page, topicId, topics, onSave, onCancel }) {
           <button onClick={onCancel} className="btn" style={{ flex: 1, padding: "0.8rem", background: "#F4F6F9", color: "#374151", fontSize: "0.92rem", border: "1px solid #E1E7EF" }}>Cancel</button>
         </div>
       </div>
+    </div>
+  );
+}
+
+// ══════════════════════════════════════════════════════════════════════
+// 📝 DOCX INLINE VIEWER — uses mammoth.js to render Word docs as HTML
+// Read-only: text is selectable/copyable, no download exposed
+// ══════════════════════════════════════════════════════════════════════
+function DocxViewer({ data, name }) {
+  const [html, setHtml]     = useState("");
+  const [loading, setLoading] = useState(true);
+  const [error, setError]   = useState("");
+
+  useEffect(() => {
+    if (!data) return;
+    setLoading(true); setError(""); setHtml("");
+
+    // data is a base64 data URL — convert to ArrayBuffer for mammoth
+    const base64 = data.split(",")[1];
+    if (!base64) { setError("Could not read file data."); setLoading(false); return; }
+
+    const binary = atob(base64);
+    const bytes  = new Uint8Array(binary.length);
+    for (let i = 0; i < binary.length; i++) bytes[i] = binary.charCodeAt(i);
+
+    import("https://cdn.jsdelivr.net/npm/mammoth@1.8.0/mammoth.browser.min.js")
+      .catch(() => {
+        // fallback: load via script tag
+        return new Promise((resolve, reject) => {
+          if (window.mammoth) { resolve(); return; }
+          const s = document.createElement("script");
+          s.src = "https://cdn.jsdelivr.net/npm/mammoth@1.8.0/mammoth.browser.min.js";
+          s.onload = resolve; s.onerror = reject;
+          document.head.appendChild(s);
+        });
+      })
+      .then(() => {
+        const mammoth = window.mammoth;
+        return mammoth.convertToHtml({ arrayBuffer: bytes.buffer });
+      })
+      .then(result => {
+        setHtml(result.value);
+        setLoading(false);
+      })
+      .catch(err => {
+        setError("Could not render this document. " + (err?.message || ""));
+        setLoading(false);
+      });
+  }, [data]);
+
+  if (loading) return (
+    <div style={{ display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", height: "100%", gap: "1rem", color: "#64748B" }}>
+      <div style={{ fontSize: "2.5rem", animation: "pulse 1.5s infinite" }}>📝</div>
+      <div style={{ fontWeight: 600 }}>Rendering document…</div>
+      <div style={{ fontSize: "0.8rem", color: "#94A3B8" }}>{name}</div>
+    </div>
+  );
+
+  if (error) return (
+    <div style={{ display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", height: "100%", gap: "0.8rem", color: "#DC2626", padding: "2rem", textAlign: "center" }}>
+      <div style={{ fontSize: "2rem" }}>⚠️</div>
+      <div style={{ fontWeight: 600, color: "#374151" }}>Could not render document</div>
+      <div style={{ fontSize: "0.82rem", color: "#64748B" }}>{error}</div>
+    </div>
+  );
+
+  return (
+    <div style={{ height: "100%", overflowY: "auto", background: "#f9f9f9", padding: "2rem" }}
+      onContextMenu={e => e.preventDefault()}>
+      <div style={{
+        maxWidth: 860, margin: "0 auto", background: "#fff",
+        padding: "3rem 4rem", boxShadow: "0 2px 16px rgba(0,0,0,0.08)",
+        borderRadius: 8, fontSize: "0.95rem", lineHeight: 1.8, color: "#1a1a1a",
+        userSelect: "text", // allow text selection & copy
+      }}
+        dangerouslySetInnerHTML={{ __html: html }}
+      />
+      <style>{`
+        .docx-viewer-wrap h1,.docx-viewer-wrap h2,.docx-viewer-wrap h3{font-family:'Syne',sans-serif;color:#0B1220;margin-top:1.5rem}
+        .docx-viewer-wrap table{border-collapse:collapse;width:100%;margin:1rem 0}
+        .docx-viewer-wrap td,.docx-viewer-wrap th{border:1px solid #E1E7EF;padding:0.5rem 0.75rem;font-size:0.88rem}
+        .docx-viewer-wrap th{background:#F8FAFC;font-weight:700}
+        .docx-viewer-wrap p{margin-bottom:0.75rem}
+        .docx-viewer-wrap img{max-width:100%;height:auto}
+      `}</style>
     </div>
   );
 }
